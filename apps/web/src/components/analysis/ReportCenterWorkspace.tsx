@@ -60,8 +60,8 @@ export const ReportCenterWorkspace = memo(function ReportCenterWorkspace({
       <p className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">
         <span className="font-medium">What you should know — </span>
         Generate professional research reports from this workspace. Limitations,
-        confidence, methodology, and evidence references are always included.
-        PDF/DOCX generation awaits backend export services.
+        confidence, methodology, and evidence references are always included. PDF/DOCX
+        generation awaits backend export services.
       </p>
 
       <ReportMetadataCard view={view} company={company} />
@@ -86,11 +86,7 @@ export const ReportCenterWorkspace = memo(function ReportCenterWorkspace({
         <div className="space-y-4">
           <CustomizationPanel custom={custom} onChange={setCustom} />
           <SectionSelector custom={custom} onChange={setCustom} />
-          <ExportActionCard
-            report={report}
-            view={view}
-            templateId={templateId}
-          />
+          <ExportActionCard report={report} view={view} templateId={templateId} />
           <ExportHistoryPlaceholder />
         </div>
         <ReportPreview report={report} />
@@ -136,7 +132,10 @@ function CustomizationPanel({
 }) {
   return (
     <Card>
-      <CardHeader title="Customization" description="Title, date format, and trust toggles" />
+      <CardHeader
+        title="Customization"
+        description="Title, date format, and trust toggles"
+      />
       <CardBody className="space-y-3 text-sm">
         <label className="block">
           <span className="text-xs font-medium uppercase text-[var(--muted)]">
@@ -189,9 +188,8 @@ function CustomizationPanel({
           onChange={() => undefined}
         />
         <p className="text-xs text-[var(--muted)]">
-          Evidence summary, confidence, methodology, limitations, and disclosures
-          cannot be removed from exports. Unchecking detailed evidence only
-          condenses the list.
+          Evidence summary, confidence, methodology, limitations, and disclosures cannot
+          be removed from exports. Unchecking detailed evidence only condenses the list.
         </p>
       </CardBody>
     </Card>
@@ -219,7 +217,11 @@ function Toggle({
       />
       <span>
         {label}
-        {locked ? <Badge tone="neutral" className="ml-2">Locked</Badge> : null}
+        {locked ? (
+          <Badge tone="neutral" className="ml-2">
+            Locked
+          </Badge>
+        ) : null}
       </span>
     </label>
   );
@@ -254,7 +256,10 @@ export function SectionSelector({
         description="Include or exclude optional sections — trust sections stay locked"
       />
       <CardBody>
-        <ul className="grid max-h-64 gap-1 overflow-y-auto sm:grid-cols-2" aria-label="Report sections">
+        <ul
+          className="grid max-h-64 gap-1 overflow-y-auto sm:grid-cols-2"
+          aria-label="Report sections"
+        >
           {sections.map((id) => {
             const mandatory = MANDATORY_SECTIONS.includes(id);
             return (
@@ -269,7 +274,9 @@ export function SectionSelector({
                   <span>
                     {REPORT_SECTION_LABELS[id]}
                     {mandatory ? (
-                      <span className="ml-1 text-xs text-[var(--muted)]">(required)</span>
+                      <span className="ml-1 text-xs text-[var(--muted)]">
+                        (required)
+                      </span>
                     ) : null}
                   </span>
                 </label>
@@ -399,7 +406,9 @@ export function ExportActionCard({
   templateId: ReportTemplateId;
 }) {
   const [status, setStatus] = useState<string | null>(null);
-  const slug = `${templateId}-${report.companyLabel}`.replace(/\s+/g, "-").toLowerCase();
+  const slug = `${templateId}-${report.companyLabel}`
+    .replace(/\s+/g, "-")
+    .toLowerCase();
 
   const runExport = (format: ExportFormatId) => {
     const def = EXPORT_FORMATS.find((f) => f.id === format);
@@ -419,7 +428,9 @@ export function ExportActionCard({
       } else if (format === "csv") {
         downloadText(`${slug}-metrics.csv`, reportMetricsCsv(view), "text/csv");
       }
-      setStatus(`Downloaded ${def.label} (client-side). Includes mandatory trust sections.`);
+      setStatus(
+        `Downloaded ${def.label} (client-side). Includes mandatory trust sections.`,
+      );
     } catch {
       setStatus("Export failed in browser — try again.");
     }
@@ -513,9 +524,13 @@ export function DisclosurePanel({ report }: { report: BuiltReport }) {
 export function ExportHistoryPlaceholder() {
   return (
     <Card>
-      <CardHeader title="Export history" description="Placeholder — server history arrives later" />
+      <CardHeader
+        title="Export history"
+        description="Placeholder — server history arrives later"
+      />
       <CardBody className="text-sm text-[var(--muted)]">
-        No persisted export history in this session. Client downloads are not stored by DSP.
+        No persisted export history in this session. Client downloads are not stored by
+        DSP.
       </CardBody>
     </Card>
   );

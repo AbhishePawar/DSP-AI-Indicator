@@ -44,7 +44,8 @@ const CONFIDENCE_COLORS: Record<ConfidenceLevel, string> = {
   high: "border-teal-600 bg-teal-50 text-teal-900",
   moderate: "border-amber-600 bg-amber-50 text-amber-950",
   low: "border-orange-600 bg-orange-50 text-orange-950",
-  insufficient_evidence: "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]",
+  insufficient_evidence:
+    "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]",
 };
 
 export const KnowledgeGraphWorkspace = memo(function KnowledgeGraphWorkspace({
@@ -63,7 +64,10 @@ export const KnowledgeGraphWorkspace = memo(function KnowledgeGraphWorkspace({
     () => filterGraphNodes(graph.nodes, filters, tab),
     [graph.nodes, filters, tab],
   );
-  const visibleIds = useMemo(() => new Set(visibleNodes.map((n) => n.id)), [visibleNodes]);
+  const visibleIds = useMemo(
+    () => new Set(visibleNodes.map((n) => n.id)),
+    [visibleNodes],
+  );
   const visibleEdges = useMemo(
     () => edgesForNodes(graph.edges, visibleIds),
     [graph.edges, visibleIds],
@@ -110,8 +114,9 @@ export const KnowledgeGraphWorkspace = memo(function KnowledgeGraphWorkspace({
     <div className="space-y-4">
       <p className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">
         <span className="font-medium">What you should know — </span>
-        This Knowledge Graph shows how data, metrics, insights, evidence, and assumptions connect to
-        the research conclusion. It is not a chat — every node is traceable.
+        This Knowledge Graph shows how data, metrics, insights, evidence, and
+        assumptions connect to the research conclusion. It is not a chat — every node is
+        traceable.
       </p>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -193,13 +198,24 @@ export const KnowledgeGraphWorkspace = memo(function KnowledgeGraphWorkspace({
             <>
               <NodeDetailsPanel node={selected} />
               <GraphEvidencePanel node={selected} />
-              <RelatedMetricsPanel node={selected} related={related} onSelect={onSelect} />
-              <GraphEdgePanel edges={selectedEdges} nodes={graph.nodes} onSelect={onSelect} />
+              <RelatedMetricsPanel
+                node={selected}
+                related={related}
+                onSelect={onSelect}
+              />
+              <GraphEdgePanel
+                edges={selectedEdges}
+                nodes={graph.nodes}
+                onSelect={onSelect}
+              />
               <GraphTracePanels node={selected} />
             </>
           ) : (
             <Card>
-              <CardHeader title="Node details" description="Select a node to inspect evidence and links" />
+              <CardHeader
+                title="Node details"
+                description="Select a node to inspect evidence and links"
+              />
               <CardBody className="text-sm text-[var(--muted)]">
                 Use tabs, search, and filters to explore how DSP reaches conclusions.
               </CardBody>
@@ -234,7 +250,9 @@ function GraphEmptyHints({
   if (visibleCount > 0) {
     return (
       <details className="rounded-md border border-dashed border-[var(--border)] px-3 py-2 text-sm">
-        <summary className="min-h-11 cursor-pointer font-medium">Why might the graph look incomplete?</summary>
+        <summary className="min-h-11 cursor-pointer font-medium">
+          Why might the graph look incomplete?
+        </summary>
         <div className="mt-2 space-y-2 text-[var(--muted)]">
           <p>{graph.emptyState.whyIncomplete}</p>
           <List title="Missing evidence" items={graph.emptyState.missingEvidence} />
@@ -255,7 +273,9 @@ function GraphEmptyHints({
 function List({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{title}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        {title}
+      </p>
       <ul className="mt-1 list-disc pl-5">
         {items.map((i) => (
           <li key={i}>{i}</li>
@@ -268,10 +288,15 @@ function List({ title, items }: { title: string; items: string[] }) {
 export function GraphLegend() {
   return (
     <Card>
-      <CardHeader title="Legend" description="Node types · edge types · confidence · evidence categories" />
+      <CardHeader
+        title="Legend"
+        description="Node types · edge types · confidence · evidence categories"
+      />
       <CardBody className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">Node types</p>
+          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">
+            Node types
+          </p>
           <ul className="space-y-1">
             {(Object.keys(KG_NODE_TYPE_LABELS) as KgNodeType[]).map((t) => (
               <li key={t}>{KG_NODE_TYPE_LABELS[t]}</li>
@@ -279,7 +304,9 @@ export function GraphLegend() {
           </ul>
         </div>
         <div>
-          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">Edge types</p>
+          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">
+            Edge types
+          </p>
           <ul className="space-y-1">
             {(Object.keys(KG_EDGE_TYPE_LABELS) as KgEdgeType[]).map((t) => (
               <li key={t}>{KG_EDGE_TYPE_LABELS[t]}</li>
@@ -287,11 +314,15 @@ export function GraphLegend() {
           </ul>
         </div>
         <div>
-          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">Confidence colors</p>
+          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">
+            Confidence colors
+          </p>
           <ul className="space-y-1">
             {(Object.keys(CONFIDENCE_LABELS) as ConfidenceLevel[]).map((c) => (
               <li key={c}>
-                <span className={`inline-block rounded border px-2 py-0.5 text-xs ${CONFIDENCE_COLORS[c]}`}>
+                <span
+                  className={`inline-block rounded border px-2 py-0.5 text-xs ${CONFIDENCE_COLORS[c]}`}
+                >
                   {CONFIDENCE_LABELS[c]}
                 </span>
               </li>
@@ -299,7 +330,9 @@ export function GraphLegend() {
           </ul>
         </div>
         <div>
-          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">Evidence categories</p>
+          <p className="mb-2 text-xs font-medium uppercase text-[var(--muted)]">
+            Evidence categories
+          </p>
           <ul className="space-y-1">
             <li>Verified Fact</li>
             <li>Calculated</li>
@@ -326,7 +359,10 @@ function GraphSearchAndFilters({
   return (
     <div className="space-y-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-3">
       <div>
-        <label htmlFor={searchId} className="text-xs font-medium uppercase text-[var(--muted)]">
+        <label
+          htmlFor={searchId}
+          className="text-xs font-medium uppercase text-[var(--muted)]"
+        >
           Search nodes
         </label>
         <input
@@ -345,10 +381,7 @@ function GraphSearchAndFilters({
           onChange={(v) =>
             onChange({ ...filters, confidence: v as GraphFilterState["confidence"] })
           }
-          options={[
-            ["all", "All"],
-            ...Object.entries(CONFIDENCE_LABELS),
-          ]}
+          options={[["all", "All"], ...Object.entries(CONFIDENCE_LABELS)]}
         />
         <Select
           label="Evidence strength"
@@ -368,7 +401,9 @@ function GraphSearchAndFilters({
         <Select
           label="Node type"
           value={filters.nodeType}
-          onChange={(v) => onChange({ ...filters, nodeType: v as GraphFilterState["nodeType"] })}
+          onChange={(v) =>
+            onChange({ ...filters, nodeType: v as GraphFilterState["nodeType"] })
+          }
           options={[
             ["all", "All"],
             ...(Object.entries(KG_NODE_TYPE_LABELS) as [string, string][]),
@@ -473,7 +508,9 @@ const GraphCanvas = memo(function GraphCanvas({
   }, [rendered]);
 
   const renderedIds = useMemo(() => new Set(rendered.map((n) => n.id)), [rendered]);
-  const cullEdges = edges.filter((e) => renderedIds.has(e.from) && renderedIds.has(e.to)).slice(0, 80);
+  const cullEdges = edges
+    .filter((e) => renderedIds.has(e.from) && renderedIds.has(e.to))
+    .slice(0, 80);
 
   return (
     <Card>
@@ -487,7 +524,10 @@ const GraphCanvas = memo(function GraphCanvas({
           role="group"
           aria-label={`${KG_TAB_LABELS[tab]} knowledge graph canvas`}
         >
-          <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
+          <svg
+            className="pointer-events-none absolute inset-0 h-full w-full"
+            aria-hidden
+          >
             {cullEdges.map((e) => {
               const a = positions.get(e.from);
               const b = positions.get(e.to);
@@ -530,7 +570,8 @@ const GraphCanvas = memo(function GraphCanvas({
         </div>
         {nodes.length > rendered.length ? (
           <p className="mt-2 text-xs text-[var(--muted)]">
-            Showing {rendered.length} of {nodes.length} nodes (viewport cull). Refine filters to focus.
+            Showing {rendered.length} of {nodes.length} nodes (viewport cull). Refine
+            filters to focus.
           </p>
         ) : null}
       </CardBody>
@@ -566,7 +607,9 @@ function GraphMiniMap({
               aria-current={selectedId === n.id ? "true" : undefined}
               onClick={() => onSelect(n.id)}
               className={`h-3 w-3 rounded-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                selectedId === n.id ? "border-[var(--accent)] bg-[var(--accent)]" : "border-[var(--border)] bg-[var(--surface-2)]"
+                selectedId === n.id
+                  ? "border-[var(--accent)] bg-[var(--accent)]"
+                  : "border-[var(--border)] bg-[var(--surface-2)]"
               } ${n.available ? "" : "opacity-40"}`}
             />
           ))}
@@ -601,7 +644,10 @@ function GraphNodeList({
 
   return (
     <Card>
-      <CardHeader title="Nodes" description="Mobile list mode — expand a node for relationships" />
+      <CardHeader
+        title="Nodes"
+        description="Mobile list mode — expand a node for relationships"
+      />
       <CardBody>
         <ul
           className="max-h-[28rem] space-y-2 overflow-y-auto"
@@ -682,7 +728,9 @@ function GraphEvidencePanel({ node }: { node: KnowledgeGraphNode }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-[var(--muted)]">No evidence listed for this node.</p>
+          <p className="text-sm text-[var(--muted)]">
+            No evidence listed for this node.
+          </p>
         )}
         <p className="mt-2 text-xs">
           <TraceLink href="#evidence_explorer">Evidence Explorer</TraceLink>
@@ -748,8 +796,13 @@ function GraphEdgePanel({
         {edges.length ? (
           <ul className="space-y-2 text-sm">
             {edges.map((e) => (
-              <li key={e.id} className="rounded-md border border-[var(--border)] px-2 py-2">
-                <p className="text-xs text-[var(--muted)]">{KG_EDGE_TYPE_LABELS[e.edgeType]}</p>
+              <li
+                key={e.id}
+                className="rounded-md border border-[var(--border)] px-2 py-2"
+              >
+                <p className="text-xs text-[var(--muted)]">
+                  {KG_EDGE_TYPE_LABELS[e.edgeType]}
+                </p>
                 <p>
                   <button
                     type="button"

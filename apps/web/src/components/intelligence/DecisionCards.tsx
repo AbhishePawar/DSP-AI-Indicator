@@ -1,10 +1,7 @@
 "use client";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import {
-  formatPct,
-  formatScore,
-} from "@/lib/intelligence/mapResponse";
+import { formatPct, formatScore } from "@/lib/intelligence/mapResponse";
 
 export function BusinessQualityCard({
   label,

@@ -7,7 +7,9 @@
 
 import type { AnalyseRequest } from "@/lib/api/compositionTypes";
 
-export const SAMPLE_ANALYSE_REQUEST: AnalyseRequest & { financial_statements: NonNullable<AnalyseRequest["financial_statements"]> } = {
+export const SAMPLE_ANALYSE_REQUEST: AnalyseRequest & {
+  financial_statements: NonNullable<AnalyseRequest["financial_statements"]>;
+} = {
   ticker: "ACM",
   exchange: "NYSE",
   company: "Acme Research Corp",

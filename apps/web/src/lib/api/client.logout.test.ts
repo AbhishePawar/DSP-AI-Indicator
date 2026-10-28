@@ -3,11 +3,30 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { api } from "./client";
-import { persistCsrfToken, clearCsrfToken, readCsrfToken, persistCookieMeta, readCookieMeta } from "@/lib/auth/cookieSession";
-import { persistSession, readStoredSession, clearStoredSession, COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
-import { pushRecentAnalysis, loadRecentAnalyses, clearRecentAnalyses } from "@/lib/analysis/recentAnalyses";
+import {
+  persistCsrfToken,
+  clearCsrfToken,
+  readCsrfToken,
+  persistCookieMeta,
+  readCookieMeta,
+} from "@/lib/auth/cookieSession";
+import {
+  persistSession,
+  readStoredSession,
+  clearStoredSession,
+  COOKIE_TOKEN_PLACEHOLDER,
+} from "@/lib/auth/sessionStore";
+import {
+  pushRecentAnalysis,
+  loadRecentAnalyses,
+  clearRecentAnalyses,
+} from "@/lib/analysis/recentAnalyses";
 import { useAuthStore } from "@/lib/auth/authStore";
-import { archiveResearchSession, listArchivedSessions, clearResearchArchive } from "@/lib/copilot/sessionArchive";
+import {
+  archiveResearchSession,
+  listArchivedSessions,
+  clearResearchArchive,
+} from "@/lib/copilot/sessionArchive";
 
 describe("api.logout", () => {
   const originalFetch = global.fetch;
@@ -72,10 +91,17 @@ describe("api.logout", () => {
       exchange: "NSE",
       company: "Tata Consultancy Services",
       analysedAt: new Date().toISOString(),
-      request: { ticker: "TCS" } as unknown as import("@/lib/api/compositionTypes").AnalyseRequest,
-      response: { ok: true } as unknown as import("@/lib/api/compositionTypes").AnalyseResponse,
+      request: {
+        ticker: "TCS",
+      } as unknown as import("@/lib/api/compositionTypes").AnalyseRequest,
+      response: {
+        ok: true,
+      } as unknown as import("@/lib/api/compositionTypes").AnalyseResponse,
     });
-    window.sessionStorage.setItem("dsp.oauth.pending", JSON.stringify({ state: "xyz" }));
+    window.sessionStorage.setItem(
+      "dsp.oauth.pending",
+      JSON.stringify({ state: "xyz" }),
+    );
     useAuthStore.getState().setAuth({
       user: {
         subject: "u-logout",

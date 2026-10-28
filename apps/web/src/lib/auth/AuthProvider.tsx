@@ -130,10 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (probe.csrf_token) {
             const cookieMeta = readCookieMeta();
-            persistCsrfToken(
-              probe.csrf_token,
-              cookieMeta?.rememberMe ?? false,
-            );
+            persistCsrfToken(probe.csrf_token, cookieMeta?.rememberMe ?? false);
           }
         }
 
@@ -211,8 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const enrichPermissions = useCallback(async (next: Session) => {
     if (!next.roles.length) return next;
     try {
-      const token =
-        next.authMethod === "cookie_rbac" ? null : next.accessToken;
+      const token = next.authMethod === "cookie_rbac" ? null : next.accessToken;
       const evalResult = await rbacAuthApi.evaluate(token ?? "", {
         user_id: next.subject,
         permission: "read_research",
@@ -292,7 +288,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        throw new Error("Choose an available sign-in method and provide your credentials.");
+        throw new Error(
+          "Choose an available sign-in method and provide your credentials.",
+        );
       } catch (error) {
         setStatus(session ? "authenticated" : "unauthenticated");
         syncStore(session ? "authenticated" : "unauthenticated", session);

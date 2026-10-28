@@ -34,10 +34,7 @@ const EVIDENCE_CLASS = "test_fixture";
 async function seedNonBlockingBrowserState(page: Page) {
   await page.addInitScript(() => {
     try {
-      window.localStorage.setItem(
-        "dsp.researchDisclaimer.acknowledged.v1",
-        "1",
-      );
+      window.localStorage.setItem("dsp.researchDisclaimer.acknowledged.v1", "1");
       window.localStorage.setItem(
         "dsp.researchDisclaimer.acknowledged.v1.at",
         new Date().toISOString(),
@@ -75,11 +72,15 @@ test.describe("P1-09 critical investment journey", () => {
     const root = API_BASE.replace(/\/api\/v1$/, "");
     const live = await request.get(`${root}/health/live`);
     if (!live.ok()) {
-      throw new Error(`P1-09 backend unavailable: ${root}/health/live returned ${live.status()}`);
+      throw new Error(
+        `P1-09 backend unavailable: ${root}/health/live returned ${live.status()}`,
+      );
     }
     const ready = await request.get(`${root}/health/ready`);
     if (!ready.ok()) {
-      throw new Error(`P1-09 backend unavailable: ${root}/health/ready returned ${ready.status()}`);
+      throw new Error(
+        `P1-09 backend unavailable: ${root}/health/ready returned ${ready.status()}`,
+      );
     }
   });
 
@@ -88,12 +89,12 @@ test.describe("P1-09 critical investment journey", () => {
       const response = await request.get(P109.baseUrl, { timeout: 10_000 });
       if (!response.ok()) {
         throw new Error(
-          `P1-09 frontend unavailable: ${P109.baseUrl} returned HTTP ${response.status()}`
+          `P1-09 frontend unavailable: ${P109.baseUrl} returned HTTP ${response.status()}`,
         );
       }
     } catch (err: any) {
       throw new Error(
-        `P1-09 frontend unreachable at ${P109.baseUrl} within 10s: ${err.message}. Ensure the frontend service is running and responsive.`
+        `P1-09 frontend unreachable at ${P109.baseUrl} within 10s: ${err.message}. Ensure the frontend service is running and responsive.`,
       );
     }
   });
@@ -206,8 +207,6 @@ test.describe("P1-09 critical investment journey", () => {
       .toBeTruthy();
     const bodyText = await page.locator("body").innerText();
     expect(bodyText.toLowerCase()).not.toMatch(/intrinsic value:\s*\$?\s*[1-9]/i);
-    expect(bodyText.toLowerCase()).not.toMatch(
-      /margin of safety:\s*[+-]?\d/i,
-    );
+    expect(bodyText.toLowerCase()).not.toMatch(/margin of safety:\s*[+-]?\d/i);
   });
 });

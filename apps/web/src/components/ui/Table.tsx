@@ -12,7 +12,9 @@ export function Table({
   className?: string;
 }) {
   return (
-    <div className={`overflow-x-auto rounded-[var(--radius-md,10px)] border border-[var(--border)] bg-[var(--card,#111520)] ${className}`}>
+    <div
+      className={`overflow-x-auto rounded-[var(--radius-md,10px)] border border-[var(--border)] bg-[var(--card,#111520)] ${className}`}
+    >
       <table className="w-full min-w-[20rem] border-collapse text-left text-sm">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead>
@@ -38,7 +40,9 @@ export function Tr({
   className?: string;
 }) {
   return (
-    <tr className={`transition-colors hover:bg-[var(--surface-2,#181e2e)]/40 ${className}`}>
+    <tr
+      className={`transition-colors hover:bg-[var(--surface-2,#181e2e)]/40 ${className}`}
+    >
       {children}
     </tr>
   );
@@ -51,5 +55,9 @@ export function Td({
   children: ReactNode;
   className?: string;
 }) {
-  return <td className={`px-4 py-3 align-middle text-[var(--fg)] ${className}`}>{children}</td>;
+  return (
+    <td className={`px-4 py-3 align-middle text-[var(--fg)] ${className}`}>
+      {children}
+    </td>
+  );
 }

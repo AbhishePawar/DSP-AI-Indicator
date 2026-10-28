@@ -20,13 +20,23 @@ export interface ResolvedAsset {
   bseCode?: string;
   isDualListed?: boolean;
   ambiguous?: boolean;
-  candidates?: Array<{ symbol: string; name: string; exchange: string; assetClass?: string }>;
+  candidates?: Array<{
+    symbol: string;
+    name: string;
+    exchange: string;
+    assetClass?: string;
+  }>;
   allowsEquityValuation: boolean;
   allowsBuffettAnalysis: boolean;
   allowsCommodityResearch: boolean;
 }
 
-const COMMODITIES: Array<Omit<ResolvedAsset, "allowsEquityValuation" | "allowsBuffettAnalysis" | "allowsCommodityResearch">> = [
+const COMMODITIES: Array<
+  Omit<
+    ResolvedAsset,
+    "allowsEquityValuation" | "allowsBuffettAnalysis" | "allowsCommodityResearch"
+  >
+> = [
   {
     symbol: "GOLD",
     name: "Gold",
@@ -69,7 +79,12 @@ const COMMODITIES: Array<Omit<ResolvedAsset, "allowsEquityValuation" | "allowsBu
   },
 ];
 
-const INDICES: Array<Omit<ResolvedAsset, "allowsEquityValuation" | "allowsBuffettAnalysis" | "allowsCommodityResearch">> = [
+const INDICES: Array<
+  Omit<
+    ResolvedAsset,
+    "allowsEquityValuation" | "allowsBuffettAnalysis" | "allowsCommodityResearch"
+  >
+> = [
   {
     symbol: "NIFTY50",
     name: "Nifty 50 Index",
@@ -235,7 +250,11 @@ const EXTENDED_EQUITIES: Array<{
 ];
 
 function normalize(s: string): string {
-  return s.toLowerCase().replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function resolveAssetEntry(
@@ -307,9 +326,7 @@ export function resolveAssetEntry(
 
   // 4. Core Featured Catalogue
   const catMatch = COMPANY_CATALOGUE.find(
-    (c) =>
-      c.ticker.toUpperCase() === upper ||
-      normalize(c.name) === norm,
+    (c) => c.ticker.toUpperCase() === upper || normalize(c.name) === norm,
   );
   if (catMatch) {
     return {
@@ -317,7 +334,8 @@ export function resolveAssetEntry(
       name: catMatch.name,
       exchange: preferredExchange ? preferredExchange.toUpperCase() : catMatch.exchange,
       assetClass: "equity",
-      currency: catMatch.exchange === "NSE" || catMatch.exchange === "BSE" ? "INR" : "USD",
+      currency:
+        catMatch.exchange === "NSE" || catMatch.exchange === "BSE" ? "INR" : "USD",
       allowsEquityValuation: true,
       allowsBuffettAnalysis: true,
       allowsCommodityResearch: false,

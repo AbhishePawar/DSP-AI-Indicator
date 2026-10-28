@@ -17,11 +17,7 @@ import {
   usePortfolioIntelPrefsStore,
 } from "@/lib/portfolio-intelligence";
 import type { PortfolioActivity, PortfolioHolding } from "@/lib/portfolio/model";
-import {
-  FieldRow,
-  SectionCard,
-  WorkspaceEmpty,
-} from "./Primitives";
+import { FieldRow, SectionCard, WorkspaceEmpty } from "./Primitives";
 import { ResearchSection } from "./Sections";
 
 function CountBars({
@@ -89,10 +85,20 @@ export function PortfolioHeaderCard({
       description="Portfolio identity from session prefs — values that require market feeds stay Data unavailable."
       action={
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="secondary" onClick={onShare} className="min-h-[44px] min-w-[44px]">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onShare}
+            className="min-h-[44px] min-w-[44px]"
+          >
             Share
           </Button>
-          <Button size="sm" variant="ghost" onClick={onExport} className="min-h-[44px] min-w-[44px]">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onExport}
+            className="min-h-[44px] min-w-[44px]"
+          >
             Export
           </Button>
         </div>
@@ -101,41 +107,41 @@ export function PortfolioHeaderCard({
       {/* Real available session metric callout cards */}
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/60 p-3.5">
-          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Holdings Count</div>
-          <div className="mt-1 text-2xl font-bold font-mono tabular-nums text-[var(--fg)]">{holdingsCount}</div>
+          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+            Holdings Count
+          </div>
+          <div className="mt-1 text-2xl font-bold font-mono tabular-nums text-[var(--fg)]">
+            {holdingsCount}
+          </div>
         </div>
         <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/60 p-3.5">
-          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Research Coverage</div>
-          <div className="mt-1 text-sm font-semibold text-[var(--fg)] truncate">{researchCoverage}</div>
+          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+            Research Coverage
+          </div>
+          <div className="mt-1 text-sm font-semibold text-[var(--fg)] truncate">
+            {researchCoverage}
+          </div>
         </div>
         <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/60 p-3.5">
-          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Last Updated</div>
-          <div className="mt-1 text-sm font-medium text-[var(--fg)] truncate">{lastUpdated || "Data unavailable."}</div>
+          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+            Last Updated
+          </div>
+          <div className="mt-1 text-sm font-medium text-[var(--fg)] truncate">
+            {lastUpdated || "Data unavailable."}
+          </div>
         </div>
       </div>
 
       <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
         <FieldRow label="Portfolio Name" value={portfolioName} />
         <FieldRow label="Owner" value={owner} />
-        <FieldRow
-          label="Total Value"
-          value="Data unavailable."
-        />
-        <FieldRow
-          label="Cash Position"
-          value="Data unavailable."
-        />
+        <FieldRow label="Total Value" value="Data unavailable." />
+        <FieldRow label="Cash Position" value="Data unavailable." />
         <FieldRow label="Holdings count" value={holdingsCount} />
         <FieldRow label="Last Updated" value={lastUpdated} />
         <FieldRow label="Research coverage" value={researchCoverage} />
-        <FieldRow
-          label="Benchmark"
-          value="Data unavailable."
-        />
-        <FieldRow
-          label="Performance Period"
-          value="Data unavailable."
-        />
+        <FieldRow label="Benchmark" value="Data unavailable." />
+        <FieldRow label="Performance Period" value="Data unavailable." />
       </dl>
     </SectionCard>
   );
@@ -155,10 +161,14 @@ export function ExecutivePortfolioSummary({
   const strengths: string[] = [];
   const risks: string[] = [];
   if (coverage.covered > 0) {
-    strengths.push(`${coverage.covered} holding(s) flagged research-available in session.`);
+    strengths.push(
+      `${coverage.covered} holding(s) flagged research-available in session.`,
+    );
   }
   if (intel?.linkedResearchCount && intel.linkedResearchCount !== "Data unavailable.") {
-    strengths.push(`Intelligence API linked research count: ${intel.linkedResearchCount}.`);
+    strengths.push(
+      `Intelligence API linked research count: ${intel.linkedResearchCount}.`,
+    );
   }
   if (coverage.pending > 0) {
     risks.push(`${coverage.pending} holding(s) without research coverage flag.`);
@@ -238,11 +248,7 @@ export function ExecutivePortfolioSummary({
   );
 }
 
-export function AllocationSection({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
+export function AllocationSection({ holdings }: { holdings: PortfolioHolding[] }) {
   const bySector = sectorHoldingCounts(holdings);
   const sessionAlloc = sessionAllocationBySector(holdings);
   return (
@@ -329,18 +335,9 @@ export function QualitySection({
             label="Average Business Quality"
             value="Data unavailable. API does not emit portfolio-average BQ; see position pass-through."
           />
-          <FieldRow
-            label="Average Management Quality"
-            value="Data unavailable."
-          />
-          <FieldRow
-            label="Average Economic Moat"
-            value="Data unavailable."
-          />
-          <FieldRow
-            label="Average Financial Strength"
-            value="Data unavailable."
-          />
+          <FieldRow label="Average Management Quality" value="Data unavailable." />
+          <FieldRow label="Average Economic Moat" value="Data unavailable." />
+          <FieldRow label="Average Financial Strength" value="Data unavailable." />
           <FieldRow
             label="Quality positions available (API)"
             value={intel?.qualityAvailableCount ?? "Data unavailable."}
@@ -468,11 +465,7 @@ export function ValuationSection({
   );
 }
 
-export function RiskSection({
-  intel,
-}: {
-  intel: PortfolioIntelligenceView | null;
-}) {
+export function RiskSection({ intel }: { intel: PortfolioIntelligenceView | null }) {
   return (
     <div className="space-y-4">
       <SectionCard
@@ -523,14 +516,19 @@ export function RiskSection({
             ))}
           </ul>
         ) : (
-          <WorkspaceEmpty description={intel?.concentrationNote || "Data unavailable."} />
+          <WorkspaceEmpty
+            description={intel?.concentrationNote || "Data unavailable."}
+          />
         )}
       </SectionCard>
       <SectionCard title="Risk Heatmap">
         {intel?.riskPositions.length ? (
           <ul className="space-y-1 text-sm">
             {intel.riskPositions.map((p) => (
-              <li key={p.symbol} className="flex justify-between gap-2 border-b border-[var(--border)] py-1">
+              <li
+                key={p.symbol}
+                className="flex justify-between gap-2 border-b border-[var(--border)] py-1"
+              >
                 <span className="font-mono text-xs">{p.symbol}</span>
                 <span>{p.detail}</span>
               </li>
@@ -590,8 +588,8 @@ export function WatchlistSection() {
       </SectionCard>
       <SectionCard title="Candidates">
         <p className="text-sm text-[var(--muted)]">
-          Use Company Analysis to research a ticker, then pin it to this
-          watchlist. No demo symbols are pre-loaded.
+          Use Company Analysis to research a ticker, then pin it to this watchlist. No
+          demo symbols are pre-loaded.
         </p>
       </SectionCard>
       <SectionCard title="Recently Added">
@@ -682,9 +680,7 @@ export function OpportunitiesSection({
       </SectionCard>
       <SectionCard title="Upgrade Candidates">
         {pending.length === 0 ? (
-          <p className="text-sm text-[var(--muted)]">
-            No coverage-pending holdings.
-          </p>
+          <p className="text-sm text-[var(--muted)]">No coverage-pending holdings.</p>
         ) : (
           <ul className="space-y-1 text-sm">
             {pending.map((h) => (
@@ -719,9 +715,8 @@ export function RebalancingSection({
         description="Trade-off / evidence / confidence review only — NEVER transaction recommendations or personalized advice"
       >
         <p className="mb-3 text-xs text-[var(--muted)]">
-          EPIC-015: Suggestions are investigation cues from coverage and
-          concentration pass-through. No BUY/SELL, no order tickets, no
-          optimizer.
+          EPIC-015: Suggestions are investigation cues from coverage and concentration
+          pass-through. No BUY/SELL, no order tickets, no optimizer.
         </p>
         <dl>
           <FieldRow
@@ -803,8 +798,14 @@ export function ExplainabilitySection({
             label="Portfolio Score"
             value="Data unavailable — not computed in the thin client."
           />
-          <FieldRow label="Intelligence result id" value={intel?.resultId ?? "Data unavailable."} />
-          <FieldRow label="Schema version" value={intel?.schemaVersion ?? "Data unavailable."} />
+          <FieldRow
+            label="Intelligence result id"
+            value={intel?.resultId ?? "Data unavailable."}
+          />
+          <FieldRow
+            label="Schema version"
+            value={intel?.schemaVersion ?? "Data unavailable."}
+          />
           <FieldRow
             label="Session holdings"
             value={`${coverage.total} · research-available ${coverage.covered}`}

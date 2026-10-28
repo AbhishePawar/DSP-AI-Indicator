@@ -62,7 +62,10 @@ export function AllocationDonut({
 
   return (
     <Card>
-      <CardHeader title={title} description="CSS conic chart — no external chart library" />
+      <CardHeader
+        title={title}
+        description="CSS conic chart — no external chart library"
+      />
       <CardBody className="flex flex-col items-center gap-4 sm:flex-row">
         <div
           className="h-36 w-36 shrink-0 rounded-full"
@@ -158,7 +161,9 @@ export function PortfolioRiskHeatmap({
                 key={sym}
                 role="listitem"
                 className="flex min-h-16 flex-col justify-center rounded-md border border-[var(--border)] p-2 text-center text-sm"
-                style={{ backgroundColor: `color-mix(in srgb, var(--accent) ${opacity * 100}%, transparent)` }}
+                style={{
+                  backgroundColor: `color-mix(in srgb, var(--accent) ${opacity * 100}%, transparent)`,
+                }}
               >
                 <span className="font-medium">{sym}</span>
                 <span className="text-xs text-[var(--muted)]">{score.toFixed(0)}</span>
@@ -176,12 +181,19 @@ export function WeightTreemap({ slices }: { slices: AllocationSlice[] }) {
     <Card>
       <CardHeader title="Weight treemap" description="Flex-weighted blocks" />
       <CardBody>
-        <div className="flex min-h-32 flex-wrap gap-1" role="img" aria-label="Weight treemap">
+        <div
+          className="flex min-h-32 flex-wrap gap-1"
+          role="img"
+          aria-label="Weight treemap"
+        >
           {slices.slice(0, 12).map((s) => (
             <div
               key={s.id}
               className="flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/50 p-2 text-xs"
-              style={{ flexGrow: Math.max(s.weight, 1), flexBasis: `${Math.max(s.weight, 8)}%` }}
+              style={{
+                flexGrow: Math.max(s.weight, 1),
+                flexBasis: `${Math.max(s.weight, 8)}%`,
+              }}
               title={`${s.label} ${s.weight.toFixed(1)}%`}
             >
               {s.label}

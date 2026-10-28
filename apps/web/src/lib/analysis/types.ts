@@ -1,10 +1,6 @@
 /** Analysis workspace view models — presentation only; no calculations. */
 
-import type {
-  ConfidenceLevel,
-  SourceKind,
-  ValueCategory,
-} from "@/lib/trust/labels";
+import type { ConfidenceLevel, SourceKind, ValueCategory } from "@/lib/trust/labels";
 
 export type FieldPresence = "available" | "unavailable";
 

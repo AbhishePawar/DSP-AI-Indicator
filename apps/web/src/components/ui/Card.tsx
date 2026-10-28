@@ -3,9 +3,12 @@ import type { HTMLAttributes, ReactNode } from "react";
 type CardVariant = "default" | "elevated" | "subtle" | "ghost";
 
 const cardVariants: Record<CardVariant, string> = {
-  default: "border border-[var(--border)] bg-[var(--card,#111520)] shadow-[var(--shadow-card)]",
-  elevated: "border border-[var(--border)] bg-[var(--surface-2,#181e2e)] shadow-[var(--shadow-lg)]",
-  subtle: "border border-[var(--border)]/50 bg-[var(--surface,#111520)]/60 backdrop-blur-sm",
+  default:
+    "border border-[var(--border)] bg-[var(--card,#111520)] shadow-[var(--shadow-card)]",
+  elevated:
+    "border border-[var(--border)] bg-[var(--surface-2,#181e2e)] shadow-[var(--shadow-lg)]",
+  subtle:
+    "border border-[var(--border)]/50 bg-[var(--surface,#111520)]/60 backdrop-blur-sm",
   ghost: "border-0 bg-transparent shadow-none",
 };
 
@@ -40,7 +43,9 @@ export function CardHeader({
   className?: string;
 }) {
   return (
-    <div className={`flex items-start justify-between gap-3 border-b border-[var(--border)] px-5 py-4 ${className}`}>
+    <div
+      className={`flex items-start justify-between gap-3 border-b border-[var(--border)] px-5 py-4 ${className}`}
+    >
       <div>
         <h3 className="font-[family-name:var(--font-display)] text-lg font-medium tracking-tight text-[var(--fg)]">
           {title}

@@ -104,12 +104,8 @@ export function AdminConsole() {
   const setRightOpen = useAdminConsolePrefsStore((s) => s.setRightOpen);
   const selectedUserId = useAdminConsolePrefsStore((s) => s.selectedUserId);
   const selectedRoleId = useAdminConsolePrefsStore((s) => s.selectedRoleId);
-  const setSelectedUserId = useAdminConsolePrefsStore(
-    (s) => s.setSelectedUserId,
-  );
-  const setSelectedRoleId = useAdminConsolePrefsStore(
-    (s) => s.setSelectedRoleId,
-  );
+  const setSelectedUserId = useAdminConsolePrefsStore((s) => s.setSelectedUserId);
+  const setSelectedRoleId = useAdminConsolePrefsStore((s) => s.setSelectedRoleId);
 
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
@@ -122,12 +118,7 @@ export function AdminConsole() {
     }
     if (userId) setSelectedUserId(userId);
     if (roleId) setSelectedRoleId(roleId);
-  }, [
-    searchParams,
-    setActiveSection,
-    setSelectedUserId,
-    setSelectedRoleId,
-  ]);
+  }, [searchParams, setActiveSection, setSelectedUserId, setSelectedRoleId]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -159,7 +150,7 @@ export function AdminConsole() {
       if (tag === "input" || tag === "textarea" || target?.isContentEditable) {
         return;
       }
-      if (e.key === "[" ) {
+      if (e.key === "[") {
         e.preventDefault();
         toggleLeft();
       } else if (e.key === "]") {
@@ -197,7 +188,11 @@ export function AdminConsole() {
         title="Access unavailable."
         description="Administration requires manage_users, manage_roles, configure_platform, view_audit, or the administrator role."
         action={
-          <Button size="sm" variant="secondary" onClick={() => router.push("/dashboard")}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => router.push("/dashboard")}
+          >
             Return to dashboard
           </Button>
         }
@@ -205,8 +200,7 @@ export function AdminConsole() {
     );
   }
 
-  const resourceKey =
-    selectedUserId || selectedRoleId || `section:${activeSection}`;
+  const resourceKey = selectedUserId || selectedRoleId || `section:${activeSection}`;
 
   const refreshing = false;
 
@@ -235,25 +229,13 @@ export function AdminConsole() {
           aria-label="Main administration view"
           className="min-w-0 flex-1 overflow-auto p-4"
         >
-          {activeSection === "overview" ? (
-            <OverviewSection token={token} />
-          ) : null}
-          {activeSection === "identity" ? (
-            <IdentitySection token={token} />
-          ) : null}
+          {activeSection === "overview" ? <OverviewSection token={token} /> : null}
+          {activeSection === "identity" ? <IdentitySection token={token} /> : null}
           {activeSection === "audit" ? <AuditSection token={token} /> : null}
-          {activeSection === "platform" ? (
-            <PlatformSection token={token} />
-          ) : null}
-          {activeSection === "metrics" ? (
-            <MetricsSection token={token} />
-          ) : null}
-          {activeSection === "workflow" ? (
-            <WorkflowSection token={token} />
-          ) : null}
-          {activeSection === "research" ? (
-            <ResearchRefsSection token={token} />
-          ) : null}
+          {activeSection === "platform" ? <PlatformSection token={token} /> : null}
+          {activeSection === "metrics" ? <MetricsSection token={token} /> : null}
+          {activeSection === "workflow" ? <WorkflowSection token={token} /> : null}
+          {activeSection === "research" ? <ResearchRefsSection token={token} /> : null}
           {activeSection === "export" ? <ExportSection token={token} /> : null}
           {activeSection === "beta" ? <BetaSection token={token} /> : null}
         </div>

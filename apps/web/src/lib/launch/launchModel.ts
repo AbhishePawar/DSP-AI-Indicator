@@ -60,7 +60,8 @@ export function buildLaunchReadiness(): LaunchReadinessView {
       id: "architecture",
       label: "Architecture Status",
       status: "pass",
-      detail: "Thin client over frozen backend RC; Research → Portfolio → Reports layered.",
+      detail:
+        "Thin client over frozen backend RC; Research → Portfolio → Reports layered.",
       score: 96,
     },
     {
@@ -74,7 +75,8 @@ export function buildLaunchReadiness(): LaunchReadinessView {
       id: "performance",
       label: "Performance Status",
       status: "pass",
-      detail: "Windowed lists, lazy Copilot, route polish; operator Lighthouse in CI recommended.",
+      detail:
+        "Windowed lists, lazy Copilot, route polish; operator Lighthouse in CI recommended.",
       score: 90,
     },
     {
@@ -88,7 +90,8 @@ export function buildLaunchReadiness(): LaunchReadinessView {
       id: "security",
       label: "Security Status",
       status: "pass",
-      detail: "CSP enforced; nosniff/frame deny; no secrets in client; source maps off.",
+      detail:
+        "CSP enforced; nosniff/frame deny; no secrets in client; source maps off.",
       score: 92,
     },
     {
@@ -102,7 +105,8 @@ export function buildLaunchReadiness(): LaunchReadinessView {
       id: "documentation",
       label: "Documentation Status",
       status: "pass",
-      detail: "User/Admin/Architecture/Methodology + Privacy/Terms/Disclaimer published.",
+      detail:
+        "User/Admin/Architecture/Methodology + Privacy/Terms/Disclaimer published.",
       score: 96,
     },
     {
@@ -143,11 +147,36 @@ export function buildLaunchChecklists(): ChecklistGroup[] {
       id: "smoke",
       title: "Smoke Test Checklist",
       items: [
-        { id: "s1", label: "Login → Dashboard loads", status: "pass", notes: "Manual QA" },
-        { id: "s2", label: "Analyze company workspace renders", status: "pass", notes: "Manual QA" },
-        { id: "s3", label: "Portfolio demo session loads", status: "pass", notes: "Manual QA" },
-        { id: "s4", label: "Copilot panel opens/closes", status: "pass", notes: "Manual QA" },
-        { id: "s5", label: "Report export Markdown downloads", status: "pass", notes: "Manual QA" },
+        {
+          id: "s1",
+          label: "Login → Dashboard loads",
+          status: "pass",
+          notes: "Manual QA",
+        },
+        {
+          id: "s2",
+          label: "Analyze company workspace renders",
+          status: "pass",
+          notes: "Manual QA",
+        },
+        {
+          id: "s3",
+          label: "Portfolio demo session loads",
+          status: "pass",
+          notes: "Manual QA",
+        },
+        {
+          id: "s4",
+          label: "Copilot panel opens/closes",
+          status: "pass",
+          notes: "Manual QA",
+        },
+        {
+          id: "s5",
+          label: "Report export Markdown downloads",
+          status: "pass",
+          notes: "Manual QA",
+        },
       ],
     },
     {
@@ -179,10 +208,30 @@ export function buildLaunchChecklists(): ChecklistGroup[] {
       title: "Accessibility Checklist",
       items: [
         { id: "a1", label: "Skip link present", status: "pass", notes: "layout.tsx" },
-        { id: "a2", label: "Focus-visible rings on controls", status: "pass", notes: "Design system" },
-        { id: "a3", label: "Min 44px touch targets on primary actions", status: "pass", notes: "min-h-11 pattern" },
-        { id: "a4", label: "Reduced motion CSS", status: "pass", notes: "globals.css Sprint 9" },
-        { id: "a5", label: "Heading hierarchy audit on launch pages", status: "pass", notes: "h1→h2→h3" },
+        {
+          id: "a2",
+          label: "Focus-visible rings on controls",
+          status: "pass",
+          notes: "Design system",
+        },
+        {
+          id: "a3",
+          label: "Min 44px touch targets on primary actions",
+          status: "pass",
+          notes: "min-h-11 pattern",
+        },
+        {
+          id: "a4",
+          label: "Reduced motion CSS",
+          status: "pass",
+          notes: "globals.css Sprint 9",
+        },
+        {
+          id: "a5",
+          label: "Heading hierarchy audit on launch pages",
+          status: "pass",
+          notes: "h1→h2→h3",
+        },
         { id: "a6", label: "Full axe CI scan", status: "pending", notes: "Wire in CI" },
       ],
     },
@@ -190,32 +239,97 @@ export function buildLaunchChecklists(): ChecklistGroup[] {
       id: "performance",
       title: "Performance Checklist",
       items: [
-        { id: "p1", label: "Copilot lazy-loaded", status: "pass", notes: "dynamic import" },
-        { id: "p2", label: "Analysis workspace memoized", status: "pass", notes: "memo()" },
-        { id: "p3", label: "Next/font for display & body", status: "pass", notes: "Fraunces + Sora" },
-        { id: "p4", label: "Bundle analyzer script documented", status: "pass", notes: "ANALYZE=true placeholder" },
-        { id: "p5", label: "Lighthouse CI budgets", status: "pending", notes: "Follow-up" },
+        {
+          id: "p1",
+          label: "Copilot lazy-loaded",
+          status: "pass",
+          notes: "dynamic import",
+        },
+        {
+          id: "p2",
+          label: "Analysis workspace memoized",
+          status: "pass",
+          notes: "memo()",
+        },
+        {
+          id: "p3",
+          label: "Next/font for display & body",
+          status: "pass",
+          notes: "Fraunces + Sora",
+        },
+        {
+          id: "p4",
+          label: "Bundle analyzer script documented",
+          status: "pass",
+          notes: "ANALYZE=true placeholder",
+        },
+        {
+          id: "p5",
+          label: "Lighthouse CI budgets",
+          status: "pending",
+          notes: "Follow-up",
+        },
       ],
     },
     {
       id: "responsive",
       title: "Responsive Checklist",
       items: [
-        { id: "v1", label: "320–480 mobile shells", status: "pass", notes: "Drawer + sticky bars" },
+        {
+          id: "v1",
+          label: "320–480 mobile shells",
+          status: "pass",
+          notes: "Drawer + sticky bars",
+        },
         { id: "v2", label: "768 tablet", status: "pass", notes: "Sidebar breakpoint" },
-        { id: "v3", label: "1024–1600 desktop", status: "pass", notes: "Two-column workspaces" },
-        { id: "v4", label: "Landscape / portrait smoke", status: "warn", notes: "Manual device QA remaining" },
+        {
+          id: "v3",
+          label: "1024–1600 desktop",
+          status: "pass",
+          notes: "Two-column workspaces",
+        },
+        {
+          id: "v4",
+          label: "Landscape / portrait smoke",
+          status: "warn",
+          notes: "Manual device QA remaining",
+        },
       ],
     },
     {
       id: "security",
       title: "Security Checklist",
       items: [
-        { id: "sec1", label: "No secrets in NEXT_PUBLIC_* beyond API URL", status: "pass", notes: "env.ts" },
-        { id: "sec2", label: "Exports use text downloads (no eval)", status: "pass", notes: "sprint7Reports" },
-        { id: "sec3", label: "Safe text helpers for untrusted strings", status: "pass", notes: "safeText.ts" },
-        { id: "sec4", label: "CSP report-only headers", status: "warn", notes: "next.config draft" },
-        { id: "sec5", label: "npm audit in CI", status: "pending", notes: "Operator pipeline" },
+        {
+          id: "sec1",
+          label: "No secrets in NEXT_PUBLIC_* beyond API URL",
+          status: "pass",
+          notes: "env.ts",
+        },
+        {
+          id: "sec2",
+          label: "Exports use text downloads (no eval)",
+          status: "pass",
+          notes: "sprint7Reports",
+        },
+        {
+          id: "sec3",
+          label: "Safe text helpers for untrusted strings",
+          status: "pass",
+          notes: "safeText.ts",
+        },
+        {
+          id: "sec4",
+          label: "CSP report-only headers",
+          status: "warn",
+          notes: "next.config draft",
+        },
+        {
+          id: "sec5",
+          label: "npm audit in CI",
+          status: "pending",
+          notes: "Operator pipeline",
+        },
       ],
     },
     {
@@ -223,8 +337,18 @@ export function buildLaunchChecklists(): ChecklistGroup[] {
       title: "Cross Browser Checklist",
       items: [
         { id: "b1", label: "Chromium latest", status: "pass", notes: "Primary target" },
-        { id: "b2", label: "Firefox latest", status: "warn", notes: "Manual QA pending" },
-        { id: "b3", label: "Safari latest", status: "warn", notes: "Manual QA pending" },
+        {
+          id: "b2",
+          label: "Firefox latest",
+          status: "warn",
+          notes: "Manual QA pending",
+        },
+        {
+          id: "b3",
+          label: "Safari latest",
+          status: "warn",
+          notes: "Manual QA pending",
+        },
         { id: "b4", label: "Edge latest", status: "pass", notes: "Chromium family" },
       ],
     },
@@ -232,20 +356,55 @@ export function buildLaunchChecklists(): ChecklistGroup[] {
       id: "manual",
       title: "Manual QA Checklist",
       items: [
-        { id: "m1", label: "Offline banner appears when offline", status: "pass", notes: "OfflineBanner" },
-        { id: "m2", label: "404 page reachable", status: "pass", notes: "/not-found route" },
-        { id: "m3", label: "Maintenance page reachable", status: "pass", notes: "/maintenance" },
-        { id: "m4", label: "Session recovery restores sidebar prefs", status: "pass", notes: "SessionRecoveryProvider" },
+        {
+          id: "m1",
+          label: "Offline banner appears when offline",
+          status: "pass",
+          notes: "OfflineBanner",
+        },
+        {
+          id: "m2",
+          label: "404 page reachable",
+          status: "pass",
+          notes: "/not-found route",
+        },
+        {
+          id: "m3",
+          label: "Maintenance page reachable",
+          status: "pass",
+          notes: "/maintenance",
+        },
+        {
+          id: "m4",
+          label: "Session recovery restores sidebar prefs",
+          status: "pass",
+          notes: "SessionRecoveryProvider",
+        },
       ],
     },
     {
       id: "release",
       title: "Release Gate Checklist",
       items: [
-        { id: "g1", label: "Version bumped to 0.8.0", status: "pass", notes: "package.json" },
-        { id: "g2", label: "CHANGELOG + RELEASE_NOTES published", status: "pass", notes: "docs/" },
+        {
+          id: "g1",
+          label: "Version bumped to 0.8.0",
+          status: "pass",
+          notes: "package.json",
+        },
+        {
+          id: "g2",
+          label: "CHANGELOG + RELEASE_NOTES published",
+          status: "pass",
+          notes: "docs/",
+        },
         { id: "g3", label: "Regression GREEN", status: "pass", notes: "1551" },
-        { id: "g4", label: "Private beta approval", status: "pending", notes: "Human gate" },
+        {
+          id: "g4",
+          label: "Private beta approval",
+          status: "pending",
+          notes: "Human gate",
+        },
       ],
     },
   ];
@@ -261,7 +420,9 @@ export function buildPerformanceMetrics(runtime?: {
   routeMs?: number | null;
 }): PerformanceMetric[] {
   const fmt = (n: number | null | undefined, unit: string) =>
-    n == null || Number.isNaN(n) ? "Unavailable (measure in browser)" : `${n.toFixed(0)}${unit}`;
+    n == null || Number.isNaN(n)
+      ? "Unavailable (measure in browser)"
+      : `${n.toFixed(0)}${unit}`;
 
   return [
     {
@@ -320,7 +481,8 @@ export function buildPerformanceMetrics(runtime?: {
       label: "Route Load Time",
       value: fmt(runtime?.routeMs, " ms"),
       target: "< 1000 ms soft nav",
-      status: runtime?.routeMs == null ? "pending" : runtime.routeMs < 1000 ? "pass" : "warn",
+      status:
+        runtime?.routeMs == null ? "pending" : runtime.routeMs < 1000 ? "pass" : "warn",
       methodology: "performance.now delta on pathname change",
     },
     {
@@ -352,7 +514,8 @@ export const SECURITY_FINDINGS = [
     id: "xss",
     title: "XSS Safety",
     status: "pass" as GateStatus,
-    detail: "UI primarily text nodes; no dangerouslySetInnerHTML in product workspaces.",
+    detail:
+      "UI primarily text nodes; no dangerouslySetInnerHTML in product workspaces.",
   },
   {
     id: "sanitize",
@@ -382,7 +545,8 @@ export const SECURITY_FINDINGS = [
     id: "csp",
     title: "CSP Enforced",
     status: "pass" as GateStatus,
-    detail: "Content-Security-Policy enforced in next.config for Web 1.0.0 public launch.",
+    detail:
+      "Content-Security-Policy enforced in next.config for Web 1.0.0 public launch.",
   },
   {
     id: "deps",

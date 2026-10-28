@@ -325,10 +325,7 @@ export function mapResearchView(
     analysedAt: analysedAt ?? null,
     sourceAttribution: {
       authenticated: sourceEvidence?.authenticated === true,
-      status: display(
-        sourceEvidence?.status,
-        "unavailable",
-      ),
+      status: display(sourceEvidence?.status, "unavailable"),
       statementProvider: sourceEvidence?.statement_provider ?? null,
       statementSourceType: sourceEvidence?.statement_source_type ?? null,
       statementRetrievedAt: sourceEvidence?.statement_retrieved_at ?? null,

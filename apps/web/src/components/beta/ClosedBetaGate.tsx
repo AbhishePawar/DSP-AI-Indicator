@@ -86,7 +86,9 @@ export function ClosedBetaGate({ children }: { children: ReactNode }) {
         />
       ) : !allowed ? (
         <EmptyState
-          title={apiError && failClosed ? "Beta service unavailable" : "Invitation required"}
+          title={
+            apiError && failClosed ? "Beta service unavailable" : "Invitation required"
+          }
           description={
             apiError && failClosed
               ? "Closed beta cannot verify invitations while the API is unreachable. Try again shortly or contact an administrator."

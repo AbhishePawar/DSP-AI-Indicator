@@ -16,7 +16,9 @@ export function SectionHeader({
   className?: string;
 }) {
   return (
-    <div className={`flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between ${className}`}>
+    <div
+      className={`flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between ${className}`}
+    >
       <div className="max-w-2xl">
         {eyebrow ? (
           <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent)]">

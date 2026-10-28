@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
-import { AuthCard, AuthShell, MfaChallenge, OtpInput, ResendCountdown, mapAuthError } from "@/components/auth";
+import {
+  AuthCard,
+  AuthShell,
+  MfaChallenge,
+  OtpInput,
+  ResendCountdown,
+  mapAuthError,
+} from "@/components/auth";
 import {
   Alert,
   Button,
@@ -137,7 +144,10 @@ export default function MobileLoginForm() {
       >
         <Stack gap={4}>
           {mfaChallenge ? (
-            <MfaChallenge challenge={mfaChallenge} onDone={() => navigateAfterLogin(nextPath)} />
+            <MfaChallenge
+              challenge={mfaChallenge}
+              onDone={() => navigateAfterLogin(nextPath)}
+            />
           ) : otpStatus === "unavailable" ? (
             <Alert variant="warning" title="Mobile OTP unavailable">
               {statusMessage || "Mobile OTP is not configured on this deployment."}
@@ -189,8 +199,14 @@ export default function MobileLoginForm() {
                 />
                 Remember me
               </label>
-              {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
-              <Button type="submit" className="w-full" disabled={pending || !mobile.trim()}>
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={pending || !mobile.trim()}
+              >
                 {pending ? "Sending…" : "Send OTP"}
               </Button>
             </form>
@@ -216,7 +232,9 @@ export default function MobileLoginForm() {
                 error={error ?? undefined}
               />
               <ResendCountdown seconds={30} onResend={onResend} disabled={pending} />
-              {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
               <Button
                 type="button"
                 className="w-full"
@@ -244,7 +262,10 @@ export default function MobileLoginForm() {
 
           {!mfaChallenge ? (
             <p className="text-center text-sm text-[var(--muted)]">
-              <Link href={`/login?next=${encodeURIComponent(nextPath)}`} className="text-[var(--accent)] underline-offset-2 hover:underline">
+              <Link
+                href={`/login?next=${encodeURIComponent(nextPath)}`}
+                className="text-[var(--accent)] underline-offset-2 hover:underline"
+              >
                 Back to sign in
               </Link>
             </p>

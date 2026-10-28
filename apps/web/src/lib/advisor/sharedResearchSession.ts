@@ -98,10 +98,10 @@ export function resetSharedFilters() {
 export function recordOpened(envelopeId: string) {
   const env = getEnvelope(envelopeId);
   if (!env) return;
-  recentlyViewed = [envelopeId, ...recentlyViewed.filter((id) => id !== envelopeId)].slice(
-    0,
-    12,
-  );
+  recentlyViewed = [
+    envelopeId,
+    ...recentlyViewed.filter((id) => id !== envelopeId),
+  ].slice(0, 12);
   pushActivity("opened", `Opened — ${env.companyLabel}`, envelopeId);
   emit();
 }
@@ -184,9 +184,7 @@ export function renameSharedCollection(id: string, name: string) {
   const trimmed = name.trim();
   if (!trimmed) return;
   collections = collections.map((c) =>
-    c.id === id
-      ? { ...c, name: trimmed, updatedAt: new Date().toISOString() }
-      : c,
+    c.id === id ? { ...c, name: trimmed, updatedAt: new Date().toISOString() } : c,
   );
   emit();
 }
@@ -202,7 +200,9 @@ export function deleteSharedCollection(id: string) {
 
 export function toggleCollectionFavorite(id: string) {
   collections = collections.map((c) =>
-    c.id === id ? { ...c, favorite: !c.favorite, updatedAt: new Date().toISOString() } : c,
+    c.id === id
+      ? { ...c, favorite: !c.favorite, updatedAt: new Date().toISOString() }
+      : c,
   );
   emit();
 }
@@ -249,7 +249,11 @@ export function filterEnvelopes(
 
   return listResearchEnvelopes().filter((e) => {
     const meta = metaForEnvelope(e.id);
-    if (q && !e.companyLabel.toLowerCase().includes(q) && !e.thesis.toLowerCase().includes(q)) {
+    if (
+      q &&
+      !e.companyLabel.toLowerCase().includes(q) &&
+      !e.thesis.toLowerCase().includes(q)
+    ) {
       return false;
     }
     if (f.sector && meta?.sector !== f.sector) return false;
@@ -268,7 +272,9 @@ export function filterEnvelopes(
   });
 }
 
-export function buildSharedOverview(snap: SharedResearchSnapshot = getSharedResearchSnapshot()) {
+export function buildSharedOverview(
+  snap: SharedResearchSnapshot = getSharedResearchSnapshot(),
+) {
   const envelopes = listResearchEnvelopes();
   const activeCollections = snap.collections.filter((c) => c.lifecycle === "active");
   const newest = [...envelopes].sort((a, b) => b.viewedAt.localeCompare(a.viewedAt))[0];
@@ -284,9 +290,10 @@ export function buildSharedOverview(snap: SharedResearchSnapshot = getSharedRese
       .map((id) => getEnvelope(id)?.companyLabel)
       .filter(Boolean)
       .slice(0, 5) as string[],
-    freshness: newest && oldest
-      ? `Newest view ${newest.viewedAt.slice(0, 10)} · Oldest ${oldest.viewedAt.slice(0, 10)} (demo)`
-      : "n/a",
+    freshness:
+      newest && oldest
+        ? `Newest view ${newest.viewedAt.slice(0, 10)} · Oldest ${oldest.viewedAt.slice(0, 10)} (demo)`
+        : "n/a",
   };
 }
 

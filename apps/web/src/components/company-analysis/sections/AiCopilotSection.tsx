@@ -66,7 +66,10 @@ export function AiCopilotSection({
   const idRef = useRef(0);
 
   const askMutation = useMutation({
-    mutationFn: async (args: { questionId: SuggestedQuestionId | "freeform"; text: string }) => {
+    mutationFn: async (args: {
+      questionId: SuggestedQuestionId | "freeform";
+      text: string;
+    }) => {
       return api.copilotComplete(
         {
           question_id: args.questionId,
@@ -133,7 +136,8 @@ export function AiCopilotSection({
       >
         {!analyseResponse ? (
           <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--muted)]">
-            Run an analysis first — the Copilot explains the loaded research, it does not fetch its own data.
+            Run an analysis first — the Copilot explains the loaded research, it does
+            not fetch its own data.
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2 pb-2">
@@ -186,27 +190,47 @@ export function AiCopilotSection({
               }
             >
               <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
-                <span>{m.role === "user" ? "Analyst" : m.role === "assistant" ? "DSP Copilot" : "System"}</span>
-                {m.unavailable ? <Badge tone="warning">Provider Unavailable</Badge> : null}
+                <span>
+                  {m.role === "user"
+                    ? "Analyst"
+                    : m.role === "assistant"
+                      ? "DSP Copilot"
+                      : "System"}
+                </span>
+                {m.unavailable ? (
+                  <Badge tone="warning">Provider Unavailable</Badge>
+                ) : null}
               </div>
               <p className="leading-relaxed">{m.text}</p>
               {m.citations?.length ? (
                 <div className="mt-2 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--muted)]">
-                  <span className="font-semibold text-[var(--fg)]">Evidence Citations:</span> {m.citations.join(", ")}
+                  <span className="font-semibold text-[var(--fg)]">
+                    Evidence Citations:
+                  </span>{" "}
+                  {m.citations.join(", ")}
                 </div>
               ) : m.role === "assistant" ? (
-                <p className="mt-1 text-[11px] text-[var(--muted)]">Source unavailable: Provider unavailable.</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)]">
+                  Source unavailable: Provider unavailable.
+                </p>
               ) : null}
               {m.limitations?.length ? (
                 <p className="mt-1 text-[11px] text-[var(--muted)]">
-                  <span className="font-semibold text-[var(--fg)]">Limitations:</span> {m.limitations.join(" · ")}
+                  <span className="font-semibold text-[var(--fg)]">Limitations:</span>{" "}
+                  {m.limitations.join(" · ")}
                 </p>
               ) : null}
             </div>
           ))}
           {askMutation.isPending ? (
-            <div className="flex items-center gap-2 py-2 text-xs text-[var(--muted)]" role="status">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent)]" aria-hidden="true" />
+            <div
+              className="flex items-center gap-2 py-2 text-xs text-[var(--muted)]"
+              role="status"
+            >
+              <span
+                className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent)]"
+                aria-hidden="true"
+              />
               Copilot is researching session data…
             </div>
           ) : null}

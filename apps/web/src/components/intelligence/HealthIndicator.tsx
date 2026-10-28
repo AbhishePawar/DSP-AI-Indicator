@@ -17,13 +17,7 @@ export function HealthIndicator({
   loading?: boolean;
   error?: string | null;
 }) {
-  const tone = error
-    ? "danger"
-    : loading
-      ? "neutral"
-      : ready
-        ? "success"
-        : "warning";
+  const tone = error ? "danger" : loading ? "neutral" : ready ? "success" : "warning";
 
   return (
     <div

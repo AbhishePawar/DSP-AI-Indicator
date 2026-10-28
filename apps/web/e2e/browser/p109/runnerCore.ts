@@ -77,7 +77,10 @@ export function isSameOrSubdirectory(candidate?: string, expected?: string): boo
   return c === e || c.startsWith(e + "/") || e.startsWith(c + "/");
 }
 
-export function commandLineContainsWorktree(commandLine?: string, expectedDir?: string): boolean {
+export function commandLineContainsWorktree(
+  commandLine?: string,
+  expectedDir?: string,
+): boolean {
   if (!commandLine || !expectedDir) return false;
   const normCmd = commandLine.toLowerCase().replace(/\\/g, "/");
   const normExpected = normalizePath(expectedDir);
@@ -95,7 +98,10 @@ export function inspectPortProcess(
   return inspectPortProcessPosix(port, expectedDir);
 }
 
-function inspectPortProcessPosix(port: number, expectedDir?: string): PortProcessInfo | null {
+function inspectPortProcessPosix(
+  port: number,
+  expectedDir?: string,
+): PortProcessInfo | null {
   try {
     let pid: number | undefined;
     try {
@@ -135,7 +141,10 @@ function inspectPortProcessPosix(port: number, expectedDir?: string): PortProces
 
     try {
       if (fs.existsSync(`/proc/${pid}/cmdline`)) {
-        commandLine = fs.readFileSync(`/proc/${pid}/cmdline`, "utf8").replace(/\0/g, " ").trim();
+        commandLine = fs
+          .readFileSync(`/proc/${pid}/cmdline`, "utf8")
+          .replace(/\0/g, " ")
+          .trim();
       }
     } catch {
       /* ignore */
@@ -162,7 +171,10 @@ function inspectPortProcessPosix(port: number, expectedDir?: string): PortProces
   }
 }
 
-function inspectPortProcessWin32(port: number, expectedDir?: string): PortProcessInfo | null {
+function inspectPortProcessWin32(
+  port: number,
+  expectedDir?: string,
+): PortProcessInfo | null {
   try {
     const netstatOut = execSync("netstat -ano -p tcp", {
       encoding: "utf8",
@@ -198,11 +210,14 @@ function inspectPortProcessWin32(port: number, expectedDir?: string): PortProces
       commandLine = parsed.CommandLine || "";
     } catch {
       try {
-        const wmicOut = execSync(`wmic process where processid=${pid} get commandline /format:list`, {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "ignore"],
-          timeout: 3000,
-        });
+        const wmicOut = execSync(
+          `wmic process where processid=${pid} get commandline /format:list`,
+          {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "ignore"],
+            timeout: 3000,
+          },
+        );
         const match = wmicOut.match(/CommandLine=(.*)/i);
         if (match) commandLine = match[1].trim();
       } catch {
@@ -351,7 +366,6 @@ export type FrontendServiceResult = {
   isolatedPort?: number;
 };
 
-
 export interface PlaywrightCommandResolution {
   command: string;
   args: string[];
@@ -361,7 +375,9 @@ export function resolveNpmCommand(platform: string = process.platform): string {
   return platform === "win32" ? "npm.cmd" : "npm";
 }
 
-export function resolvePlaywrightCommand(platform: string = process.platform): PlaywrightCommandResolution {
+export function resolvePlaywrightCommand(
+  platform: string = process.platform,
+): PlaywrightCommandResolution {
   const command = platform === "win32" ? "npx.cmd" : "npx";
   return {
     command,
@@ -379,7 +395,12 @@ export async function ensureBackendService(
   tracker: ManagedProcessTracker,
   healthConfig: HealthConfig = getHealthConfig(),
   options: ServiceStartupOptions = {},
-): Promise<{ ok: boolean; alreadyRunning: boolean; child?: ChildProcess; errorDiagnostic?: string }> {
+): Promise<{
+  ok: boolean;
+  alreadyRunning: boolean;
+  child?: ChildProcess;
+  errorDiagnostic?: string;
+}> {
   const checkUrl: HealthChecker =
     options.checkUrlFn ??
     (async (url, timeoutMs = 2000) => {
@@ -402,7 +423,15 @@ export async function ensureBackendService(
   try {
     child = spawner(
       "python",
-      ["-m", "uvicorn", "api_platform.api.app:app", "--host", "127.0.0.1", "--port", "8000"],
+      [
+        "-m",
+        "uvicorn",
+        "api_platform.api.app:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000",
+      ],
       {
         cwd: root,
         env: {
@@ -441,7 +470,8 @@ export async function ensureBackendService(
 
   if (child.exitCode !== null) {
     const recentLines = tracker.getRecentOutput(child);
-    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
+    const tail =
+      recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
@@ -451,7 +481,8 @@ export async function ensureBackendService(
 
   if (pollResult.timedOut) {
     const recentLines = tracker.getRecentOutput(child);
-    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
+    const tail =
+      recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
@@ -479,9 +510,12 @@ export async function ensureFrontendService(
   if (processInfo && processInfo.isCurrentWorktree === false) {
     // If autoFallbackPort is enabled, isolate to alternative port (default 3001)
     if (options.autoFallbackPort) {
-      const fallbackPort = typeof options.autoFallbackPort === "number" ? options.autoFallbackPort : 3001;
-      options.onProgress?.(`\n[PREFLIGHT] Port ${port} occupied by foreign worktree (${processInfo.workingDirectory || "PID " + processInfo.pid}). Isolating P1-09 frontend to port ${fallbackPort}...`);
-      
+      const fallbackPort =
+        typeof options.autoFallbackPort === "number" ? options.autoFallbackPort : 3001;
+      options.onProgress?.(
+        `\n[PREFLIGHT] Port ${port} occupied by foreign worktree (${processInfo.workingDirectory || "PID " + processInfo.pid}). Isolating P1-09 frontend to port ${fallbackPort}...`,
+      );
+
       port = fallbackPort;
       targetUrl = `http://127.0.0.1:${fallbackPort}`;
       processInfo = inspector(port, web);
@@ -591,7 +625,8 @@ export async function ensureFrontendService(
 
   if (child.exitCode !== null) {
     const recentLines = tracker.getRecentOutput(child);
-    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
+    const tail =
+      recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
@@ -602,7 +637,8 @@ export async function ensureFrontendService(
 
   if (pollResult.timedOut) {
     const recentLines = tracker.getRecentOutput(child);
-    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
+    const tail =
+      recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
@@ -611,5 +647,12 @@ export async function ensureFrontendService(
     };
   }
 
-  return { ok: true, alreadyRunning: false, child, processInfo, effectiveBaseUrl: targetUrl, isolatedPort: port };
+  return {
+    ok: true,
+    alreadyRunning: false,
+    child,
+    processInfo,
+    effectiveBaseUrl: targetUrl,
+    isolatedPort: port,
+  };
 }

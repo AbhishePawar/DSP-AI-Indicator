@@ -79,7 +79,9 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
       pipeline_version: "1.0.0",
     });
     marketQuoteMock.mockReset().mockResolvedValue({ ok: true, available: false });
-    financialStatementsMock.mockReset().mockResolvedValue({ ok: true, available: false });
+    financialStatementsMock
+      .mockReset()
+      .mockResolvedValue({ ok: true, available: false });
     corporateActionsMock.mockReset().mockResolvedValue({ ok: true, available: false });
     acknowledgeResearchDisclaimer();
   });
@@ -95,7 +97,9 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
     fireEvent.submit(form);
 
     expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith("/analysis?symbol=INFY&mode=simple&intent=company");
+    expect(replace).toHaveBeenCalledWith(
+      "/analysis?symbol=INFY&mode=simple&intent=company",
+    );
   });
 
   it("B. preserves Full DSP Buffett mode when changing company (TCS -> INFY)", async () => {
@@ -109,7 +113,9 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
     fireEvent.submit(form);
 
     expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith("/analysis?symbol=INFY&mode=full&intent=dsp_indicator");
+    expect(replace).toHaveBeenCalledWith(
+      "/analysis?symbol=INFY&mode=full&intent=dsp_indicator",
+    );
   });
 
   it("C. switches mode from Simple to Full while preserving symbol (TCS)", async () => {
@@ -121,7 +127,9 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
     fireEvent.click(switchBtn);
 
     expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith("/analysis?symbol=TCS&mode=full&intent=dsp_indicator");
+    expect(replace).toHaveBeenCalledWith(
+      "/analysis?symbol=TCS&mode=full&intent=dsp_indicator",
+    );
   });
 
   it("D. switches mode from Full to Simple while preserving symbol (TCS)", async () => {
@@ -133,7 +141,9 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
     fireEvent.click(switchBtn);
 
     expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith("/analysis?symbol=TCS&mode=simple&intent=company");
+    expect(replace).toHaveBeenCalledWith(
+      "/analysis?symbol=TCS&mode=simple&intent=company",
+    );
   });
 
   it("E. preserves safe default (full) when mode is missing from URL", async () => {
@@ -147,7 +157,9 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
     fireEvent.submit(form);
 
     expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith("/analysis?symbol=INFY&mode=full&intent=dsp_indicator");
+    expect(replace).toHaveBeenCalledWith(
+      "/analysis?symbol=INFY&mode=full&intent=dsp_indicator",
+    );
   });
   it("F. prevents commodity Gold from running equity valuation", async () => {
     navigationState.search = "symbol=GOLD&mode=simple&intent=company";

@@ -176,7 +176,10 @@ export function ResultConversation({
     if (!trimmed || askMutation.isPending) return;
     idRef.current += 1;
     const id = `turn-${idRef.current}`;
-    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const timestamp = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     setFollowUps((prev) => [
       ...prev,
@@ -228,7 +231,8 @@ export function ResultConversation({
     <div className="flex min-h-screen flex-col bg-[var(--surface)] text-[var(--fg)]">
       {exampleMode && !view ? (
         <div className="border-b border-amber-200 bg-amber-50 px-5 py-2 text-center text-xs font-medium text-amber-900">
-          Example fixture active. Live analysis results will populate automatically when connected.
+          Example fixture active. Live analysis results will populate automatically when
+          connected.
         </div>
       ) : null}
 
@@ -236,9 +240,7 @@ export function ResultConversation({
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--surface-2)] px-6 py-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-lg font-bold text-[var(--ink)]">
-              {company}
-            </h1>
+            <h1 className="truncate text-lg font-bold text-[var(--ink)]">{company}</h1>
             <span className="font-mono text-xs text-[var(--muted)]">
               {ticker} · {activeView?.exchange || "NYSE/NASDAQ"}
             </span>
@@ -284,7 +286,10 @@ export function ResultConversation({
         <div className="mx-auto w-full max-w-4xl space-y-8">
           {/* Section 1: Research Result */}
           <section aria-labelledby="primary-research-heading" className="space-y-4">
-            <h2 id="primary-research-heading" className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+            <h2
+              id="primary-research-heading"
+              className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
+            >
               1. Authoritative Research Result
             </h2>
             {activeView ? (
@@ -292,9 +297,12 @@ export function ResultConversation({
             ) : (
               <Card>
                 <CardBody className="p-6">
-                  <h3 className="text-base font-semibold text-[var(--ink)]">Research unavailable</h3>
+                  <h3 className="text-base font-semibold text-[var(--ink)]">
+                    Research unavailable
+                  </h3>
                   <p className="mt-1 text-sm text-[var(--muted)]">
-                    Run an analysis to execute deterministic valuation, economic moat, and investment committee models for this security.
+                    Run an analysis to execute deterministic valuation, economic moat,
+                    and investment committee models for this security.
                   </p>
                 </CardBody>
               </Card>
@@ -305,11 +313,15 @@ export function ResultConversation({
           <section aria-labelledby="copilot-section-heading" className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-8">
               <div>
-                <h2 id="copilot-section-heading" className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                <h2
+                  id="copilot-section-heading"
+                  className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
+                >
                   2. Research Interaction &amp; Follow-up Copilot
                 </h2>
                 <p className="text-xs text-[var(--muted)]">
-                  Contextual research assistant grounded in authoritative session findings
+                  Contextual research assistant grounded in authoritative session
+                  findings
                 </p>
               </div>
 
@@ -327,15 +339,24 @@ export function ResultConversation({
             </div>
 
             {/* Conversation History */}
-            <div className="space-y-4" role="log" aria-live="polite" aria-label="Research Copilot Conversation">
+            <div
+              className="space-y-4"
+              role="log"
+              aria-live="polite"
+              aria-label="Research Copilot Conversation"
+            >
               {followUps.length === 0 ? (
                 <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border)] bg-[var(--surface-2)] p-6 text-center">
-                  <HelpCircle className="mx-auto size-6 text-[var(--muted)]" aria-hidden="true" />
+                  <HelpCircle
+                    className="mx-auto size-6 text-[var(--muted)]"
+                    aria-hidden="true"
+                  />
                   <h3 className="mt-2 text-sm font-semibold text-[var(--fg)]">
                     No follow-up questions yet
                   </h3>
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    Ask questions below or select a suggested topic to explore valuation, risk factors, or Buffett methodology.
+                    Ask questions below or select a suggested topic to explore
+                    valuation, risk factors, or Buffett methodology.
                   </p>
                 </div>
               ) : (
@@ -361,7 +382,10 @@ export function ResultConversation({
 
                     {/* Assistant Response State */}
                     {turn.status === "loading" ? (
-                      <div className="flex items-center gap-3 py-3 text-sm text-[var(--muted)]" role="status">
+                      <div
+                        className="flex items-center gap-3 py-3 text-sm text-[var(--muted)]"
+                        role="status"
+                      >
                         <span
                           className="h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--accent)] motion-reduce:animate-none"
                           aria-hidden="true"
@@ -393,7 +417,9 @@ export function ResultConversation({
                             <span className="text-xs font-bold text-[var(--accent-strong)]">
                               DSP Copilot Engine
                             </span>
-                            <span className="text-[11px] text-[var(--muted)]">· /copilot/complete</span>
+                            <span className="text-[11px] text-[var(--muted)]">
+                              · /copilot/complete
+                            </span>
                           </div>
                           {turn.unavailable ? (
                             <Badge tone="warning">Provider Unavailable</Badge>
@@ -421,7 +447,9 @@ export function ResultConversation({
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="mt-1 text-[var(--muted)]">Evidence unavailable</p>
+                                <p className="mt-1 text-[var(--muted)]">
+                                  Evidence unavailable
+                                </p>
                               )}
                             </div>
 
@@ -430,14 +458,18 @@ export function ResultConversation({
                                 Source Verification
                               </p>
                               <p className="mt-1 text-[var(--muted)]">
-                                Source unavailable: External document retrieval and multi-source citations are bounded by provider availability.
+                                Source unavailable: External document retrieval and
+                                multi-source citations are bounded by provider
+                                availability.
                               </p>
                             </div>
                           </div>
 
                           {turn.limitations?.length ? (
                             <div className="mt-3 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--muted)]">
-                              <span className="font-semibold text-[var(--fg)]">Limitations:</span>{" "}
+                              <span className="font-semibold text-[var(--fg)]">
+                                Limitations:
+                              </span>{" "}
                               {turn.limitations.join(" · ")}
                             </div>
                           ) : null}
@@ -455,12 +487,17 @@ export function ResultConversation({
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
                 Suggested Follow-up Inquiries
               </p>
-              <div className="grid gap-2 sm:grid-cols-2" aria-label="Suggested follow-up questions">
+              <div
+                className="grid gap-2 sm:grid-cols-2"
+                aria-label="Suggested follow-up questions"
+              >
                 {RESEARCH_SUGGESTIONS.map((suggestion) => (
                   <button
                     key={suggestion.questionId}
                     type="button"
-                    onClick={() => submitQuestion(suggestion.questionId, suggestion.label)}
+                    onClick={() =>
+                      submitQuestion(suggestion.questionId, suggestion.label)
+                    }
                     disabled={askMutation.isPending}
                     className="flex min-h-[44px] flex-col items-start justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-left hover:border-[var(--accent)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50"
                   >
@@ -484,7 +521,10 @@ export function ResultConversation({
                 }}
                 className="space-y-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-sm)]"
               >
-                <label htmlFor="research-composer" className="block text-xs font-semibold text-[var(--muted)]">
+                <label
+                  htmlFor="research-composer"
+                  className="block text-xs font-semibold text-[var(--muted)]"
+                >
                   Ask a follow-up question regarding {ticker}
                 </label>
                 <div className="flex items-end gap-3">
@@ -508,7 +548,10 @@ export function ResultConversation({
                   </button>
                 </div>
                 <div className="flex flex-wrap items-center justify-between text-[11px] text-[var(--muted)]">
-                  <span>Press <kbd className="rounded border px-1">Enter</kbd> to submit, <kbd className="rounded border px-1">Shift+Enter</kbd> for newline</span>
+                  <span>
+                    Press <kbd className="rounded border px-1">Enter</kbd> to submit,{" "}
+                    <kbd className="rounded border px-1">Shift+Enter</kbd> for newline
+                  </span>
                   <span>Institutional Engine · No synthetic AI values</span>
                 </div>
               </form>

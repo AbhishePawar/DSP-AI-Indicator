@@ -8,11 +8,7 @@ export {
   type AdminSectionMeta,
 } from "./sections";
 
-export {
-  useAdminConsolePrefsStore,
-  type AdminNote,
-  type AdminTag,
-} from "./prefsStore";
+export { useAdminConsolePrefsStore, type AdminNote, type AdminTag } from "./prefsStore";
 
 export {
   displayValue,

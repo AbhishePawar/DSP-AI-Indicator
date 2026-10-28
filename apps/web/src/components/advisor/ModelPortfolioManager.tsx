@@ -56,11 +56,7 @@ function MpShell({
   );
 }
 
-export function AllocationSummary({
-  draft,
-}: {
-  draft: ModelPortfolioDraft;
-}) {
+export function AllocationSummary({ draft }: { draft: ModelPortfolioDraft }) {
   const totals = useMemo(
     () => computeAllocationTotals(draft.holdings, draft.cashAllocationPct),
     [draft.holdings, draft.cashAllocationPct],
@@ -84,8 +80,8 @@ export function AllocationSummary({
         </p>
         {!totals.isBalanced ? (
           <p role="alert" className="text-[var(--danger-fg)]">
-            Warning: total allocation is {totals.totalPct}% (off by {totals.deltaFrom100}% from
-            100%).
+            Warning: total allocation is {totals.totalPct}% (off by{" "}
+            {totals.deltaFrom100}% from 100%).
           </p>
         ) : (
           <p className="text-[var(--muted)]">Balanced at 100% (demo check).</p>
@@ -128,7 +124,11 @@ export function AllocationSummary({
 
 export function PortfolioAllocationTable({ holdings }: { holdings: MpHolding[] }) {
   return (
-    <div className="overflow-x-auto" role="region" aria-label="Holdings allocation table">
+    <div
+      className="overflow-x-auto"
+      role="region"
+      aria-label="Holdings allocation table"
+    >
       <table className="w-full min-w-[28rem] border-collapse text-sm">
         <thead>
           <tr className="border-b border-[var(--border)] text-left">
@@ -153,7 +153,11 @@ export function PortfolioAllocationTable({ holdings }: { holdings: MpHolding[] }
   );
 }
 
-export const HoldingCard = memo(function HoldingCard({ holding }: { holding: MpHolding }) {
+export const HoldingCard = memo(function HoldingCard({
+  holding,
+}: {
+  holding: MpHolding;
+}) {
   const env = getEnvelope(holding.envelopeId);
   return (
     <Card className="dsp-interactive">
@@ -209,7 +213,10 @@ export function PortfolioReviewCard({ draft }: { draft: ModelPortfolioDraft }) {
   const review = useMemo(() => buildPortfolioReview(draft), [draft]);
   return (
     <Card>
-      <CardHeader title="Portfolio review" description="Heuristic presentation — not engine output" />
+      <CardHeader
+        title="Portfolio review"
+        description="Heuristic presentation — not engine output"
+      />
       <CardBody className="grid gap-3 sm:grid-cols-2 text-sm">
         <div>
           <p className="font-medium">Strengths</p>
@@ -251,13 +258,19 @@ export function PortfolioReviewCard({ draft }: { draft: ModelPortfolioDraft }) {
 export function PortfolioNotes({ notes }: { notes: MpNote[] }) {
   return (
     <Card>
-      <CardHeader title="Portfolio notes" description="Advisor · Review · Suitability · Version" />
+      <CardHeader
+        title="Portfolio notes"
+        description="Advisor · Review · Suitability · Version"
+      />
       <CardBody className="space-y-3">
         {notes.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No notes</p>
         ) : (
           notes.map((n) => (
-            <article key={n.id} className="rounded-md border border-[var(--border)] px-3 py-2 text-sm">
+            <article
+              key={n.id}
+              className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+            >
               <div className="flex flex-wrap gap-2">
                 <Badge tone="neutral">{n.kind}</Badge>
                 <span className="font-medium">{n.title}</span>
@@ -473,23 +486,27 @@ export const PortfolioBuilderWorkspace = memo(function PortfolioBuilderWorkspace
             <p className="text-sm text-[var(--muted)]">All demo companies added</p>
           ) : (
             addOptions.map((id) => (
-              <Button key={id} type="button" variant="secondary" onClick={() => addCompany(id)}>
+              <Button
+                key={id}
+                type="button"
+                variant="secondary"
+                onClick={() => addCompany(id)}
+              >
                 Add {holdingMeta(id).companyLabel}
               </Button>
             ))
           )}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setDraft(emptyDraft())}
-          >
+          <Button type="button" variant="ghost" onClick={() => setDraft(emptyDraft())}>
             Reset empty
           </Button>
         </CardBody>
       </Card>
 
       <section aria-labelledby="builder-holdings">
-        <h2 id="builder-holdings" className="mb-2 font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="builder-holdings"
+          className="mb-2 font-[family-name:var(--font-display)] text-xl"
+        >
           Holdings
         </h2>
         {draft.holdings.length === 0 ? (
@@ -615,7 +632,11 @@ export function ScenarioComparison() {
           </ul>
         </CardBody>
       </Card>
-      <div className="overflow-x-auto" role="region" aria-label="Allocation differences">
+      <div
+        className="overflow-x-auto"
+        role="region"
+        aria-label="Allocation differences"
+      >
         <table className="w-full min-w-[32rem] border-collapse text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] text-left">
@@ -667,16 +688,18 @@ export function ScenarioComparison() {
   );
 }
 
-export const ModelPortfolioLibraryWorkspace = memo(function ModelPortfolioLibraryWorkspace() {
-  return (
-    <MpShell
-      title="Model Portfolio Library"
-      description="Growth · Balanced · Income · Value · Quality · Small Cap · Large Cap · Custom"
-    >
-      <ModelPortfolioLibrary />
-    </MpShell>
-  );
-});
+export const ModelPortfolioLibraryWorkspace = memo(
+  function ModelPortfolioLibraryWorkspace() {
+    return (
+      <MpShell
+        title="Model Portfolio Library"
+        description="Growth · Balanced · Income · Value · Quality · Small Cap · Large Cap · Custom"
+      >
+        <ModelPortfolioLibrary />
+      </MpShell>
+    );
+  },
+);
 
 /** Default /advisor/portfolios entry */
 export const ModelPortfolioWorkspace = ModelPortfolioLibraryWorkspace;
@@ -694,7 +717,10 @@ export const ScenarioComparisonWorkspace = memo(function ScenarioComparisonWorks
 
 export const PortfolioTemplatesWorkspace = memo(function PortfolioTemplatesWorkspace() {
   return (
-    <MpShell title="Portfolio Templates" description="Start from a demo template — open Builder to edit in session.">
+    <MpShell
+      title="Portfolio Templates"
+      description="Start from a demo template — open Builder to edit in session."
+    >
       <div className="grid gap-3 md:grid-cols-2">
         {portfolioTemplates.map((t) => (
           <PortfolioTemplateCard
@@ -714,11 +740,17 @@ export const PortfolioTemplatesWorkspace = memo(function PortfolioTemplatesWorks
 
 export const PortfolioNotesWorkspace = memo(function PortfolioNotesWorkspace() {
   const notes = useMemo(
-    () => seedModelPortfolioLibrary.flatMap((p) => p.notes.map((n) => ({ ...n, portfolio: p.name }))),
+    () =>
+      seedModelPortfolioLibrary.flatMap((p) =>
+        p.notes.map((n) => ({ ...n, portfolio: p.name })),
+      ),
     [],
   );
   return (
-    <MpShell title="Portfolio Notes" description="Aggregated demo notes across library models — session display.">
+    <MpShell
+      title="Portfolio Notes"
+      description="Aggregated demo notes across library models — session display."
+    >
       <div className="space-y-3">
         {notes.map((n) => (
           <Card key={`${n.id}-${n.portfolio}`}>

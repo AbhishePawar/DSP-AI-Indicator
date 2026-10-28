@@ -8,10 +8,7 @@ vi.mock("@/lib/api/client", () => ({
   },
 }));
 
-import {
-  _resetMarketCache,
-  readCachedQuote,
-} from "@/lib/market/cache";
+import { _resetMarketCache, readCachedQuote } from "@/lib/market/cache";
 import {
   buildPortfolioMarketSummary,
   formatChange,
@@ -119,9 +116,7 @@ describe("market quote service", () => {
       fields: null,
       message: "Data unavailable.",
     });
-    await expect(fetchMarketQuote("ZZZZ")).rejects.toThrow(
-      MARKET_DATA_UNAVAILABLE,
-    );
+    await expect(fetchMarketQuote("ZZZZ")).rejects.toThrow(MARKET_DATA_UNAVAILABLE);
   });
 
   it("never returns a live-labeled seed when API is unavailable", async () => {
@@ -131,9 +126,7 @@ describe("market quote service", () => {
       authenticated: false,
       fields: null,
     });
-    await expect(fetchMarketQuote("AAPL")).rejects.toThrow(
-      MARKET_DATA_UNAVAILABLE,
-    );
+    await expect(fetchMarketQuote("AAPL")).rejects.toThrow(MARKET_DATA_UNAVAILABLE);
     // Production path must not fall back to seedQuoteForTicker.
     expect(seedQuoteForTicker("AAPL").source).not.toBe("live");
   });
@@ -155,9 +148,7 @@ describe("portfolio market summary", () => {
     expect(summary.totalValue).toBeGreaterThan(0);
     expect(summary.dayChange).not.toBeNull();
     expect(summary.holdings).toHaveLength(2);
-    expect(Object.values(quotes).every((q) => q.source === "offline")).toBe(
-      true,
-    );
+    expect(Object.values(quotes).every((q) => q.source === "offline")).toBe(true);
   });
 });
 

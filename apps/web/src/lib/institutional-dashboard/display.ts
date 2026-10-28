@@ -1,10 +1,6 @@
 /** CV-001 display helpers — never invent numbers. */
 
-import type {
-  ConfidenceLevel,
-  SourceKind,
-  ValueCategory,
-} from "@/lib/trust/labels";
+import type { ConfidenceLevel, SourceKind, ValueCategory } from "@/lib/trust/labels";
 import {
   DATA_UNAVAILABLE,
   UNABLE_TO_CALCULATE,

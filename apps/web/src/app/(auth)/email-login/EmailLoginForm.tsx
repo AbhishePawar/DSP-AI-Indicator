@@ -35,7 +35,8 @@ export default function EmailLoginForm() {
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
   const [devToken, setDevToken] = useState<string | null>(null);
-  const { magicLinkStatus: status, magicLinkMessage: statusMessage } = useAuthProviders();
+  const { magicLinkStatus: status, magicLinkMessage: statusMessage } =
+    useAuthProviders();
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -67,15 +68,18 @@ export default function EmailLoginForm() {
       >
         <Stack gap={4}>
           {status !== "available" ? (
-            <Alert variant={status === "unavailable" ? "warning" : "info"} title={status === "unavailable" ? "Unavailable" : "Coming Soon"}>
-              {statusMessage || "Email link sign-in is not yet enabled on this deployment."}
+            <Alert
+              variant={status === "unavailable" ? "warning" : "info"}
+              title={status === "unavailable" ? "Unavailable" : "Coming Soon"}
+            >
+              {statusMessage ||
+                "Email link sign-in is not yet enabled on this deployment."}
             </Alert>
           ) : sent ? (
             <>
               <Alert variant="success" title="Check your email">
-                If {email.trim()} is eligible, a secure sign-in link was sent. The
-                link expires in 15 minutes. Open it on this device to finish
-                signing in.
+                If {email.trim()} is eligible, a secure sign-in link was sent. The link
+                expires in 15 minutes. Open it on this device to finish signing in.
               </Alert>
               {devToken ? (
                 <Alert variant="info" title="Development link">
@@ -87,7 +91,12 @@ export default function EmailLoginForm() {
                   </Link>
                 </Alert>
               ) : null}
-              <Button type="button" variant="ghost" className="w-full" onClick={() => setSent(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => setSent(false)}
+              >
                 Use a different email
               </Button>
             </>
@@ -104,8 +113,14 @@ export default function EmailLoginForm() {
                   disabled={pending}
                 />
               </FormField>
-              {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
-              <Button type="submit" className="w-full" disabled={pending || !email.trim()}>
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={pending || !email.trim()}
+              >
                 {pending ? "Sending…" : "Send sign-in link"}
               </Button>
             </form>

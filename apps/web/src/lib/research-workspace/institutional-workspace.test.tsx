@@ -74,9 +74,7 @@ function renderWithClient(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("Research Workspace templates", () => {
@@ -95,9 +93,7 @@ describe("InstitutionalResearchWorkspace", () => {
 
   it("renders workspace shell and loads dashboard", async () => {
     renderWithClient(<InstitutionalResearchWorkspace />);
-    expect(
-      screen.getByTestId("institutional-research-workspace"),
-    ).toBeTruthy();
+    expect(screen.getByTestId("institutional-research-workspace")).toBeTruthy();
     await waitFor(() => {
       expect(researchWorkspaceDashboard).toHaveBeenCalled();
       expect(researchWorkspaceListNotes).toHaveBeenCalled();

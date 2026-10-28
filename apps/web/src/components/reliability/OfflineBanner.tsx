@@ -24,8 +24,8 @@ export function OfflineBanner() {
       aria-live="assertive"
       className="border-b border-[var(--danger-border)] bg-[var(--danger-bg)] px-4 py-2 text-center text-sm text-[var(--danger-fg)]"
     >
-      You are offline. Cached UI may still render; API analyze/health calls will fail until
-      connectivity returns.
+      You are offline. Cached UI may still render; API analyze/health calls will fail
+      until connectivity returns.
     </div>
   );
 }
@@ -59,7 +59,10 @@ export function SessionRecoveryProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-export function useSessionRecoveryMeta(): { restoredAt: number | null; boot: number | null } {
+export function useSessionRecoveryMeta(): {
+  restoredAt: number | null;
+  boot: number | null;
+} {
   const [meta, setMeta] = useState<{ restoredAt: number | null; boot: number | null }>({
     restoredAt: null,
     boot: null,

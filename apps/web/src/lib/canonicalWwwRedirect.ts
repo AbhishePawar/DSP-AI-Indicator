@@ -15,7 +15,10 @@ export type HeaderReader = {
 };
 
 export function normalizeHostname(raw: string | null | undefined): string {
-  const first = String(raw || "").split(",")[0].trim().toLowerCase();
+  const first = String(raw || "")
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
   if (!first) return "";
   if (first.startsWith("[")) {
     const end = first.indexOf("]");
@@ -67,8 +70,7 @@ export function canonicalWwwRedirectLocation(
     return null;
   }
   const path = pathname.startsWith("/") ? pathname : `/${pathname || ""}`;
-  const query =
-    search && !search.startsWith("?") ? `?${search}` : search;
+  const query = search && !search.startsWith("?") ? `?${search}` : search;
   return `${CANONICAL_PRODUCTION_ORIGIN}${path}${query}`;
 }
 

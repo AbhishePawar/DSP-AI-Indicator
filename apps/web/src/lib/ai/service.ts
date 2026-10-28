@@ -47,15 +47,11 @@ export class AIService {
 
   getCapabilities(providerId?: AIProviderId): readonly AICapability[] {
     const id = providerId ?? this.activeId;
-    const provider =
-      this.registry.get(id) ?? this.factory.create(id);
+    const provider = this.registry.get(id) ?? this.factory.create(id);
     return provider.getCapabilities();
   }
 
-  supportsCapability(
-    capability: AICapability,
-    providerId?: AIProviderId,
-  ): boolean {
+  supportsCapability(capability: AICapability, providerId?: AIProviderId): boolean {
     return this.getCapabilities(providerId).includes(capability);
   }
 

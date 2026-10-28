@@ -52,22 +52,13 @@ export function DialogContent({
   );
 }
 
-export function DialogHeader({
-  className,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn("flex flex-col gap-1.5 pr-8 text-left", className)}
-      {...props}
-    />
+    <div className={cn("flex flex-col gap-1.5 pr-8 text-left", className)} {...props} />
   );
 }
 
-export function DialogFooter({
-  className,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function DialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(

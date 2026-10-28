@@ -48,17 +48,13 @@ function wrap(ui: ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("CompanyComparisonWorkspace render", () => {
   it("renders empty decision workspace shell", () => {
     wrap(<CompanyComparisonWorkspace />);
-    expect(
-      screen.getByTestId("company-comparison-workspace"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("company-comparison-workspace")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /Institutional Company Comparison/i }),
     ).toBeInTheDocument();
@@ -67,9 +63,8 @@ describe("CompanyComparisonWorkspace render", () => {
   });
 
   it("renders two-security symmetrical comparison header and Winner Matrix dynamically without hardcoding", async () => {
-    const { WinnerMatrixSection } = await import(
-      "@/components/company-comparison/Sections"
-    );
+    const { WinnerMatrixSection } =
+      await import("@/components/company-comparison/Sections");
     const { render, screen, cleanup } = await import("@testing-library/react");
     cleanup();
 
@@ -77,8 +72,18 @@ describe("CompanyComparisonWorkspace render", () => {
     const dynamicModel = {
       symbols: ["SEC1", "SEC2"],
       slots: [
-        { symbol: "SEC1", company: "Security Alpha Corp", exchange: "NYSE", status: "ready" },
-        { symbol: "SEC2", company: "Security Beta Ltd", exchange: "NASDAQ", status: "ready" },
+        {
+          symbol: "SEC1",
+          company: "Security Alpha Corp",
+          exchange: "NYSE",
+          status: "ready",
+        },
+        {
+          symbol: "SEC2",
+          company: "Security Beta Ltd",
+          exchange: "NASDAQ",
+          status: "ready",
+        },
       ],
       winnerMatrix: [
         {
@@ -112,7 +117,9 @@ describe("CompanyComparisonWorkspace render", () => {
     expect(screen.getByText(/Security Beta Ltd/i)).toBeTruthy();
 
     // 2. Assert Winner / Leader table semantics and values
-    expect(screen.getByRole("table", { name: /Winner comparison matrix/i })).toBeTruthy();
+    expect(
+      screen.getByRole("table", { name: /Winner comparison matrix/i }),
+    ).toBeTruthy();
     expect(screen.getByText("Valuation Score")).toBeTruthy();
     expect(screen.getByText("78.5")).toBeTruthy();
     expect(screen.getByText("62.0")).toBeTruthy();

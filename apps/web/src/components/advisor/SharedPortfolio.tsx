@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  memo,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { memo, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -149,7 +143,10 @@ export const PortfolioFilterPanel = memo(function PortfolioFilterPanel() {
 
   return (
     <Card>
-      <CardHeader title="Portfolio Filters" description="Presentation filters over demo models" />
+      <CardHeader
+        title="Portfolio Filters"
+        description="Presentation filters over demo models"
+      />
       <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block text-xs text-[var(--muted)] sm:col-span-2 lg:col-span-3">
           Search
@@ -313,7 +310,9 @@ export const PortfolioOverviewDashboard = memo(function PortfolioOverviewDashboa
             key={label}
             className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]/40 p-3"
           >
-            <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>
+            <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
+              {label}
+            </p>
             <p className="mt-1 text-sm font-medium">{value}</p>
           </div>
         ))}
@@ -329,7 +328,10 @@ export const PortfolioActivityFeed = memo(function PortfolioActivityFeed({
 }) {
   return (
     <Card>
-      <CardHeader title="Portfolio Activity" description="Session feed — not live multi-user" />
+      <CardHeader
+        title="Portfolio Activity"
+        description="Session feed — not live multi-user"
+      />
       <CardBody>
         <WindowedList
           items={items}
@@ -524,7 +526,9 @@ export const PortfolioLibraryPanel = memo(function PortfolioLibraryPanel() {
                     aria-pressed={snap.compareSelection.includes(p.id)}
                     onClick={() => togglePortfolioCompare(p.id)}
                   >
-                    {snap.compareSelection.includes(p.id) ? "In compare" : "Add to compare"}
+                    {snap.compareSelection.includes(p.id)
+                      ? "In compare"
+                      : "Add to compare"}
                   </Button>
                   <Button
                     type="button"
@@ -585,7 +589,10 @@ export const PortfolioLibraryPanel = memo(function PortfolioLibraryPanel() {
           <CardBody>
             <ul className="space-y-2 text-sm" aria-label="Portfolio collections">
               {snap.collections.map((c) => (
-                <li key={c.id} className="rounded-md border border-[var(--border)] px-3 py-2">
+                <li
+                  key={c.id}
+                  className="rounded-md border border-[var(--border)] px-3 py-2"
+                >
                   <p className="font-medium">{c.name}</p>
                   <p className="text-xs text-[var(--muted)]">
                     {c.portfolioIds
@@ -619,200 +626,216 @@ export const PortfolioLibraryPanel = memo(function PortfolioLibraryPanel() {
   );
 });
 
-export const PortfolioComparisonWorkspace = memo(function PortfolioComparisonWorkspace() {
-  const snap = useSharedPortfolio();
-  const cmp = useMemo(
-    () => comparePortfolioFields(snap.compareSelection),
-    [snap.compareSelection],
-  );
+export const PortfolioComparisonWorkspace = memo(
+  function PortfolioComparisonWorkspace() {
+    const snap = useSharedPortfolio();
+    const cmp = useMemo(
+      () => comparePortfolioFields(snap.compareSelection),
+      [snap.compareSelection],
+    );
 
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader
-          title="Select model portfolios (2–5)"
-          description="Reuses existing summary · allocation · sector · risk · notes — never recalculated"
-        />
-        <CardBody>
-          <ul
-            className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
-            aria-label="Portfolio compare selection"
-          >
-            {seedModelPortfolioLibrary.map((p) => {
-              const checked = snap.compareSelection.includes(p.id);
-              const disabled = !checked && snap.compareSelection.length >= 5;
-              return (
-                <li key={p.id}>
-                  <label
-                    className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--border)] px-3 text-sm ${
-                      disabled ? "opacity-50" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={() => togglePortfolioCompare(p.id)}
-                    />
-                    {p.name}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              disabled={snap.compareSelection.length < 2}
-              onClick={() => commitPortfolioComparison()}
-            >
-              Record comparison session
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setPortfolioCompareSelection([])}
-            >
-              Clear
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
-
-      {cmp ? (
-        <>
-          <Card>
-            <CardHeader title="Comparison table" />
-            <CardBody className="overflow-x-auto">
-              <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
-                <caption className="sr-only">
-                  Side-by-side comparison of selected model portfolios
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col" className="border-b border-[var(--border)] px-2 py-2">
-                      Field
-                    </th>
-                    {cmp.portfolios.map((p) => (
-                      <th
-                        key={p.id}
-                        scope="col"
-                        className="border-b border-[var(--border)] px-2 py-2"
-                      >
-                        {p.name}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {cmp.rows.map((row) => (
-                    <tr key={row.label}>
-                      <th
-                        scope="row"
-                        className="border-b border-[var(--border)] px-2 py-2 font-medium"
-                      >
-                        {row.label}
-                      </th>
-                      {row.values.map((v, i) => (
-                        <td
-                          key={`${row.label}-${i}`}
-                          className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]"
-                        >
-                          {v}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardBody>
-          </Card>
-          <Card>
-            <CardHeader title="Holding allocation matrix" description="Existing sleeve weights only" />
-            <CardBody className="overflow-x-auto">
-              <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
-                <caption className="sr-only">Holding allocation percentages by portfolio</caption>
-                <thead>
-                  <tr>
-                    <th scope="col" className="border-b border-[var(--border)] px-2 py-2">
-                      Holding
-                    </th>
-                    {cmp.portfolios.map((p) => (
-                      <th
-                        key={p.id}
-                        scope="col"
-                        className="border-b border-[var(--border)] px-2 py-2"
-                      >
-                        {p.name} %
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {cmp.holdingMatrix.map((row) => (
-                    <tr key={row.envelopeId}>
-                      <th
-                        scope="row"
-                        className="border-b border-[var(--border)] px-2 py-2 font-medium"
-                      >
-                        {row.companyLabel}
-                      </th>
-                      {row.values.map((v, i) => (
-                        <td
-                          key={`${row.envelopeId}-${i}`}
-                          className="border-b border-[var(--border)] px-2 py-2 tabular-nums text-[var(--muted)]"
-                        >
-                          {v}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardBody>
-          </Card>
-          <Card>
-            <CardHeader title="Scenario Analysis (existing framing)" />
-            <CardBody className="text-sm text-[var(--muted)]">
-              Open{" "}
-              <Link
-                href="/advisor/team/shared-portfolios/scenarios"
-                className="text-[var(--accent)] underline"
-              >
-                Scenarios
-              </Link>{" "}
-              to review Conservative · Base · Bull · Bear · Stress cards built from the same demo
-              allocations (not recalculated).
-            </CardBody>
-          </Card>
-        </>
-      ) : (
-        <EmptyState title="Select at least 2 portfolios to compare" />
-      )}
-
-      {snap.recentlyCompared.length > 0 ? (
+    return (
+      <div className="space-y-4">
         <Card>
-          <CardHeader title="Recently Compared" />
+          <CardHeader
+            title="Select model portfolios (2–5)"
+            description="Reuses existing summary · allocation · sector · risk · notes — never recalculated"
+          />
           <CardBody>
-            <ul className="space-y-2 text-sm" aria-label="Recently compared portfolios">
-              {snap.recentlyCompared.map((set, i) => (
-                <li key={i}>
-                  <button
-                    type="button"
-                    className="min-h-11 text-left text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                    onClick={() => setPortfolioCompareSelection(set)}
-                  >
-                    {set.map((id) => getPortfolioById(id)?.name ?? id).join(" · ")}
-                  </button>
-                </li>
-              ))}
+            <ul
+              className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+              aria-label="Portfolio compare selection"
+            >
+              {seedModelPortfolioLibrary.map((p) => {
+                const checked = snap.compareSelection.includes(p.id);
+                const disabled = !checked && snap.compareSelection.length >= 5;
+                return (
+                  <li key={p.id}>
+                    <label
+                      className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--border)] px-3 text-sm ${
+                        disabled ? "opacity-50" : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={disabled}
+                        onChange={() => togglePortfolioCompare(p.id)}
+                      />
+                      {p.name}
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                disabled={snap.compareSelection.length < 2}
+                onClick={() => commitPortfolioComparison()}
+              >
+                Record comparison session
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPortfolioCompareSelection([])}
+              >
+                Clear
+              </Button>
+            </div>
           </CardBody>
         </Card>
-      ) : null}
-    </div>
-  );
-});
+
+        {cmp ? (
+          <>
+            <Card>
+              <CardHeader title="Comparison table" />
+              <CardBody className="overflow-x-auto">
+                <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
+                  <caption className="sr-only">
+                    Side-by-side comparison of selected model portfolios
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th
+                        scope="col"
+                        className="border-b border-[var(--border)] px-2 py-2"
+                      >
+                        Field
+                      </th>
+                      {cmp.portfolios.map((p) => (
+                        <th
+                          key={p.id}
+                          scope="col"
+                          className="border-b border-[var(--border)] px-2 py-2"
+                        >
+                          {p.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cmp.rows.map((row) => (
+                      <tr key={row.label}>
+                        <th
+                          scope="row"
+                          className="border-b border-[var(--border)] px-2 py-2 font-medium"
+                        >
+                          {row.label}
+                        </th>
+                        {row.values.map((v, i) => (
+                          <td
+                            key={`${row.label}-${i}`}
+                            className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]"
+                          >
+                            {v}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader
+                title="Holding allocation matrix"
+                description="Existing sleeve weights only"
+              />
+              <CardBody className="overflow-x-auto">
+                <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+                  <caption className="sr-only">
+                    Holding allocation percentages by portfolio
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th
+                        scope="col"
+                        className="border-b border-[var(--border)] px-2 py-2"
+                      >
+                        Holding
+                      </th>
+                      {cmp.portfolios.map((p) => (
+                        <th
+                          key={p.id}
+                          scope="col"
+                          className="border-b border-[var(--border)] px-2 py-2"
+                        >
+                          {p.name} %
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cmp.holdingMatrix.map((row) => (
+                      <tr key={row.envelopeId}>
+                        <th
+                          scope="row"
+                          className="border-b border-[var(--border)] px-2 py-2 font-medium"
+                        >
+                          {row.companyLabel}
+                        </th>
+                        {row.values.map((v, i) => (
+                          <td
+                            key={`${row.envelopeId}-${i}`}
+                            className="border-b border-[var(--border)] px-2 py-2 tabular-nums text-[var(--muted)]"
+                          >
+                            {v}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader title="Scenario Analysis (existing framing)" />
+              <CardBody className="text-sm text-[var(--muted)]">
+                Open{" "}
+                <Link
+                  href="/advisor/team/shared-portfolios/scenarios"
+                  className="text-[var(--accent)] underline"
+                >
+                  Scenarios
+                </Link>{" "}
+                to review Conservative · Base · Bull · Bear · Stress cards built from
+                the same demo allocations (not recalculated).
+              </CardBody>
+            </Card>
+          </>
+        ) : (
+          <EmptyState title="Select at least 2 portfolios to compare" />
+        )}
+
+        {snap.recentlyCompared.length > 0 ? (
+          <Card>
+            <CardHeader title="Recently Compared" />
+            <CardBody>
+              <ul
+                className="space-y-2 text-sm"
+                aria-label="Recently compared portfolios"
+              >
+                {snap.recentlyCompared.map((set, i) => (
+                  <li key={i}>
+                    <button
+                      type="button"
+                      className="min-h-11 text-left text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                      onClick={() => setPortfolioCompareSelection(set)}
+                    >
+                      {set.map((id) => getPortfolioById(id)?.name ?? id).join(" · ")}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </CardBody>
+          </Card>
+        ) : null}
+      </div>
+    );
+  },
+);
 
 /* ── Pages ──────────────────────────────────────────────────────── */
 
@@ -830,9 +853,10 @@ export const SharedPortfolioWorkspace = memo(function SharedPortfolioWorkspace()
         <Card>
           <CardHeader title="Trust reminder" />
           <CardBody className="text-sm text-[var(--muted)]">
-            Portfolio Engine / demo library remains the single source of truth. This workspace never
-            recalculates allocations, scenarios, or risk — and never modifies Evidence, Confidence,
-            Methodology, or Limitations on linked research.
+            Portfolio Engine / demo library remains the single source of truth. This
+            workspace never recalculates allocations, scenarios, or risk — and never
+            modifies Evidence, Confidence, Methodology, or Limitations on linked
+            research.
           </CardBody>
         </Card>
       </div>
@@ -862,51 +886,55 @@ export const SharedPortfolioComparePage = memo(function SharedPortfolioComparePa
   );
 });
 
-export const SharedPortfolioScenariosPage = memo(function SharedPortfolioScenariosPage() {
-  const snap = useSharedPortfolio();
-  const portfolio =
-    getPortfolioById(snap.activeScenarioPortfolioId) ?? seedModelPortfolioLibrary[0];
+export const SharedPortfolioScenariosPage = memo(
+  function SharedPortfolioScenariosPage() {
+    const snap = useSharedPortfolio();
+    const portfolio =
+      getPortfolioById(snap.activeScenarioPortfolioId) ?? seedModelPortfolioLibrary[0];
 
-  return (
-    <SharedPortfolioShell
-      title="Scenario Review"
-      description="Conservative · Base · Bull · Bear · Stress — presentation framings of existing models"
-    >
-      <Card>
-        <CardHeader title="Select model" />
-        <CardBody>
-          <label className="block text-xs text-[var(--muted)]">
-            Portfolio
-            <select
-              value={snap.activeScenarioPortfolioId}
-              onChange={(e) => setActiveScenarioPortfolioId(e.target.value)}
-              className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              aria-label="Select portfolio for scenario review"
-            >
-              {seedModelPortfolioLibrary.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </CardBody>
-      </Card>
-      {portfolio ? <PortfolioScenarioCard portfolio={portfolio} /> : null}
-    </SharedPortfolioShell>
-  );
-});
+    return (
+      <SharedPortfolioShell
+        title="Scenario Review"
+        description="Conservative · Base · Bull · Bear · Stress — presentation framings of existing models"
+      >
+        <Card>
+          <CardHeader title="Select model" />
+          <CardBody>
+            <label className="block text-xs text-[var(--muted)]">
+              Portfolio
+              <select
+                value={snap.activeScenarioPortfolioId}
+                onChange={(e) => setActiveScenarioPortfolioId(e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label="Select portfolio for scenario review"
+              >
+                {seedModelPortfolioLibrary.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </CardBody>
+        </Card>
+        {portfolio ? <PortfolioScenarioCard portfolio={portfolio} /> : null}
+      </SharedPortfolioShell>
+    );
+  },
+);
 
-export const SharedPortfolioDiscussionPage = memo(function SharedPortfolioDiscussionPage() {
-  return (
-    <SharedPortfolioShell
-      title="Portfolio Discussion"
-      description="Notes · thesis · concerns · follow-ups — session only"
-    >
-      <PortfolioDiscussionPanel />
-    </SharedPortfolioShell>
-  );
-});
+export const SharedPortfolioDiscussionPage = memo(
+  function SharedPortfolioDiscussionPage() {
+    return (
+      <SharedPortfolioShell
+        title="Portfolio Discussion"
+        description="Notes · thesis · concerns · follow-ups — session only"
+      >
+        <PortfolioDiscussionPanel />
+      </SharedPortfolioShell>
+    );
+  },
+);
 
 export const SharedPortfolioActivityPage = memo(function SharedPortfolioActivityPage() {
   const snap = useSharedPortfolio();

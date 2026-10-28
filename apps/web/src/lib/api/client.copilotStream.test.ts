@@ -51,7 +51,12 @@ describe("api.copilotStream", () => {
     global.fetch = fetchMock;
 
     const chunks = await api.copilotStream(
-      { question_id: "freeform", freeform: "Tell me about TCS", request: null, response: null },
+      {
+        question_id: "freeform",
+        freeform: "Tell me about TCS",
+        request: null,
+        response: null,
+      },
       { token: "__cookie__" },
     );
 
@@ -109,7 +114,12 @@ describe("api.copilotStream", () => {
     global.fetch = vi.fn().mockResolvedValue(errorResponse);
 
     await expect(
-      api.copilotStream({ question_id: "freeform", freeform: "Test fail", request: null, response: null }),
+      api.copilotStream({
+        question_id: "freeform",
+        freeform: "Test fail",
+        request: null,
+        response: null,
+      }),
     ).rejects.toThrow(ApiClientError);
   });
 });

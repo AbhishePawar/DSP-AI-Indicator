@@ -16,7 +16,10 @@ function Stars({ count }: { count: number }) {
     return <span className="text-sm text-[var(--muted)]">Unavailable</span>;
   }
   return (
-    <span aria-label={`${count} of 5 stars`} className="tracking-wider text-[var(--accent)]">
+    <span
+      aria-label={`${count} of 5 stars`}
+      className="tracking-wider text-[var(--accent)]"
+    >
       {"★".repeat(count)}
       <span className="text-[var(--muted)]">{"★".repeat(Math.max(0, 5 - count))}</span>
     </span>
@@ -43,9 +46,7 @@ export function InstitutionalRatingsSection({
 
   return (
     <div className="space-y-4">
-      {transparency ? (
-        <ReportInformationCard transparency={transparency} />
-      ) : null}
+      {transparency ? <ReportInformationCard transparency={transparency} /> : null}
       <SectionCard
         title="Institutional Dashboard"
         description="One-page rating summary — remapped from existing /analyse outputs"
@@ -67,9 +68,15 @@ export function InstitutionalRatingsSection({
           </dl>
         </div>
         <dl>
-          <FieldRow label="Investment Quality" value={ratings.overall.investmentQuality} />
+          <FieldRow
+            label="Investment Quality"
+            value={ratings.overall.investmentQuality}
+          />
           <FieldRow label="Business Quality" value={ratings.overall.businessQuality} />
-          <FieldRow label="Valuation Quality" value={ratings.overall.valuationQuality} />
+          <FieldRow
+            label="Valuation Quality"
+            value={ratings.overall.valuationQuality}
+          />
           <FieldRow label="Risk Level" value={ratings.overall.riskLevel} />
           <FieldRow
             label="Expected Long-Term Quality"

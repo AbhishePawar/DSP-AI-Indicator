@@ -84,7 +84,10 @@ export function MarketingHeader() {
       : `Theme: ${mode}. Activate to cycle theme. Currently showing ${resolved}.`;
 
   return (
-    <header data-testid="marketing-header" className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]">
+    <header
+      data-testid="marketing-header"
+      className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]"
+    >
       <div className="relative flex min-h-[70px] items-center justify-between gap-4 px-5 py-4 sm:px-12">
         <Link
           href="/"
@@ -92,7 +95,8 @@ export function MarketingHeader() {
           aria-label={`${env.appName} home`}
           className="flex items-center gap-2.5 font-[family-name:var(--font-display)] text-lg text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
-          <span className="size-[26px] rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" />DSP
+          <span className="size-[26px] rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" />
+          DSP
         </Link>
 
         <nav
@@ -112,7 +116,8 @@ export function MarketingHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button data-testid="marketing-theme"
+          <button
+            data-testid="marketing-theme"
             type="button"
             onClick={cycleMode}
             className="inline-flex size-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"

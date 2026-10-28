@@ -135,7 +135,9 @@ describe("CompanyResearchLayout Component", () => {
     // 1. Executive Summary & Thesis
     expect(screen.getByText("Executive Research Summary")).toBeTruthy();
     expect(screen.getByText(/Investment Thesis & Research Question/i)).toBeTruthy();
-    expect(screen.getAllByText("Strong Moat and Pricing Power").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Strong Moat and Pricing Power").length).toBeGreaterThan(
+      0,
+    );
 
     // 2. AI / Deep Research Boundary
     expect(screen.getByText("Deep Research & AI Boundary")).toBeTruthy();
@@ -144,12 +146,16 @@ describe("CompanyResearchLayout Component", () => {
     // 3. Evidence & Sources section
     expect(screen.getByText("Evidence Provenance & Sources")).toBeTruthy();
     expect(screen.getByText("Primary Financials")).toBeTruthy();
-    expect(screen.getAllByText(/Unavailable \/ not attributed/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/Unavailable \/ not attributed/i).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByText(/External AI Citations/i)).toBeTruthy();
     expect(screen.getAllByText(/Source unavailable/i).length).toBeGreaterThan(0);
 
     // 4. Progressive disclosure toggle
-    const auditBtn = screen.getByRole("button", { name: /Show Audit & Provenance Metadata/i });
+    const auditBtn = screen.getByRole("button", {
+      name: /Show Audit & Provenance Metadata/i,
+    });
     expect(auditBtn).toBeTruthy();
     expect(auditBtn.getAttribute("aria-expanded")).toBe("false");
 

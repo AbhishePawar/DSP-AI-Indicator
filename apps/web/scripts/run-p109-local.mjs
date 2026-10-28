@@ -86,7 +86,9 @@ async function main() {
   let config;
   try {
     config = resolveP109Config();
-    console.log(`[PREFLIGHT] Credential status: CONFIGURED (canonical or fallback present)`);
+    console.log(
+      `[PREFLIGHT] Credential status: CONFIGURED (canonical or fallback present)`,
+    );
     console.log(`[PREFLIGHT] Target API: ${config.apiBaseUrl}`);
     console.log(`[PREFLIGHT] Target Frontend: ${config.baseUrl}`);
   } catch (err) {
@@ -116,7 +118,9 @@ async function main() {
   });
 
   const healthConfig = getHealthConfig();
-  console.log(`[PREFLIGHT] Health check timeout: ${healthConfig.timeoutMs}ms, interval: ${healthConfig.intervalMs}ms`);
+  console.log(
+    `[PREFLIGHT] Health check timeout: ${healthConfig.timeoutMs}ms, interval: ${healthConfig.intervalMs}ms`,
+  );
 
   // 1. Ensure backend service
   const backendResult = await ensureBackendService(config, tracker, healthConfig, {
@@ -131,15 +135,17 @@ async function main() {
       console.error(backendResult.errorDiagnostic);
     }
     console.error("\nSafe Manual Startup Command (Backend):");
-    console.error([
-      "DSP_ENVIRONMENT=development \\",
-      "DSP_INFRA_OFFLINE=0 \\",
-      "DSP_MARKET_QUOTE_MEMORY=1 \\",
-      "DSP_FINANCIAL_STATEMENT_MEMORY=1 \\",
-      "DSP_P109_E2E_FIXTURE=1 \\",
-      "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
-      "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
-    ].join("\n"));
+    console.error(
+      [
+        "DSP_ENVIRONMENT=development \\",
+        "DSP_INFRA_OFFLINE=0 \\",
+        "DSP_MARKET_QUOTE_MEMORY=1 \\",
+        "DSP_FINANCIAL_STATEMENT_MEMORY=1 \\",
+        "DSP_P109_E2E_FIXTURE=1 \\",
+        "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
+        "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
+      ].join("\n"),
+    );
     tracker.cleanup();
     process.exit(2);
   }
@@ -152,8 +158,13 @@ async function main() {
     onProgress: (msg) => process.stdout.write(msg),
   });
 
-  if (frontendResult.effectiveBaseUrl && frontendResult.effectiveBaseUrl !== config.baseUrl) {
-    console.log(`\n[PREFLIGHT] Isolated P1-09 frontend to: ${frontendResult.effectiveBaseUrl}`);
+  if (
+    frontendResult.effectiveBaseUrl &&
+    frontendResult.effectiveBaseUrl !== config.baseUrl
+  ) {
+    console.log(
+      `\n[PREFLIGHT] Isolated P1-09 frontend to: ${frontendResult.effectiveBaseUrl}`,
+    );
     config.baseUrl = frontendResult.effectiveBaseUrl;
     process.env.PLAYWRIGHT_BASE_URL = frontendResult.effectiveBaseUrl;
   }
@@ -161,7 +172,9 @@ async function main() {
   const selectedPort = parsePortFromUrl(config.baseUrl);
 
   if (frontendResult.alreadyRunning) {
-    console.log(`[PREFLIGHT] Frontend is already running and verified responsive (reused existing process at ${config.baseUrl}).`);
+    console.log(
+      `[PREFLIGHT] Frontend is already running and verified responsive (reused existing process at ${config.baseUrl}).`,
+    );
   } else if (!frontendResult.ok) {
     console.error(`\n[PREFLIGHT ERROR] FRONTEND_UNAVAILABLE`);
     if (frontendResult.errorDiagnostic) {
@@ -191,26 +204,26 @@ async function main() {
     process.exit(2);
   }
 
-  console.log(`\n[EXECUTION] Launching P1-09 Chromium journey against ${config.baseUrl} (PLAYWRIGHT_SKIP_WEBSERVER=1)...`);
+  console.log(
+    `\n[EXECUTION] Launching P1-09 Chromium journey against ${config.baseUrl} (PLAYWRIGHT_SKIP_WEBSERVER=1)...`,
+  );
   const resultsJsonPath = path.resolve(webDir, "playwright-results.json");
   if (fs.existsSync(resultsJsonPath)) {
-    try { fs.unlinkSync(resultsJsonPath); } catch {}
+    try {
+      fs.unlinkSync(resultsJsonPath);
+    } catch {}
   }
 
   const pwCmd = resolvePlaywrightCommand();
-  const child = spawn(
-    pwCmd.command,
-    pwCmd.args,
-    {
-      cwd: webDir,
-      env: {
-        ...process.env,
-        PLAYWRIGHT_SKIP_WEBSERVER: "1",
-        PLAYWRIGHT_BASE_URL: config.baseUrl,
-      },
-      stdio: "inherit",
-    }
-  );
+  const child = spawn(pwCmd.command, pwCmd.args, {
+    cwd: webDir,
+    env: {
+      ...process.env,
+      PLAYWRIGHT_SKIP_WEBSERVER: "1",
+      PLAYWRIGHT_BASE_URL: config.baseUrl,
+    },
+    stdio: "inherit",
+  });
 
   child.on("error", (err) => {
     tracker.cleanup();
@@ -222,7 +235,9 @@ async function main() {
     console.error(`Resolved Command:     ${pwCmd.command}`);
     console.error(`Arguments:            ${pwCmd.args.join(" ")}`);
     console.error(`Working Directory:    ${webDir}`);
-    console.error(`PATH Available:       ${Boolean(process.env.PATH || process.env.Path)}`);
+    console.error(
+      `PATH Available:       ${Boolean(process.env.PATH || process.env.Path)}`,
+    );
     console.error(`System Error:         ${err.message}`);
     console.error("==================================================");
     console.error("\nP1-09: BLOCKED — could not spawn Playwright runner");

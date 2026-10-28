@@ -86,15 +86,9 @@ describe("Login form — public methods", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    expect(
-      screen.getByRole("button", { name: /username and password/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /mobile number and otp/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /username and otp/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /username and password/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /mobile number and otp/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /username and otp/i })).toBeTruthy();
     const google = screen.getByRole("button", { name: /continue with google/i });
     expect(google).toBeTruthy();
     expect(google).not.toBeDisabled();
@@ -269,5 +263,4 @@ describe("Login form — public methods", () => {
     await waitFor(() => expect(loginMock).toHaveBeenCalled());
     await waitFor(() => expect(navigateAfterLogin).toHaveBeenCalledWith("/"));
   });
-
 });

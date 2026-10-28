@@ -158,7 +158,5 @@ export function WorkspaceEmpty({
   description?: string;
   action?: ReactNode;
 }) {
-  return (
-    <EmptyState title={title} description={description} action={action} />
-  );
+  return <EmptyState title={title} description={description} action={action} />;
 }

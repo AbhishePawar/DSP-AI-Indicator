@@ -94,9 +94,7 @@ export function CompanyHeaderBar({
   const sharePath = `/analysis?symbol=${encodeURIComponent(symbol)}`;
 
   const quoteFields =
-    marketQuote?.available && marketQuote.authenticated
-      ? marketQuote.fields
-      : null;
+    marketQuote?.available && marketQuote.authenticated ? marketQuote.fields : null;
   const latestRatios =
     financialStatements?.available &&
     financialStatements.authenticated &&
@@ -171,10 +169,7 @@ export function CompanyHeaderBar({
         <FieldRow label="Current Price" value={money(quoteFields?.current_price)} />
         <FieldRow
           label="Daily Change"
-          value={dailyChange(
-            quoteFields?.current_price,
-            quoteFields?.previous_close,
-          )}
+          value={dailyChange(quoteFields?.current_price, quoteFields?.previous_close)}
         />
         <FieldRow
           label="Market Cap"
@@ -182,10 +177,7 @@ export function CompanyHeaderBar({
         />
         <FieldRow label="52 Week High" value={money(quoteFields?.week_52_high)} />
         <FieldRow label="52 Week Low" value={money(quoteFields?.week_52_low)} />
-        <FieldRow
-          label="Dividend Yield"
-          value={pct(quoteFields?.dividend_yield)}
-        />
+        <FieldRow label="Dividend Yield" value={pct(quoteFields?.dividend_yield)} />
         <FieldRow label="P/E" value={null} />
         <FieldRow label="P/B" value={null} />
         <FieldRow label="ROE" value={pct(latestRatios?.roe)} />

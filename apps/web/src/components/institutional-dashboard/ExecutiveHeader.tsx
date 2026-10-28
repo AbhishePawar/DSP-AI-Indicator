@@ -21,16 +21,8 @@ export function ExecutiveHeader({ view }: { view: ExecutiveHeaderView }) {
           field={view.currentMarketPrice}
           emphasize
         />
-        <MetricCell
-          label="Intrinsic value"
-          field={view.intrinsicValue}
-          emphasize
-        />
-        <MetricCell
-          label="Margin of safety"
-          field={view.marginOfSafety}
-          emphasize
-        />
+        <MetricCell label="Intrinsic value" field={view.intrinsicValue} emphasize />
+        <MetricCell label="Margin of safety" field={view.marginOfSafety} emphasize />
         <MetricCell label="Fair value range" field={view.fairValueRange} />
         <MetricCell label="Expected CAGR" field={view.expectedCagr} />
         <MetricCell label="Overall score" field={view.overallScore} emphasize />

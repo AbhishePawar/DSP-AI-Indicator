@@ -36,10 +36,7 @@ import { resolveAssetEntry } from "@/lib/assets/resolver";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 
-import {
-  buildAnalysisUrl,
-  parseResearchMode,
-} from "@/lib/analysis/intents";
+import { buildAnalysisUrl, parseResearchMode } from "@/lib/analysis/intents";
 import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
@@ -239,11 +236,15 @@ export function CompanyAnalysisWorkspace() {
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
 
   useEffect(() => {
-    const next = (
-      new URLSearchParams(searchParamsKey).get("symbol") || ""
-    ).trim().toUpperCase();
+    const next = (new URLSearchParams(searchParamsKey).get("symbol") || "")
+      .trim()
+      .toUpperCase();
     const requestedSection = new URLSearchParams(searchParamsKey).get("section");
-    setActiveSection(requestedSection && isAnalysisSectionId(requestedSection) ? requestedSection : "summary");
+    setActiveSection(
+      requestedSection && isAnalysisSectionId(requestedSection)
+        ? requestedSection
+        : "summary",
+    );
     setSymbol((prev) => {
       if (prev === next) return prev;
       // Clear prior company research only when the ticker actually changes.
@@ -278,17 +279,19 @@ export function CompanyAnalysisWorkspace() {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
       const match = resolveCatalogue(requestedSymbol);
-      const asset = !match ? resolveAssetEntry(requestedSymbol, searchParams.get("exchange")) : null;
+      const asset = !match
+        ? resolveAssetEntry(requestedSymbol, searchParams.get("exchange"))
+        : null;
 
       if (asset && !asset.allowsEquityValuation) {
         throw new Error(
-          `${asset.name} is classified as a ${asset.assetClass}. Fundamental equity valuation (DCF, Buffett Indicator, Earnings Quality) is restricted to corporate equities and cannot be computed for ${asset.assetClass} assets.`
+          `${asset.name} is classified as a ${asset.assetClass}. Fundamental equity valuation (DCF, Buffett Indicator, Earnings Quality) is restricted to corporate equities and cannot be computed for ${asset.assetClass} assets.`,
         );
       }
       if (asset?.ambiguous && asset.candidates?.length) {
         const names = asset.candidates.map((c) => `${c.name} (${c.symbol})`).join(", ");
         throw new Error(
-          `Multiple assets match "${requestedSymbol}": ${names}. Please specify an exact ticker or company name.`
+          `Multiple assets match "${requestedSymbol}": ${names}. Please specify an exact ticker or company name.`,
         );
       }
 
@@ -387,7 +390,9 @@ export function CompanyAnalysisWorkspace() {
         limit: 1,
         exchange: activeExchange,
       }),
-    enabled: Boolean(token && symbol && (!resolvedAsset || resolvedAsset.allowsEquityValuation)),
+    enabled: Boolean(
+      token && symbol && (!resolvedAsset || resolvedAsset.allowsEquityValuation),
+    ),
     retry: false,
     staleTime: 60_000,
   });
@@ -457,29 +462,90 @@ export function CompanyAnalysisWorkspace() {
         analysedAt: view.analysedAt,
       })
     : emptySurfaceTrust("company_analysis", {
-        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
+        auditNote:
+          "Audit: company analysis is awaiting an authenticated analyse payload.",
       });
 
-  const detailComponents: Partial<Record<AnalysisSectionId, ComponentType<{ view: ResearchView }>>> = {
-    valuation: ValuationSection, quality: QualitySection, management: ManagementSection,
-    moat: MoatSection, risk: RiskSection, financial: FinancialSection,
-    explainability: ExplainabilitySection, evidence: EvidenceSection,
-    compliance: ComplianceSection, ownership: OwnershipSection, peers: PeersSection,
-    documents: DocumentsSection, news: NewsSection, settings: SettingsSection,
+  const detailComponents: Partial<
+    Record<AnalysisSectionId, ComponentType<{ view: ResearchView }>>
+  > = {
+    valuation: ValuationSection,
+    quality: QualitySection,
+    management: ManagementSection,
+    moat: MoatSection,
+    risk: RiskSection,
+    financial: FinancialSection,
+    explainability: ExplainabilitySection,
+    evidence: EvidenceSection,
+    compliance: ComplianceSection,
+    ownership: OwnershipSection,
+    peers: PeersSection,
+    documents: DocumentsSection,
+    news: NewsSection,
+    settings: SettingsSection,
   };
   const Detail = detailComponents[section];
   const detail = view ? (
     <Suspense fallback={<WorkspaceSkeleton />}>
-      {Detail ? <Detail view={view} /> :
-        section === "buffett" ? <BuffettIndicatorSection report={view.buffett} /> :
-        section === "ratings" ? <InstitutionalRatingsSection ratings={view.ratings} transparency={view.transparency} explainability={view.explainability} /> :
-        section === "valuationTransparency" ? <ValuationTransparencySection transparency={view.valuationTransparency} /> :
-        section === "copilot" ? <AiCopilotSection view={view} analyseRequest={lastAnalyseRequest} analyseResponse={lastAnalyseResponse} /> :
-        section === "export" ? <ExportSection view={view} analyseRequest={lastAnalyseRequest} analyseResponse={lastAnalyseResponse} /> :
-        section === "earnings" ? <AnalysisStageDetails title="Earnings Quality" stage={view.earnings} /> :
-        section === "growth" ? <AnalysisStageDetails title="Growth Quality" stage={view.growth} /> :
-        section === "strengths" ? <div className="grid gap-4 sm:grid-cols-2">{[{ title: "Strengths", items: view.strengths }, { title: "Weaknesses", items: view.weaknesses }].map(({ title, items }) => <section key={title} data-testid={`analysis-${title.toLowerCase()}`} className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5"><h2 className="font-[family-name:var(--font-display)] text-lg">{title}</h2>{items.length ? <ul className="mt-4 list-disc space-y-2 pl-4 text-sm text-[var(--muted)]">{items.map((text, index) => <li key={index}>{text}</li>)}</ul> : <p className="mt-4 text-sm text-[var(--muted)]">Evidence unavailable.</p>}</section>)}</div> :
-        <ExplainabilitySection view={view} />}
+      {Detail ? (
+        <Detail view={view} />
+      ) : section === "buffett" ? (
+        <BuffettIndicatorSection report={view.buffett} />
+      ) : section === "ratings" ? (
+        <InstitutionalRatingsSection
+          ratings={view.ratings}
+          transparency={view.transparency}
+          explainability={view.explainability}
+        />
+      ) : section === "valuationTransparency" ? (
+        <ValuationTransparencySection transparency={view.valuationTransparency} />
+      ) : section === "copilot" ? (
+        <AiCopilotSection
+          view={view}
+          analyseRequest={lastAnalyseRequest}
+          analyseResponse={lastAnalyseResponse}
+        />
+      ) : section === "export" ? (
+        <ExportSection
+          view={view}
+          analyseRequest={lastAnalyseRequest}
+          analyseResponse={lastAnalyseResponse}
+        />
+      ) : section === "earnings" ? (
+        <AnalysisStageDetails title="Earnings Quality" stage={view.earnings} />
+      ) : section === "growth" ? (
+        <AnalysisStageDetails title="Growth Quality" stage={view.growth} />
+      ) : section === "strengths" ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[
+            { title: "Strengths", items: view.strengths },
+            { title: "Weaknesses", items: view.weaknesses },
+          ].map(({ title, items }) => (
+            <section
+              key={title}
+              data-testid={`analysis-${title.toLowerCase()}`}
+              className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5"
+            >
+              <h2 className="font-[family-name:var(--font-display)] text-lg">
+                {title}
+              </h2>
+              {items.length ? (
+                <ul className="mt-4 list-disc space-y-2 pl-4 text-sm text-[var(--muted)]">
+                  {items.map((text, index) => (
+                    <li key={index}>{text}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-[var(--muted)]">
+                  Evidence unavailable.
+                </p>
+              )}
+            </section>
+          ))}
+        </div>
+      ) : (
+        <ExplainabilitySection view={view} />
+      )}
     </Suspense>
   ) : null;
 
@@ -491,7 +557,9 @@ export function CompanyAnalysisWorkspace() {
       onAnalyze={runAnalyse}
       analyzing={analyseMutation.isPending}
       view={view}
-      error={analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null}
+      error={
+        analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null
+      }
       disclaimerGate={disclaimerGate}
       activeSection={section}
       navigation={<AnalysisNavigation active={section} onSelect={setActiveSection} />}
@@ -508,5 +576,4 @@ export function CompanyAnalysisWorkspace() {
       }}
     />
   );
-
 }

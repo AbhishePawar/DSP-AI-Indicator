@@ -90,7 +90,9 @@ export function buildDecisionTrace(args: {
         ? "Evidence drawn from envelope artifacts and honest Unavailable markers."
         : "No evidence artifacts until an envelope loads.",
       [
-        args.rationale ? "Supporting: envelope rationale cited" : "Supporting: none listed",
+        args.rationale
+          ? "Supporting: envelope rationale cited"
+          : "Supporting: none listed",
         args.errors.length
           ? `Contradicting / limiting: ${args.errors.length} envelope error(s)`
           : "Contradicting: none listed (absence ≠ proof)",
@@ -176,8 +178,10 @@ export function buildEvidenceExplorer(args: {
         source: "Not present in /analyze/company envelope (RC)",
         timestamp: null,
         confidence: "Insufficient Evidence",
-        methodology: "Would require verified statement artifacts from backend providers",
-        detail: "No fabricated filings. Cards stay Unavailable until verified facts arrive.",
+        methodology:
+          "Would require verified statement artifacts from backend providers",
+        detail:
+          "No fabricated filings. Cards stay Unavailable until verified facts arrive.",
       },
       {
         id: "ev-calc-coverage",
@@ -197,7 +201,8 @@ export function buildEvidenceExplorer(args: {
         source: "Unavailable — Decision Engine outputs not projected into UI",
         timestamp: null,
         confidence: "Insufficient Evidence",
-        methodology: "Estimates only when envelope exposes them; browser never invents IV",
+        methodology:
+          "Estimates only when envelope exposes them; browser never invents IV",
         detail: "Valuation cards remain educational until estimated fields arrive.",
       },
       {
@@ -259,7 +264,8 @@ export function buildAssumptionExplorer(args: {
     items: [
       {
         id: "as-envelope",
-        statement: "The analyze envelope is complete enough for a decade-style research view",
+        statement:
+          "The analyze envelope is complete enough for a decade-style research view",
         sensitivity: "High",
         impact: "Most Sprint 2–3 cards stay Unavailable when this is wrong",
         confidence: args.hasConclusion ? "low" : "insufficient_evidence",
@@ -273,7 +279,8 @@ export function buildAssumptionExplorer(args: {
       },
       {
         id: "as-research-mode",
-        statement: "Research Mode remapping fairly represents engine posture without advice",
+        statement:
+          "Research Mode remapping fairly represents engine posture without advice",
         sensitivity: "High",
         impact: "Mislabeling could feel like a recommendation",
         confidence: "moderate",
@@ -301,7 +308,8 @@ export function buildAssumptionExplorer(args: {
       },
       {
         id: "as-coverage",
-        statement: "Coverage % reflects DSP research completeness, not business quality",
+        statement:
+          "Coverage % reflects DSP research completeness, not business quality",
         sensitivity: "Medium",
         impact: "Misreading coverage as quality inflates trust",
         confidence: "high",
@@ -309,8 +317,7 @@ export function buildAssumptionExplorer(args: {
           "Hide coverage until quality scores exist",
           "Rename to 'Research completeness'",
         ],
-        whatChangesIfWrong:
-          "Dashboard and sticky summary would need clearer labeling",
+        whatChangesIfWrong: "Dashboard and sticky summary would need clearer labeling",
         category: "calculated",
       },
     ],
@@ -323,13 +330,18 @@ export function buildReasoningFlow(args: {
   hasRationale: boolean;
 }): ReasoningFlowView {
   const dataStatus =
-    args.coveragePercent >= 40 ? "partial" : args.coveragePercent > 0 ? "partial" : "unavailable";
+    args.coveragePercent >= 40
+      ? "partial"
+      : args.coveragePercent > 0
+        ? "partial"
+        : "unavailable";
   return {
     nodes: [
       {
         id: "raw",
         label: "Raw Data",
-        status: args.hasConclusion || args.coveragePercent > 0 ? "partial" : "unavailable",
+        status:
+          args.hasConclusion || args.coveragePercent > 0 ? "partial" : "unavailable",
         summary: "API envelope + user symbol",
         details: [
           "POST /api/v1/analyze/company response",
@@ -361,10 +373,7 @@ export function buildReasoningFlow(args: {
         label: "Business Analysis",
         status: "unavailable",
         summary: "Growth · Risk · Management · Moat scaffolds",
-        details: [
-          "Sprint 2 insight cards",
-          "Evidence empty until artifacts land",
-        ],
+        details: ["Sprint 2 insight cards", "Evidence empty until artifacts land"],
       },
       {
         id: "valuation",
@@ -386,7 +395,11 @@ export function buildReasoningFlow(args: {
       {
         id: "conclusion",
         label: "Research Conclusion",
-        status: args.hasConclusion ? (args.hasRationale ? "complete" : "partial") : "unavailable",
+        status: args.hasConclusion
+          ? args.hasRationale
+            ? "complete"
+            : "partial"
+          : "unavailable",
         summary: args.hasConclusion
           ? "DSP View mapped from envelope"
           : "No conclusion until Analyze succeeds",

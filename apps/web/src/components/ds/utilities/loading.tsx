@@ -36,10 +36,7 @@ export function LoadingBlock({
       ) : (
         <div className="flex flex-col gap-3 py-2" aria-label={label}>
           {Array.from({ length: rows }, (_, i) => (
-            <Skeleton
-              key={i}
-              className={cn("h-4 w-full", i === rows - 1 && "w-2/3")}
-            />
+            <Skeleton key={i} className={cn("h-4 w-full", i === rows - 1 && "w-2/3")} />
           ))}
           {children}
         </div>

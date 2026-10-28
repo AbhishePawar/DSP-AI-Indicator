@@ -35,10 +35,7 @@ import {
   type ReportSectionId,
 } from "@/lib/institutional-reports";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
-import {
-  mapResearchView,
-  type ResearchView,
-} from "@/lib/research/mapResearchView";
+import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
@@ -191,9 +188,7 @@ function Toolbar({
         <select
           id="report-mode"
           value={reportMode}
-          onChange={(e) =>
-            onModeChange(asReportMode(e.target.value))
-          }
+          onChange={(e) => onModeChange(asReportMode(e.target.value))}
           className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs"
         >
           <option value="interactive">Interactive</option>
@@ -219,18 +214,11 @@ export function InstitutionalReportsWorkspace() {
   const { session } = useAuth();
   const token = session?.accessToken;
   const preparedBy =
-    session?.displayName ||
-    session?.username ||
-    session?.email ||
-    "Data unavailable.";
+    session?.displayName || session?.username || session?.email || "Data unavailable.";
   const { success, error: notifyError } = useNotifications();
 
   // RC3-003 — no silent default company.
-  const urlSymbol = (
-    searchParams.get("symbol") ||
-    searchParams.get("ticker") ||
-    ""
-  )
+  const urlSymbol = (searchParams.get("symbol") || searchParams.get("ticker") || "")
     .trim()
     .toUpperCase();
   const urlSection = searchParams.get("section") || "";
@@ -240,12 +228,8 @@ export function InstitutionalReportsWorkspace() {
   const [view, setView] = useState<ResearchView | null>(null);
   const [analysedAt, setAnalysedAt] = useState<string | null>(null);
 
-  const activeSection = useInstitutionalReportsPrefsStore(
-    (s) => s.activeSection,
-  );
-  const setActiveSection = useInstitutionalReportsPrefsStore(
-    (s) => s.setActiveSection,
-  );
+  const activeSection = useInstitutionalReportsPrefsStore((s) => s.activeSection);
+  const setActiveSection = useInstitutionalReportsPrefsStore((s) => s.setActiveSection);
   const leftOpen = useInstitutionalReportsPrefsStore((s) => s.leftOpen);
   const rightOpen = useInstitutionalReportsPrefsStore((s) => s.rightOpen);
   const toggleLeft = useInstitutionalReportsPrefsStore((s) => s.toggleLeft);
@@ -253,15 +237,12 @@ export function InstitutionalReportsWorkspace() {
   const setLeftOpen = useInstitutionalReportsPrefsStore((s) => s.setLeftOpen);
   const setRightOpen = useInstitutionalReportsPrefsStore((s) => s.setRightOpen);
   const reportMode = useInstitutionalReportsPrefsStore((s) => s.reportMode);
-  const setReportMode = useInstitutionalReportsPrefsStore(
-    (s) => s.setReportMode,
-  );
+  const setReportMode = useInstitutionalReportsPrefsStore((s) => s.setReportMode);
   const setSelectedTicker = useInstitutionalReportsPrefsStore(
     (s) => s.setSelectedTicker,
   );
   const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
-  const { runWithDisclaimer, gate: disclaimerGate } =
-    useResearchDisclaimerGate();
+  const { runWithDisclaimer, gate: disclaimerGate } = useResearchDisclaimerGate();
 
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
@@ -269,11 +250,7 @@ export function InstitutionalReportsWorkspace() {
   const readingLayout = reportMode === "print" || reportMode === "pdf";
 
   useEffect(() => {
-    const next = (
-      searchParams.get("symbol") ||
-      searchParams.get("ticker") ||
-      ""
-    )
+    const next = (searchParams.get("symbol") || searchParams.get("ticker") || "")
       .trim()
       .toUpperCase();
     setSymbol(next);
@@ -341,14 +318,10 @@ export function InstitutionalReportsWorkspace() {
         recommendation: mapped.recommendation,
         analysedAt: at,
       });
-      success(
-        `Institutional report loaded for ${body.ticker.toUpperCase()}`,
-        "Report",
-      );
+      success(`Institutional report loaded for ${body.ticker.toUpperCase()}`, "Report");
     },
     onError: (err) => {
-      const message =
-        err instanceof ApiClientError ? err.message : "Analyse failed";
+      const message = err instanceof ApiClientError ? err.message : "Analyse failed";
       notifyError(message, "Report load failed");
     },
   });
@@ -376,8 +349,7 @@ export function InstitutionalReportsWorkspace() {
 
   const marketQuery = useQuery({
     queryKey: ["institutional-reports", "market", symbol, catalogue?.exchange],
-    queryFn: () =>
-      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+    queryFn: () => api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -429,14 +401,7 @@ export function InstitutionalReportsWorkspace() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [
-    router,
-    runLoad,
-    setActiveSection,
-    symbol,
-    toggleLeft,
-    toggleRight,
-  ]);
+  }, [router, runLoad, setActiveSection, symbol, toggleLeft, toggleRight]);
 
   const section: ReportSectionId = asReportSectionId(activeSection);
 
@@ -452,9 +417,7 @@ export function InstitutionalReportsWorkspace() {
           />
         );
       case "summary":
-        return (
-          <ExecutiveSummarySection view={view} marketStatus={marketStatus} />
-        );
+        return <ExecutiveSummarySection view={view} marketStatus={marketStatus} />;
       case "valuation":
         return <LazyViewSection Section={ValuationModule} view={view} />;
       case "quality":
@@ -499,11 +462,7 @@ export function InstitutionalReportsWorkspace() {
             {preparedBy}
           </p>
         </header>
-        <CoverSection
-          view={view}
-          preparedBy={preparedBy}
-          marketStatus={marketStatus}
-        />
+        <CoverSection view={view} preparedBy={preparedBy} marketStatus={marketStatus} />
         <ExecutiveSummarySection view={view} marketStatus={marketStatus} />
         <Suspense fallback={<SectionFallback />}>
           <ValuationModule view={view} />
@@ -611,12 +570,9 @@ export function InstitutionalReportsWorkspace() {
                   Catalogue: {catalogue.name} · {catalogue.exchange}
                 </p>
               ) : null}
-              {readingLayout
-                ? renderReadingLayout()
-                : renderInteractiveSection()}
+              {readingLayout ? renderReadingLayout() : renderInteractiveSection()}
               <p className="text-[10px] text-[var(--muted)]">
-                Last updated:{" "}
-                {analysedAt ?? view.analysedAt ?? "Data unavailable."} ·
+                Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."} ·
                 Research tools — not investment advice
               </p>
             </div>

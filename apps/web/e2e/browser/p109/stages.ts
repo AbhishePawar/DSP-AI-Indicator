@@ -21,9 +21,6 @@ export type P109StageRecord = {
  * Wrap a business stage so CI failures name the stage explicitly.
  * Does not catch errors — a thrown assertion still fails the hard gate.
  */
-export async function p109Stage<T>(
-  stage: P109Stage,
-  fn: () => Promise<T>,
-): Promise<T> {
+export async function p109Stage<T>(stage: P109Stage, fn: () => Promise<T>): Promise<T> {
   return test.step(`[P1-09 ${stage}]`, fn);
 }

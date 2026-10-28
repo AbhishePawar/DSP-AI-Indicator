@@ -114,9 +114,7 @@ export function CompanyHeader({ view }: { view: ResearchView }) {
             <span className="font-mono break-all">
               Correlation ID: {view.correlationId || "Data unavailable"}
             </span>
-            <span>
-              Platform: {view.platformVersion || "v1.0.0"}
-            </span>
+            <span>Platform: {view.platformVersion || "v1.0.0"}</span>
           </div>
         </CardBody>
       </Card>

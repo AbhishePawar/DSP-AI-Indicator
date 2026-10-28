@@ -1,10 +1,7 @@
 "use client";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import type {
-  CopilotCompanyContext,
-  StageFieldSummary,
-} from "@/lib/copilot/types";
+import type { CopilotCompanyContext, StageFieldSummary } from "@/lib/copilot/types";
 import { formatPct, formatScore } from "@/lib/intelligence/mapResponse";
 
 function FieldRow({
@@ -54,9 +51,9 @@ export function ComparisonPanel({
         />
         <CardBody>
           <p className="text-sm text-[var(--muted)]">
-            Comparison is unavailable until a second company has been analysed
-            in this session. Only overlapping present fields are compared —
-            missing values are never estimated.
+            Comparison is unavailable until a second company has been analysed in this
+            session. Only overlapping present fields are compared — missing values are
+            never estimated.
           </p>
         </CardBody>
       </Card>

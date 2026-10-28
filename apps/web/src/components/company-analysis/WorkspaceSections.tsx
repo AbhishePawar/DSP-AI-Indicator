@@ -32,13 +32,7 @@ import {
 import { CompanyHeaderBar } from "./WorkspaceChrome";
 import { ReportInformationCard } from "./ReportInformationCard";
 
-function ListBlock({
-  title,
-  items,
-}: {
-  title: string;
-  items: string[];
-}) {
+function ListBlock({ title, items }: { title: string; items: string[] }) {
   return (
     <SectionCard title={title}>
       {items.length === 0 ? (
@@ -64,8 +58,12 @@ export function SummarySection({
   view: ResearchView;
   catalogue: CompanyEntry | undefined;
   marketStatus: string;
-  marketQuote?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload | null;
-  financialStatements?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").FinancialStatementsPayload | null;
+  marketQuote?:
+    | import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload
+    | null;
+  financialStatements?:
+    | import("@/lib/institutional-dashboard/mapInstitutionalDashboard").FinancialStatementsPayload
+    | null;
 }) {
   return (
     <div className="space-y-4">
@@ -92,14 +90,8 @@ export function SummarySection({
             value={formatPct(view.recommendationConfidence)}
           />
           <FieldRow label="Research timestamp" value={view.analysedAt} />
-          <FieldRow
-            label="Business quality"
-            value={view.businessQualityLabel}
-          />
-          <FieldRow
-            label="Margin of safety"
-            value={formatPct(view.marginOfSafety)}
-          />
+          <FieldRow label="Business quality" value={view.businessQualityLabel} />
+          <FieldRow label="Margin of safety" value={formatPct(view.marginOfSafety)} />
         </dl>
       </SectionCard>
       <TrustLadderCard view={view} />
@@ -174,8 +166,8 @@ function TrustLadderCard({ view }: { view: ResearchView }) {
             {formatPct(view.recommendationConfidence)}
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Educational investigation — not personalised investment advice.
-            Confidence always shown; missing fields remain Data unavailable.
+            Educational investigation — not personalised investment advice. Confidence
+            always shown; missing fields remain Data unavailable.
           </p>
         </li>
       </ol>
@@ -411,7 +403,10 @@ export function ResearchSection({ view }: { view: ResearchView }) {
         <dl>
           <FieldRow label="Ticker" value={view.ticker} />
           <FieldRow label="Analysed at" value={view.analysedAt} />
-          <FieldRow label="Recommendation stage" value={view.recommendationStage.status} />
+          <FieldRow
+            label="Recommendation stage"
+            value={view.recommendationStage.status}
+          />
         </dl>
       </SectionCard>
       <SectionCard title="Archive Status">
@@ -419,8 +414,8 @@ export function ResearchSection({ view }: { view: ResearchView }) {
       </SectionCard>
       <SectionCard title="Research History">
         <p className="text-sm text-[var(--muted)]">
-          Local recent analyses appear in the left panel. Server-side history is
-          Data unavailable.
+          Local recent analyses appear in the left panel. Server-side history is Data
+          unavailable.
         </p>
       </SectionCard>
       <SectionCard title="Research Diff Viewer">
@@ -472,10 +467,7 @@ export function ValuationSection({ view }: { view: ResearchView }) {
   const vt = view.valuationTransparency;
   const dcf = valuationMethodValue(vt.methods, ["DCF"]);
   const relative = valuationMethodValue(vt.methods, ["Relative Valuation", "Relative"]);
-  const residual = valuationMethodValue(vt.methods, [
-    "Residual Income",
-    "Residual",
-  ]);
+  const residual = valuationMethodValue(vt.methods, ["Residual Income", "Residual"]);
   const epv = valuationMethodValue(vt.methods, ["EPV"]);
   return (
     <div className="space-y-4">
@@ -486,22 +478,13 @@ export function ValuationSection({ view }: { view: ResearchView }) {
         <dl>
           <FieldRow label="Intrinsic Value" value={view.valuation.intrinsicValue} />
           <FieldRow label="Current Price" value={view.valuation.currentPrice} />
-          <FieldRow
-            label="Margin of Safety"
-            value={view.valuation.marginOfSafety}
-          />
+          <FieldRow label="Margin of Safety" value={view.valuation.marginOfSafety} />
           <FieldRow label="DCF" value={dcf} />
           <FieldRow label="Relative Valuation" value={relative} />
           <FieldRow label="Residual Income" value={residual} />
           <FieldRow label="EPV" value={epv} />
-          <FieldRow
-            label="Overall Valuation"
-            value={vt.executive.valuationVerdict}
-          />
-          <FieldRow
-            label="Valuation method (stage)"
-            value={view.valuation.method}
-          />
+          <FieldRow label="Overall Valuation" value={vt.executive.valuationVerdict} />
+          <FieldRow label="Valuation method (stage)" value={view.valuation.method} />
           <FieldRow label="Confidence" value={view.valuation.confidence} />
         </dl>
       </SectionCard>
@@ -531,10 +514,7 @@ export function ValuationSection({ view }: { view: ResearchView }) {
       <SectionCard title="Consensus Result">
         <dl>
           <FieldRow label="Recommendation" value={view.recommendation} />
-          <FieldRow
-            label="Committee consensus"
-            value={view.committeeConsensus}
-          />
+          <FieldRow label="Committee consensus" value={view.committeeConsensus} />
           <FieldRow
             label="Transparency consensus"
             value={vt.consensus.consensusValue}
@@ -585,9 +565,8 @@ export function QualitySection({ view }: { view: ResearchView }) {
       </SectionCard>
       <StageSectionCard title="Business Quality Aggregator" section={bq} />
       <p className="text-xs text-[var(--muted)]">
-        Earnings Quality, Growth Quality, and Financial Strength are separate
-        stages — open their dedicated sections. They are not Business Quality
-        substitutes.
+        Earnings Quality, Growth Quality, and Financial Strength are separate stages —
+        open their dedicated sections. They are not Business Quality substitutes.
       </p>
     </div>
   );
@@ -606,10 +585,7 @@ export function AiSection({ view }: { view: ResearchView }) {
             label="Supporting rationale"
             value={view.committee.finalRecommendation}
           />
-          <FieldRow
-            label="Confidence"
-            value={formatPct(view.committeeConfidence)}
-          />
+          <FieldRow label="Confidence" value={formatPct(view.committeeConfidence)} />
           <FieldRow label="Consensus" value={view.committeeConsensus} />
           <FieldRow label="Status" value={view.committee.status} />
         </dl>
@@ -646,8 +622,8 @@ export function AiSection({ view }: { view: ResearchView }) {
         }
       >
         <p className="text-sm text-[var(--muted)]">
-          Use Copilot with mapped company context. This workspace does not run
-          local AI inference.
+          Use Copilot with mapped company context. This workspace does not run local AI
+          inference.
         </p>
       </SectionCard>
       <SectionCard title="Confidence Summary">
@@ -687,9 +663,7 @@ export function ComplianceSection({ view }: { view: ResearchView }) {
           </li>
           <li className="flex justify-between gap-2">
             <span className="text-[var(--muted)]">SEBI Mode</span>
-            <Badge variant="outline">
-              {featureFlags.sebiMode ? "On" : "Off"}
-            </Badge>
+            <Badge variant="outline">{featureFlags.sebiMode ? "On" : "Off"}</Badge>
           </li>
         </ul>
       </SectionCard>
@@ -732,9 +706,7 @@ export function TimelineSection({ view }: { view: ResearchView }) {
                     <span className="ml-2 text-[var(--muted)]">{stage.label}</span>
                   ) : null}
                 </span>
-                <Badge
-                  variant={stage.status === "succeeded" ? "accent" : "outline"}
-                >
+                <Badge variant={stage.status === "succeeded" ? "accent" : "outline"}>
                   {stage.status}
                 </Badge>
               </li>
@@ -749,8 +721,8 @@ export function TimelineSection({ view }: { view: ResearchView }) {
           <FieldRow label="Analysed at" value={view.analysedAt} />
         </dl>
         <p className="mt-2 text-xs text-[var(--muted)]">
-          Multi-run server history is Data unavailable. Local recent analyses
-          appear in the left navigation.
+          Multi-run server history is Data unavailable. Local recent analyses appear in
+          the left navigation.
         </p>
       </SectionCard>
       <SectionCard title="Material events">
@@ -796,9 +768,7 @@ export function ExportSection({
   const base = `${view.ticker.toLowerCase()}-research`;
   const sharePath = `/analysis?symbol=${encodeURIComponent(view.ticker)}`;
   const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${sharePath}`
-      : sharePath;
+    typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : sharePath;
 
   const institutionalExportMutation = useMutation({
     mutationFn: async (format: "docx" | "pptx") => {
@@ -835,8 +805,7 @@ export function ExportSection({
           exchange: view.exchange,
           analysis_id: analysisId,
           analysis_payload:
-            (analyseResponse.payload as Record<string, unknown> | undefined) ??
-            null,
+            (analyseResponse.payload as Record<string, unknown> | undefined) ?? null,
           fetch_data_bundle: false,
         },
         { token },
@@ -938,11 +907,7 @@ export function ExportSection({
           <Button
             variant="secondary"
             onClick={() => {
-              downloadText(
-                `${base}-excel.csv`,
-                researchViewToCsv(view),
-                "text/csv",
-              );
+              downloadText(`${base}-excel.csv`, researchViewToCsv(view), "text/csv");
             }}
           >
             Export Excel (CSV)
@@ -1001,8 +966,8 @@ export function ExportSection({
         ) : null}
         {institutionalExportMutation.isSuccess ? (
           <p className="mt-3 text-sm text-[var(--muted)]" role="status">
-            {institutionalExportMutation.data === "docx" ? "Word" : "PowerPoint"}{" "}
-            export downloaded.
+            {institutionalExportMutation.data === "docx" ? "Word" : "PowerPoint"} export
+            downloaded.
           </p>
         ) : null}
       </SectionCard>

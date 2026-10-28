@@ -77,7 +77,10 @@ export default function OAuthCallbackPage() {
 
   return (
     <AuthShell>
-      <AuthCard title="Completing sign-in" description="Finishing OAuth provider handshake.">
+      <AuthCard
+        title="Completing sign-in"
+        description="Finishing OAuth provider handshake."
+      >
         <Stack gap={4}>
           {error ? (
             <>
@@ -89,7 +92,10 @@ export default function OAuthCallbackPage() {
               </Link>
             </>
           ) : mfaChallenge ? (
-            <MfaChallenge challenge={mfaChallenge} onDone={() => navigateAfterLogin(nextPath)} />
+            <MfaChallenge
+              challenge={mfaChallenge}
+              onDone={() => navigateAfterLogin(nextPath)}
+            />
           ) : (
             <Alert variant="info" title="Please wait">
               Contacting the identity provider and establishing your session…

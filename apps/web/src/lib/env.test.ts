@@ -57,7 +57,10 @@ describe("buildApiUrl", () => {
   });
 
   it("prevents duplicated /api/v1 when path itself already starts with /api/v1", () => {
-    const url = buildApiUrl("/api/v1/market/quote", "https://dspaiindicator.com/api/v1");
+    const url = buildApiUrl(
+      "/api/v1/market/quote",
+      "https://dspaiindicator.com/api/v1",
+    );
     expect(url).toBe("https://dspaiindicator.com/api/v1/market/quote");
 
     const url2 = buildApiUrl("api/v1/market/quote", "https://dspaiindicator.com");

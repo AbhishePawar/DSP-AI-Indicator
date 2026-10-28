@@ -99,7 +99,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
     const searchBoxes = screen.getAllByRole("searchbox");
     expect(searchBoxes).toHaveLength(1);
     expect(searchBoxes[0].getAttribute("aria-label")).toBe(
-      "Search a company or ask a research question"
+      "Search a company or ask a research question",
     );
   });
 
@@ -114,7 +114,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
     // Wait for debounced search dropdown listbox
     await waitFor(() => {
       expect(
-        screen.getByRole("listbox", { name: "Company search results" })
+        screen.getByRole("listbox", { name: "Company search results" }),
       ).toBeTruthy();
     });
 
@@ -128,7 +128,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
     // Enter submits selected item
     fireEvent.keyDown(searchInput, { key: "Enter" });
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/analysis?symbol=TCS")
+      expect.stringContaining("/analysis?symbol=TCS"),
     );
   });
 
@@ -142,7 +142,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
 
     await waitFor(() => {
       expect(
-        screen.getByRole("listbox", { name: "Company search results" })
+        screen.getByRole("listbox", { name: "Company search results" }),
       ).toBeTruthy();
     });
 
@@ -164,9 +164,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
     await waitFor(() => {
       expect(screen.getByText("No matching securities found")).toBeTruthy();
     });
-    expect(
-      screen.getByText(/Try searching by ticker/i)
-    ).toBeTruthy();
+    expect(screen.getByText(/Try searching by ticker/i)).toBeTruthy();
   });
 
   it("submits search when clicking the Analyze button", () => {
@@ -181,7 +179,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
     fireEvent.click(analyzeBtn);
 
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/analysis?symbol=TCS")
+      expect.stringContaining("/analysis?symbol=TCS"),
     );
   });
 
@@ -208,7 +206,7 @@ describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation",
     fireEvent.click(suggestionBtns[0]);
 
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/analysis?symbol=HDFC%20BANK")
+      expect.stringContaining("/analysis?symbol=HDFC%20BANK"),
     );
   });
 });
@@ -229,7 +227,7 @@ describe("SearchFirstDashboard: Research Workflows and Boundaries", () => {
 
     // Verify Deep Research communicates legitimate backend availability boundary
     expect(
-      screen.getByText("Governed / Subject to provider availability")
+      screen.getByText("Governed / Subject to provider availability"),
     ).toBeTruthy();
   });
 
@@ -279,7 +277,7 @@ describe("SearchFirstDashboard: Recent Analyses Presentation and Empty State", (
     expect(resumeBtn).toBeTruthy();
     fireEvent.click(resumeBtn);
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/analysis?symbol=TCS.NS")
+      expect.stringContaining("/analysis?symbol=TCS.NS"),
     );
   });
 
@@ -289,9 +287,7 @@ describe("SearchFirstDashboard: Recent Analyses Presentation and Empty State", (
     render(<SearchFirstDashboard />);
 
     expect(screen.getByText("No recent analyses yet")).toBeTruthy();
-    expect(
-      screen.getByText(/Securities you analyze will appear here/i)
-    ).toBeTruthy();
+    expect(screen.getByText(/Securities you analyze will appear here/i)).toBeTruthy();
     // Verify no fake analyses are rendered
     expect(screen.queryByText("Tata Consultancy Services")).toBeNull();
   });

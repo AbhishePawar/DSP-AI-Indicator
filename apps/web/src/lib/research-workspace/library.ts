@@ -64,9 +64,7 @@ export function libraryFromReports(
   }));
 }
 
-export function mergeLibraryItems(
-  items: ResearchLibraryItem[],
-): ResearchLibraryItem[] {
+export function mergeLibraryItems(items: ResearchLibraryItem[]): ResearchLibraryItem[] {
   const seen = new Set<string>();
   const out: ResearchLibraryItem[] = [];
   for (const item of items) {

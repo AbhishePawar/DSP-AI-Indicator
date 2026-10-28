@@ -17,8 +17,7 @@ export function MetricCell({
       : field.display;
 
   const muted =
-    field.presence === "unavailable" ||
-    field.presence === "unable_to_calculate";
+    field.presence === "unavailable" || field.presence === "unable_to_calculate";
 
   return (
     <div className="space-y-1">

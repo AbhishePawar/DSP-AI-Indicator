@@ -126,10 +126,7 @@ function renderModelSection(
 ) {
   if (id === "decisionWorkspace") {
     return (
-      <DecisionWorkspaceSection
-        model={model}
-        onNavigateSection={onNavigateSection}
-      />
+      <DecisionWorkspaceSection model={model} onNavigateSection={onNavigateSection} />
     );
   }
   if (id === "history") {
@@ -176,8 +173,7 @@ export function CompanyComparisonWorkspace() {
   const { session } = useAuth();
   const token = session?.accessToken ?? null;
   const { success, error: notifyError } = useNotifications();
-  const { runWithDisclaimer, gate: disclaimerGate } =
-    useResearchDisclaimerGate();
+  const { runWithDisclaimer, gate: disclaimerGate } = useResearchDisclaimerGate();
 
   const {
     activeSection,
@@ -207,9 +203,7 @@ export function CompanyComparisonWorkspace() {
 
   const [draftInput, setDraftInput] = useState(initialFromUrl.join(", "));
   const [slots, setSlots] = useState<ComparisonCompanySlot[]>([]);
-  const [intelligence, setIntelligence] = useState<
-    CompanyIntelligenceOverlay[]
-  >([]);
+  const [intelligence, setIntelligence] = useState<CompanyIntelligenceOverlay[]>([]);
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -234,7 +228,9 @@ export function CompanyComparisonWorkspace() {
       if (!isComparisonSectionId(sectionId)) return;
       setActiveSection(sectionId);
       syncUrl(
-        slots.length ? slots.map((s) => s.symbol) : parseSymbolsParam(draftInput.replace(/\s+/g, ",")),
+        slots.length
+          ? slots.map((s) => s.symbol)
+          : parseSymbolsParam(draftInput.replace(/\s+/g, ",")),
         sectionId,
       );
     },
@@ -244,13 +240,17 @@ export function CompanyComparisonWorkspace() {
   // Keyboard navigation for institutional review modes.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
       const idx = COMPARISON_SECTIONS.findIndex((s) => s.id === activeSection);
       if (e.key === "ArrowDown" || e.key === "j") {
         e.preventDefault();
-        const next = COMPARISON_SECTIONS[Math.min(idx + 1, COMPARISON_SECTIONS.length - 1)];
+        const next =
+          COMPARISON_SECTIONS[Math.min(idx + 1, COMPARISON_SECTIONS.length - 1)];
         if (next) navigateSection(next.id);
       } else if (e.key === "ArrowUp" || e.key === "k") {
         e.preventDefault();
@@ -344,25 +344,16 @@ export function CompanyComparisonWorkspace() {
           unique.map(async (symbol) => {
             try {
               const [perf, cal, timeline] = await Promise.all([
+                api.researchIntelligencePerformance({}, { token }).catch(() => null),
+                api.researchIntelligenceCalibration({}, { token }).catch(() => null),
                 api
-                  .researchIntelligencePerformance({}, { token })
-                  .catch(() => null),
-                api
-                  .researchIntelligenceCalibration({}, { token })
-                  .catch(() => null),
-                api
-                  .researchIntelligenceTimeline(
-                    { symbol, limit: 5 },
-                    { token },
-                  )
+                  .researchIntelligenceTimeline({ symbol, limit: 5 }, { token })
                   .catch(() => null),
               ]);
               return mapIntelligenceOverlay(
                 symbol,
-                (perf as { dashboard?: Record<string, unknown> } | null) ??
-                  null,
-                (cal as { calibration?: Record<string, unknown> } | null) ??
-                  null,
+                (perf as { dashboard?: Record<string, unknown> } | null) ?? null,
+                (cal as { calibration?: Record<string, unknown> } | null) ?? null,
                 timeline,
               );
             } catch {
@@ -397,13 +388,11 @@ export function CompanyComparisonWorkspace() {
             .filter(Boolean),
         ),
       );
-      const previous =
-        useComparisonHistoryStore.getState().entries[0] ?? null;
+      const previous = useComparisonHistoryStore.getState().entries[0] ?? null;
       appendHistory({
         at: new Date().toISOString(),
         symbols: next.map((s) => s.symbol),
-        researchVersion:
-          versions.length > 0 ? versions.join(" | ") : DATA_UNAVAILABLE,
+        researchVersion: versions.length > 0 ? versions.join(" | ") : DATA_UNAVAILABLE,
         confidence: preview.executive.confidence,
         winnerSummary: preview.executive.winnerSummary,
         changes: describeHistoryChanges(
@@ -545,7 +534,10 @@ export function CompanyComparisonWorkspace() {
         <ReviewModeControls />
         <div className="flex flex-col gap-2 lg:flex-row lg:items-end">
           <div className="flex-1">
-            <label className="mb-1 block text-xs text-[var(--muted)]" htmlFor="cmp-symbols">
+            <label
+              className="mb-1 block text-xs text-[var(--muted)]"
+              htmlFor="cmp-symbols"
+            >
               Companies (2–{MAX_COMPANIES} tickers, comma-separated)
             </label>
             <Input
@@ -578,7 +570,10 @@ export function CompanyComparisonWorkspace() {
           </div>
         </div>
         {slots.length === 2 ? (
-          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/40 p-4 shadow-[var(--shadow-sm)]" data-testid="two-security-comparison-header">
+          <div
+            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/40 p-4 shadow-[var(--shadow-sm)]"
+            data-testid="two-security-comparison-header"
+          >
             <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
               {/* Security 1 */}
               {(() => {
@@ -590,17 +585,31 @@ export function CompanyComparisonWorkspace() {
                   <div className="flex flex-col justify-between rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Security 1</div>
-                        <h4 className="text-base font-bold text-[var(--fg)]">{name1}</h4>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                          Security 1
+                        </div>
+                        <h4 className="text-base font-bold text-[var(--fg)]">
+                          {name1}
+                        </h4>
                       </div>
                       <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--border)] text-[var(--fg)]">
                         {s1.symbol}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-                      <span>Exchange: <strong className="font-medium text-[var(--fg)]">{exchange1}</strong></span>
+                      <span>
+                        Exchange:{" "}
+                        <strong className="font-medium text-[var(--fg)]">
+                          {exchange1}
+                        </strong>
+                      </span>
                       <span>·</span>
-                      <span>Status: <span className="font-medium capitalize text-[var(--fg)]">{s1.status}</span></span>
+                      <span>
+                        Status:{" "}
+                        <span className="font-medium capitalize text-[var(--fg)]">
+                          {s1.status}
+                        </span>
+                      </span>
                       {s1.analysedAt ? (
                         <>
                           <span>·</span>
@@ -652,17 +661,31 @@ export function CompanyComparisonWorkspace() {
                   <div className="flex flex-col justify-between rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Security 2</div>
-                        <h4 className="text-base font-bold text-[var(--fg)]">{name2}</h4>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                          Security 2
+                        </div>
+                        <h4 className="text-base font-bold text-[var(--fg)]">
+                          {name2}
+                        </h4>
                       </div>
                       <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--border)] text-[var(--fg)]">
                         {s2.symbol}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-                      <span>Exchange: <strong className="font-medium text-[var(--fg)]">{exchange2}</strong></span>
+                      <span>
+                        Exchange:{" "}
+                        <strong className="font-medium text-[var(--fg)]">
+                          {exchange2}
+                        </strong>
+                      </span>
                       <span>·</span>
-                      <span>Status: <span className="font-medium capitalize text-[var(--fg)]">{s2.status}</span></span>
+                      <span>
+                        Status:{" "}
+                        <span className="font-medium capitalize text-[var(--fg)]">
+                          {s2.status}
+                        </span>
+                      </span>
                       {s2.analysedAt ? (
                         <>
                           <span>·</span>

@@ -2,7 +2,11 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { persistCsrfToken, clearCsrfToken, probeCookieSession } from "@/lib/auth/cookieSession";
+import {
+  persistCsrfToken,
+  clearCsrfToken,
+  probeCookieSession,
+} from "@/lib/auth/cookieSession";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import { adminApi } from "@/lib/api/adminClient";

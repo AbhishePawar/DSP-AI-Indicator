@@ -22,17 +22,25 @@ describe("resolvePostLoginDestination", () => {
 
   it("preserves /dashboard", () => {
     expect(resolvePostLoginDestination("/dashboard")).toBe("/dashboard");
-    expect(resolvePostLoginDestination("/dashboard?tab=overview")).toBe("/dashboard?tab=overview");
+    expect(resolvePostLoginDestination("/dashboard?tab=overview")).toBe(
+      "/dashboard?tab=overview",
+    );
   });
 
   it("preserves valid deep links such as /analysis?symbol=HDFCBANK", () => {
-    expect(resolvePostLoginDestination("/analysis?symbol=HDFCBANK")).toBe("/analysis?symbol=HDFCBANK");
-    expect(resolvePostLoginDestination("/analysis?symbol=TCS.NS&mode=simple")).toBe("/analysis?symbol=TCS.NS&mode=simple");
+    expect(resolvePostLoginDestination("/analysis?symbol=HDFCBANK")).toBe(
+      "/analysis?symbol=HDFCBANK",
+    );
+    expect(resolvePostLoginDestination("/analysis?symbol=TCS.NS&mode=simple")).toBe(
+      "/analysis?symbol=TCS.NS&mode=simple",
+    );
   });
 
   it("preserves internal application paths", () => {
     expect(resolvePostLoginDestination("/settings")).toBe("/settings");
-    expect(resolvePostLoginDestination("/compare?symbols=TCS,INFY")).toBe("/compare?symbols=TCS,INFY");
+    expect(resolvePostLoginDestination("/compare?symbols=TCS,INFY")).toBe(
+      "/compare?symbols=TCS,INFY",
+    );
     expect(resolvePostLoginDestination("/research")).toBe("/research");
   });
 

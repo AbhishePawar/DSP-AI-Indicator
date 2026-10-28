@@ -8,13 +8,7 @@ import { ChevronLeft, ChevronRight, Search, Menu, Activity } from "lucide-react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import {
-  Avatar,
-  AvatarFallback,
-  Button,
-  Header,
-  UserMenu,
-} from "@/components/ds";
+import { Avatar, AvatarFallback, Button, Header, UserMenu } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 import { env } from "@/lib/env";

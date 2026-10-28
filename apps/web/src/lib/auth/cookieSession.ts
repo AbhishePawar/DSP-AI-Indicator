@@ -115,9 +115,7 @@ export async function probeCookieSession(): Promise<{
   try {
     const controller =
       typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timer = controller
-      ? setTimeout(() => controller.abort(), 4000)
-      : null;
+    const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
     let response: Response;
     try {
       response = await fetch(buildApiUrl("/auth/session"), {

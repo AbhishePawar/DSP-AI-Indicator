@@ -64,7 +64,7 @@ export function PeerComparisonCard({
     <div
       className={cn(
         "rounded-xl border border-border/70 bg-card/60 p-5 shadow-xs backdrop-blur-xs transition-all",
-        className
+        className,
       )}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-4">
@@ -73,7 +73,10 @@ export function PeerComparisonCard({
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               Peer & Competitor Intelligence
             </span>
-            <Badge variant="outline" className="text-[10px] uppercase font-mono py-0 h-5">
+            <Badge
+              variant="outline"
+              className="text-[10px] uppercase font-mono py-0 h-5"
+            >
               Deterministic Verification
             </Badge>
           </div>
@@ -82,13 +85,15 @@ export function PeerComparisonCard({
           </h3>
         </div>
         <p className="text-xs text-muted-foreground max-w-sm">
-          Deterministic peer discovery via registered industry taxonomy and strict eligibility policy.
+          Deterministic peer discovery via registered industry taxonomy and strict
+          eligibility policy.
         </p>
       </div>
 
       {peers.length === 0 ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
-          No verified peers registered for {primarySymbol} under current deterministic industry policy.
+          No verified peers registered for {primarySymbol} under current deterministic
+          industry policy.
         </div>
       ) : (
         <div className="mt-4 space-y-4">
@@ -109,7 +114,7 @@ export function PeerComparisonCard({
                             "text-[9px] px-1.5 py-0.5 rounded font-mono font-medium",
                             peer.eligibility === "DIRECT_PEER"
                               ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
                           )}
                         >
                           {peer.eligibility === "DIRECT_PEER" ? "DIRECT" : "RELATED"}
@@ -121,24 +126,34 @@ export function PeerComparisonCard({
               </thead>
               <tbody className="divide-y divide-border/40">
                 <tr>
-                  <td className="py-2 px-3 font-medium text-muted-foreground">Operating Margin</td>
+                  <td className="py-2 px-3 font-medium text-muted-foreground">
+                    Operating Margin
+                  </td>
                   <td className="py-2 px-3 font-mono font-medium text-foreground bg-muted/20">
                     {formatPercent(primaryMetrics.operatingMargin)}
                   </td>
                   {peers.map((peer) => (
-                    <td key={peer.symbol} className="py-2 px-3 font-mono text-muted-foreground">
+                    <td
+                      key={peer.symbol}
+                      className="py-2 px-3 font-mono text-muted-foreground"
+                    >
                       {formatPercent(peer.operatingMargin)}
                     </td>
                   ))}
                 </tr>
 
                 <tr>
-                  <td className="py-2 px-3 font-medium text-muted-foreground">Return on Equity (ROE)</td>
+                  <td className="py-2 px-3 font-medium text-muted-foreground">
+                    Return on Equity (ROE)
+                  </td>
                   <td className="py-2 px-3 font-mono font-medium text-foreground bg-muted/20">
                     {formatPercent(primaryMetrics.roe)}
                   </td>
                   {peers.map((peer) => (
-                    <td key={peer.symbol} className="py-2 px-3 font-mono text-muted-foreground">
+                    <td
+                      key={peer.symbol}
+                      className="py-2 px-3 font-mono text-muted-foreground"
+                    >
                       {formatPercent(peer.roe)}
                     </td>
                   ))}
@@ -150,31 +165,44 @@ export function PeerComparisonCard({
                     {formatPercent(primaryMetrics.roce)}
                   </td>
                   {peers.map((peer) => (
-                    <td key={peer.symbol} className="py-2 px-3 font-mono text-muted-foreground">
+                    <td
+                      key={peer.symbol}
+                      className="py-2 px-3 font-mono text-muted-foreground"
+                    >
                       {formatPercent(peer.roce)}
                     </td>
                   ))}
                 </tr>
 
                 <tr>
-                  <td className="py-2 px-3 font-medium text-muted-foreground">Debt / Equity</td>
+                  <td className="py-2 px-3 font-medium text-muted-foreground">
+                    Debt / Equity
+                  </td>
                   <td className="py-2 px-3 font-mono font-medium text-foreground bg-muted/20">
                     {formatRatio(primaryMetrics.debtToEquity)}
                   </td>
                   {peers.map((peer) => (
-                    <td key={peer.symbol} className="py-2 px-3 font-mono text-muted-foreground">
+                    <td
+                      key={peer.symbol}
+                      className="py-2 px-3 font-mono text-muted-foreground"
+                    >
                       {formatRatio(peer.debtToEquity)}
                     </td>
                   ))}
                 </tr>
 
                 <tr>
-                  <td className="py-2 px-3 font-medium text-muted-foreground">Revenue Growth</td>
+                  <td className="py-2 px-3 font-medium text-muted-foreground">
+                    Revenue Growth
+                  </td>
                   <td className="py-2 px-3 font-mono font-medium text-foreground bg-muted/20">
                     {formatPercent(primaryMetrics.revenueGrowth)}
                   </td>
                   {peers.map((peer) => (
-                    <td key={peer.symbol} className="py-2 px-3 font-mono text-muted-foreground">
+                    <td
+                      key={peer.symbol}
+                      className="py-2 px-3 font-mono text-muted-foreground"
+                    >
                       {formatPercent(peer.revenueGrowth)}
                     </td>
                   ))}
@@ -185,11 +213,18 @@ export function PeerComparisonCard({
                     Valuation P/E Multiple
                   </td>
                   <td className="py-2 px-3 font-mono font-medium text-foreground bg-muted/20">
-                    {allowValuation ? formatRatio(primaryMetrics.peRatio) : "Unavailable — valuation data incomplete"}
+                    {allowValuation
+                      ? formatRatio(primaryMetrics.peRatio)
+                      : "Unavailable — valuation data incomplete"}
                   </td>
                   {peers.map((peer) => (
-                    <td key={peer.symbol} className="py-2 px-3 font-mono text-muted-foreground">
-                      {allowValuation ? formatRatio(peer.peRatio) : "Unavailable — valuation data incomplete"}
+                    <td
+                      key={peer.symbol}
+                      className="py-2 px-3 font-mono text-muted-foreground"
+                    >
+                      {allowValuation
+                        ? formatRatio(peer.peRatio)
+                        : "Unavailable — valuation data incomplete"}
                     </td>
                   ))}
                 </tr>
@@ -202,8 +237,11 @@ export function PeerComparisonCard({
             <ul className="space-y-1 list-disc list-inside">
               {peers.map((peer) => (
                 <li key={peer.symbol}>
-                  <span className="font-medium text-foreground">{peer.name || peer.symbol} ({peer.symbol}):</span>{" "}
-                  {peer.rationale || "Eligible industry peer under deterministic taxonomy."}
+                  <span className="font-medium text-foreground">
+                    {peer.name || peer.symbol} ({peer.symbol}):
+                  </span>{" "}
+                  {peer.rationale ||
+                    "Eligible industry peer under deterministic taxonomy."}
                 </li>
               ))}
             </ul>

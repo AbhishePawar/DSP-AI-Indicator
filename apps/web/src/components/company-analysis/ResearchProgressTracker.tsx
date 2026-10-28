@@ -8,13 +8,37 @@ import { cn } from "@/lib/utils";
 export const CANONICAL_RESEARCH_STAGES = [
   ["identity", "Identifying security", "Company and exchange confirmed"],
   ["evidence", "Collecting financial evidence", "Authoritative data collection"],
-  ["business_quality", "Analysing business quality", "Durability, reinvestment and operating discipline"],
-  ["economic_moat", "Evaluating economic moat", "Competitive position and long-term advantages"],
-  ["management", "Evaluating management", "Capital allocation discipline and governance"],
-  ["growth", "Analysing earnings & growth", "Revenue durability and reinvestment economics"],
+  [
+    "business_quality",
+    "Analysing business quality",
+    "Durability, reinvestment and operating discipline",
+  ],
+  [
+    "economic_moat",
+    "Evaluating economic moat",
+    "Competitive position and long-term advantages",
+  ],
+  [
+    "management",
+    "Evaluating management",
+    "Capital allocation discipline and governance",
+  ],
+  [
+    "growth",
+    "Analysing earnings & growth",
+    "Revenue durability and reinvestment economics",
+  ],
   ["valuation", "Evaluating valuation", "Intrinsic value and margin of safety"],
-  ["peer_intelligence", "Checking peer intelligence", "Deterministic peer discovery and metric comparison"],
-  ["validation", "Validating research", "Evidence integrity and P1-09 compliance check"],
+  [
+    "peer_intelligence",
+    "Checking peer intelligence",
+    "Deterministic peer discovery and metric comparison",
+  ],
+  [
+    "validation",
+    "Validating research",
+    "Evidence integrity and P1-09 compliance check",
+  ],
   ["report", "Preparing analysis report", "Synthesising final research dossier"],
 ] as const;
 
@@ -90,10 +114,10 @@ export function ResearchProgressTracker({
           const statusLabel = isFinished
             ? "DONE"
             : isCurrent
-            ? "ACTIVE"
-            : analysing
-            ? "QUEUED"
-            : "PENDING";
+              ? "ACTIVE"
+              : analysing
+                ? "QUEUED"
+                : "PENDING";
 
           return (
             <div
@@ -103,8 +127,8 @@ export function ResearchProgressTracker({
                 isCurrent
                   ? "border-primary/50 bg-primary/5 shadow-xs ring-1 ring-primary/20"
                   : isFinished
-                  ? "border-border/60 bg-muted/20"
-                  : "border-border/40 bg-muted/5 opacity-60"
+                    ? "border-border/60 bg-muted/20"
+                    : "border-border/40 bg-muted/5 opacity-60",
               )}
             >
               <div className="flex items-center justify-between font-medium text-foreground">
@@ -117,8 +141,8 @@ export function ResearchProgressTracker({
                     isFinished
                       ? "text-emerald-500 font-medium"
                       : isCurrent
-                      ? "text-primary font-bold animate-pulse"
-                      : "text-muted-foreground"
+                        ? "text-primary font-bold animate-pulse"
+                        : "text-muted-foreground",
                   )}
                 >
                   {statusLabel}

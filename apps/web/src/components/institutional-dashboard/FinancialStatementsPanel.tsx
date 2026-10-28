@@ -31,11 +31,7 @@ const TAB_ITEMS = [
   { id: "ratios", label: "Financial Ratios", key: "ratios" as const },
 ] as const;
 
-export function FinancialStatementsPanel({
-  view,
-}: {
-  view: FinancialStatementsView;
-}) {
+export function FinancialStatementsPanel({ view }: { view: FinancialStatementsView }) {
   return (
     <SectionShell
       id="rs-003-financial"

@@ -4,11 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbSeparator,
-} from "@/components/ds";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbSeparator } from "@/components/ds";
 import { breadcrumbsForPath, useUiStore } from "@/lib/shell";
 
 export function Breadcrumbs() {

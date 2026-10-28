@@ -32,7 +32,10 @@ export const demoResearchEnvelopes: DemoResearchEnvelope[] = [
     companyLabel: "Demo Co. Aurora",
     thesis: "Quality compounder narrative with durable demand (demo summary).",
     topRisks: ["Multiple compression (demo)", "Customer concentration (demo)"],
-    keyOpportunities: ["Adjacent market expansion (demo)", "Margin recovery path (demo)"],
+    keyOpportunities: [
+      "Adjacent market expansion (demo)",
+      "Margin recovery path (demo)",
+    ],
     valuationSummary: "Within historical band vs peers — illustrative only.",
     confidence: "Medium",
     methodology: "DSP Research Mode envelope fields — reused, not recomputed.",
@@ -311,7 +314,11 @@ export const demoAdvisorBookmarks: AdvisorResearchBookmark[] = [
   },
 ];
 
-export const demoFavoriteCompanies = ["Demo Co. Aurora", "Demo Co. Delta", "Demo Co. Beacon"];
+export const demoFavoriteCompanies = [
+  "Demo Co. Aurora",
+  "Demo Co. Delta",
+  "Demo Co. Beacon",
+];
 export const demoRecentReports = [
   "Demo Report — Quality Screen",
   "Demo Report — Income Sleeve",

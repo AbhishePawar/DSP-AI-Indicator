@@ -19,7 +19,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { loadRecentAnalyses, type RecentAnalysisEntry } from "@/lib/analysis/recentAnalyses";
+import {
+  loadRecentAnalyses,
+  type RecentAnalysisEntry,
+} from "@/lib/analysis/recentAnalyses";
 import { searchCatalogue, type CompanyEntry } from "@/lib/companies/catalogue";
 
 const SEARCH_DELAY_MS = 180;
@@ -36,21 +39,24 @@ export interface ResearchPath {
 export const RESEARCH_PATHS: readonly ResearchPath[] = [
   {
     title: "DSP Indicator",
-    description: "Buffett-style quality, valuation multiples, and intrinsic value analysis.",
+    description:
+      "Buffett-style quality, valuation multiples, and intrinsic value analysis.",
     intent: "dsp_indicator",
     icon: ShieldCheck,
     featured: true,
   },
   {
     title: "Company Research",
-    description: "Comprehensive financial statements, margin trends, and business risks.",
+    description:
+      "Comprehensive financial statements, margin trends, and business risks.",
     intent: "company_research",
     icon: Building2,
     featured: false,
   },
   {
     title: "Compare Companies",
-    description: "Side-by-side fundamentals, valuation benchmarks, and capital efficiency.",
+    description:
+      "Side-by-side fundamentals, valuation benchmarks, and capital efficiency.",
     intent: "compare",
     icon: GitCompareArrows,
     featured: false,
@@ -100,7 +106,10 @@ export function SearchFirstDashboard() {
   const [selectedIntent, setSelectedIntent] = useState("dsp_indicator");
   const [recent] = useState<RecentAnalysisEntry[]>(loadRecentAnalyses);
 
-  const matched = useMemo(() => searchCatalogue(settledQuery).slice(0, 8), [settledQuery]);
+  const matched = useMemo(
+    () => searchCatalogue(settledQuery).slice(0, 8),
+    [settledQuery],
+  );
   const showResults = settledQuery.trim().length > 0;
   const isDebouncing = query.trim() !== settledQuery.trim();
 
@@ -116,7 +125,11 @@ export function SearchFirstDashboard() {
     const ticker = symbol.trim().toUpperCase();
     if (!ticker) return;
     const searchIntent = intent || "dsp_indicator";
-    router.push(searchIntent === "dsp_indicator" ? `/analysis?symbol=${encodeURIComponent(ticker)}&intent=dsp_indicator` : `/analysis?symbol=${encodeURIComponent(ticker)}&intent=${encodeURIComponent(searchIntent)}`);
+    router.push(
+      searchIntent === "dsp_indicator"
+        ? `/analysis?symbol=${encodeURIComponent(ticker)}&intent=dsp_indicator`
+        : `/analysis?symbol=${encodeURIComponent(ticker)}&intent=${encodeURIComponent(searchIntent)}`,
+    );
   }
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -154,7 +167,8 @@ export function SearchFirstDashboard() {
             Research smarter.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg">
-            Institutional-grade equity analysis, deterministic valuation models, and evidence-driven investment research.
+            Institutional-grade equity analysis, deterministic valuation models, and
+            evidence-driven investment research.
           </p>
         </div>
 
@@ -185,7 +199,9 @@ export function SearchFirstDashboard() {
                 variant="primary"
                 size="md"
                 className="h-11 shrink-0 font-medium sm:h-10"
-                onClick={() => submit(showResults ? (matched[activeIndex]?.ticker ?? query) : query)}
+                onClick={() =>
+                  submit(showResults ? (matched[activeIndex]?.ticker ?? query) : query)
+                }
               >
                 Analyze
               </Button>
@@ -201,13 +217,19 @@ export function SearchFirstDashboard() {
               className="mt-2 max-h-72 w-full divide-y divide-[var(--border)] overflow-y-auto rounded-[var(--card-radius,14px)] border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-lg)]"
             >
               {matched.length === 0 ? (
-                <div className="p-5 text-center text-sm text-[var(--muted-foreground)]" role="status">
-                  <p className="font-medium text-[var(--foreground)]">No matching securities found</p>
+                <div
+                  className="p-5 text-center text-sm text-[var(--muted-foreground)]"
+                  role="status"
+                >
+                  <p className="font-medium text-[var(--foreground)]">
+                    No matching securities found
+                  </p>
                   <p className="mt-1 text-xs">
                     No listed companies matched &ldquo;{settledQuery}&rdquo;.
                   </p>
                   <p className="mt-2 text-xs opacity-75">
-                    Try searching by ticker (e.g. TCS, HDFCBANK, INFY, RELIANCE) or company name.
+                    Try searching by ticker (e.g. TCS, HDFCBANK, INFY, RELIANCE) or
+                    company name.
                   </p>
                 </div>
               ) : (
@@ -246,7 +268,8 @@ export function SearchFirstDashboard() {
                 key={path.title}
                 type="button"
                 onClick={() => choosePath(path.intent)}
-                aria-pressed={isSelected} aria-label={path.title}
+                aria-pressed={isSelected}
+                aria-label={path.title}
                 className={`group relative flex min-h-[160px] flex-col rounded-[var(--card-radius,14px)] border p-6 text-left transition-all ${
                   isSelected
                     ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[var(--shadow-card)] ring-1 ring-[var(--accent)]"
@@ -282,7 +305,8 @@ export function SearchFirstDashboard() {
                 </span>
 
                 <span className="mt-auto flex items-center gap-1.5 pt-4 font-mono text-xs font-medium text-[var(--accent)]">
-                  {isSelected ? "Selected workflow" : "Select workflow"} <ArrowUpRight size={14} aria-hidden="true" />
+                  {isSelected ? "Selected workflow" : "Select workflow"}{" "}
+                  <ArrowUpRight size={14} aria-hidden="true" />
                 </span>
               </button>
             );
@@ -361,7 +385,8 @@ export function SearchFirstDashboard() {
               No recent analyses yet
             </h3>
             <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-[var(--muted-foreground)]">
-              Securities you analyze will appear here with timestamps and quick shortcuts to resume your research.
+              Securities you analyze will appear here with timestamps and quick
+              shortcuts to resume your research.
             </p>
           </Card>
         ) : (
@@ -386,13 +411,18 @@ export function SearchFirstDashboard() {
                         {entry.company || entry.ticker}
                       </span>
                       {entry.exchange ? (
-                        <Badge tone="neutral" className="shrink-0 font-mono text-[10px]">
+                        <Badge
+                          tone="neutral"
+                          className="shrink-0 font-mono text-[10px]"
+                        >
                           {entry.exchange}
                         </Badge>
                       ) : null}
                     </div>
                     <div className="mt-1 flex items-center gap-2 font-mono text-xs">
-                      <span className="font-semibold text-[var(--accent)]">{entry.ticker}</span>
+                      <span className="font-semibold text-[var(--accent)]">
+                        {entry.ticker}
+                      </span>
                       {entry.recommendation ? (
                         <span className="text-[var(--muted-foreground)]">
                           · {entry.recommendation}
@@ -444,15 +474,21 @@ function CompanyResult({
       aria-selected={active}
       onClick={onSelect}
       className={`group flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-colors ${
-        active ? "bg-[var(--surface-2)] text-[var(--foreground)]" : "hover:bg-[var(--surface-2)]/50"
+        active
+          ? "bg-[var(--surface-2)] text-[var(--foreground)]"
+          : "hover:bg-[var(--surface-2)]/50"
       }`}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate font-medium text-[var(--foreground)]">{company.name}</span>
-          <span className="shrink-0 font-mono text-xs font-semibold text-[var(--accent)]">{company.ticker}</span>
+          <span className="truncate font-medium text-[var(--foreground)]">
+            {company.name}
+          </span>
+          <span className="shrink-0 font-mono text-xs font-semibold text-[var(--accent)]">
+            {company.ticker}
+          </span>
         </div>
-        {(company.sector || company.industry) ? (
+        {company.sector || company.industry ? (
           <p className="mt-0.5 truncate text-xs text-[var(--muted-foreground)]">
             {[company.sector, company.industry].filter(Boolean).join(" · ")}
           </p>

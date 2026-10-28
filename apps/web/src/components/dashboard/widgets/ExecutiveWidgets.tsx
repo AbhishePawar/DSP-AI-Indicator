@@ -40,7 +40,8 @@ export function AttentionBriefWidget() {
 
   if (health.isError) {
     items.push({
-      label: "Platform readiness check failed — continue via Company Analysis when online",
+      label:
+        "Platform readiness check failed — continue via Company Analysis when online",
       href: "/analysis",
       tone: "warning",
     });
@@ -146,9 +147,7 @@ export function MarketOverviewWidget() {
       ) : null}
       {token && market.isError ? (
         <WidgetError
-          description={
-            (market.error as Error).message || "Data unavailable."
-          }
+          description={(market.error as Error).message || "Data unavailable."}
           onRetry={() => void market.refetch()}
         />
       ) : null}
@@ -160,8 +159,8 @@ export function MarketOverviewWidget() {
             </Badge>
           </div>
           <p className="text-[var(--muted)]">
-            Market overview shows connectivity status, not fabricated indices or
-            tips. Open Analysis for company-specific research.
+            Market overview shows connectivity status, not fabricated indices or tips.
+            Open Analysis for company-specific research.
           </p>
           <Link href="/analysis">
             <Button size="sm" variant="secondary">
@@ -311,10 +310,7 @@ export function TasksWidget() {
           </Link>
         </li>
         <li>
-          <Link
-            className="text-[var(--accent)] hover:underline"
-            href="/portfolio"
-          >
+          <Link className="text-[var(--accent)] hover:underline" href="/portfolio">
             Review portfolio workspace
           </Link>
         </li>

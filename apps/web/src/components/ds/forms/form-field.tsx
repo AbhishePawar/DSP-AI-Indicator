@@ -26,9 +26,9 @@ function FormField({
 }: FormFieldProps) {
   const hintId = React.useId();
   const errorId = React.useId();
-  const describedBy = [hint ? hintId : null, error ? errorId : null]
-    .filter(Boolean)
-    .join(" ") || undefined;
+  const describedBy =
+    [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(" ") ||
+    undefined;
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)} {...props}>

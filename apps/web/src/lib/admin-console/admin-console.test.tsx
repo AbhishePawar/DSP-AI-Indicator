@@ -89,9 +89,7 @@ function wrap(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("EPIC-F008 admin console lib", () => {
@@ -124,9 +122,7 @@ describe("EPIC-F008 admin console lib", () => {
     });
     useAdminConsolePrefsStore.getState().addNote("user:u1", "Check access");
     useAdminConsolePrefsStore.getState().addTag("user:u1", "review");
-    expect(useAdminConsolePrefsStore.getState().notes[0]?.text).toBe(
-      "Check access",
-    );
+    expect(useAdminConsolePrefsStore.getState().notes[0]?.text).toBe("Check access");
     expect(useAdminConsolePrefsStore.getState().tags[0]?.label).toBe("review");
   });
 });
@@ -236,9 +232,7 @@ describe("EPIC-F008 admin console UI", () => {
   });
 
   it("renders workspace layout and overview dashboard", async () => {
-    const { AdminConsole } = await import(
-      "@/components/admin-console/AdminConsole"
-    );
+    const { AdminConsole } = await import("@/components/admin-console/AdminConsole");
     wrap(<AdminConsole />);
     expect(screen.getByLabelText("Administration navigation")).toBeTruthy();
     expect(screen.getByLabelText("Main administration view")).toBeTruthy();
@@ -251,9 +245,7 @@ describe("EPIC-F008 admin console UI", () => {
 
   it("renders identity user list from API", async () => {
     useAdminConsolePrefsStore.setState({ activeSection: "identity" });
-    const { IdentitySection } = await import(
-      "@/components/admin-console/Sections"
-    );
+    const { IdentitySection } = await import("@/components/admin-console/Sections");
     wrap(<IdentitySection token="tok" />);
     expect(await screen.findByText("User List")).toBeTruthy();
     expect(await screen.findByText("admin")).toBeTruthy();
@@ -263,20 +255,15 @@ describe("EPIC-F008 admin console UI", () => {
 
   it("shows honest empty audit state", async () => {
     useAdminConsolePrefsStore.setState({ activeSection: "audit" });
-    const { AuditSection } = await import(
-      "@/components/admin-console/Sections"
-    );
+    const { AuditSection } = await import("@/components/admin-console/Sections");
     wrap(<AuditSection token="tok" />);
     expect(await screen.findByText("Audit Log Viewer")).toBeTruthy();
-    expect(
-      (await screen.findAllByText(/Data unavailable/i)).length,
-    ).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/Data unavailable/i)).length).toBeGreaterThan(0);
   });
 
   it("loads platform health and metrics", async () => {
-    const { PlatformSection, MetricsSection } = await import(
-      "@/components/admin-console/Sections"
-    );
+    const { PlatformSection, MetricsSection } =
+      await import("@/components/admin-console/Sections");
     wrap(<PlatformSection token="tok" />);
     expect(await screen.findByText("Platform Health")).toBeTruthy();
     await waitFor(() => expect(healthMock).toHaveBeenCalled());

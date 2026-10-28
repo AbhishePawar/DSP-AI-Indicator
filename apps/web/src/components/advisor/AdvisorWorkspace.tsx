@@ -51,7 +51,9 @@ export function AdvisorShell({
         <AdvisorSidebar />
         <div className="min-w-0 flex-1 space-y-4">
           <header>
-            <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">{title}</h1>
+            <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
+              {title}
+            </h1>
             {description ? (
               <p className="mt-1 text-[var(--muted)]">{description}</p>
             ) : null}
@@ -100,7 +102,10 @@ export const ClientDetailWorkspace = memo(function ClientDetailWorkspace({
   if (!profile) {
     return (
       <AdvisorShell title="Client not found">
-        <EmptyState title="Unknown demo client" description="Return to the clients list." />
+        <EmptyState
+          title="Unknown demo client"
+          description="Return to the clients list."
+        />
         <Link
           href="/advisor/clients"
           className="inline-flex min-h-11 items-center text-[var(--accent)] underline"
@@ -130,7 +135,10 @@ export const ClientDetailWorkspace = memo(function ClientDetailWorkspace({
       </div>
 
       <section aria-labelledby="client-dash">
-        <h2 id="client-dash" className="mb-3 font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="client-dash"
+          className="mb-3 font-[family-name:var(--font-display)] text-xl"
+        >
           Client dashboard
         </h2>
         <ClientDashboardCards
@@ -153,14 +161,20 @@ export const ClientDetailWorkspace = memo(function ClientDetailWorkspace({
       />
 
       <section aria-labelledby="client-meetings" className="space-y-3">
-        <h2 id="client-meetings" className="font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="client-meetings"
+          className="font-[family-name:var(--font-display)] text-xl"
+        >
           Meetings
         </h2>
         <MeetingTimeline meetings={profile.meetings} />
       </section>
 
       <section aria-labelledby="client-tasks" className="space-y-3">
-        <h2 id="client-tasks" className="font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="client-tasks"
+          className="font-[family-name:var(--font-display)] text-xl"
+        >
           Tasks
         </h2>
         {profile.tasks.length === 0 ? (

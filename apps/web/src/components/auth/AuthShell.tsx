@@ -60,9 +60,7 @@ export function AuthShell({ children, footerNote }: AuthShellProps) {
       </div>
 
       {footerNote ? (
-        <p className="pb-8 text-center text-xs text-[var(--muted)]">
-          {footerNote}
-        </p>
+        <p className="pb-8 text-center text-xs text-[var(--muted)]">{footerNote}</p>
       ) : (
         <p className="pb-8 text-center text-xs text-[var(--muted)]">
           Research Mode by default · Not investment advice

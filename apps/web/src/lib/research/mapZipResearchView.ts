@@ -220,13 +220,28 @@ function mosToStatus(mosNum: number | null | undefined): ZipStatus {
 
 function decisionToStatus(decision: string): ZipStatus {
   const d = decision.toLowerCase();
-  if (d.includes("strong_buy") || d.includes("buy") || d.includes("strong") || d.includes("high")) {
+  if (
+    d.includes("strong_buy") ||
+    d.includes("buy") ||
+    d.includes("strong") ||
+    d.includes("high")
+  ) {
     return "strong";
   }
-  if (d.includes("hold") || d.includes("adequate") || d.includes("moderate") || d.includes("medium")) {
+  if (
+    d.includes("hold") ||
+    d.includes("adequate") ||
+    d.includes("moderate") ||
+    d.includes("medium")
+  ) {
     return "adequate";
   }
-  if (d.includes("sell") || d.includes("weak") || d.includes("low") || d.includes("avoid")) {
+  if (
+    d.includes("sell") ||
+    d.includes("weak") ||
+    d.includes("low") ||
+    d.includes("avoid")
+  ) {
     return "weak";
   }
   return "unavailable";
@@ -295,11 +310,15 @@ export function mapZipResearchView(
     sourceEvidence?.current_market_price ??
     request.current_market_price ??
     null;
-  const currentPrice = rawPrice != null ? `${currency}${Number(rawPrice).toLocaleString()}` : "Unavailable";
+  const currentPrice =
+    rawPrice != null
+      ? `${currency}${Number(rawPrice).toLocaleString()}`
+      : "Unavailable";
 
   // Intrinsic value
   const rawIV = serverValuation?.intrinsic_value_per_share ?? null;
-  const intrinsicValue = rawIV != null ? `${currency}${Number(rawIV).toLocaleString()}` : "Unavailable";
+  const intrinsicValue =
+    rawIV != null ? `${currency}${Number(rawIV).toLocaleString()}` : "Unavailable";
 
   // Margin of safety
   const rawMos = serverValuation?.margin_of_safety ?? base.marginOfSafety;
@@ -317,60 +336,69 @@ export function mapZipResearchView(
   const recStatus = decisionToStatus(recDecision);
 
   // Sections mapping
-  const financial = stageToSection(findStage(stages, "financial"), "s04", "03", "Financial Analysis", [
-    "Financial Score",
-    "Summary",
-    "Decision",
-    "Confidence",
-  ]);
-  const moat = stageToSection(findStage(stages, "economic_moat"), "s02", "05", "Economic Moat", [
-    "Moat Score",
-    "Competitive Position",
-    "Moat Duration",
-    "Confidence",
-  ]);
-  const management = stageToSection(findStage(stages, "management_quality"), "s06", "07", "Management Quality", [
-    "Governance Score",
-    "Capital Allocation",
-    "Governance",
-    "Confidence",
-  ]);
-  const financialStrength = stageToSection(findStage(stages, "financial_strength"), "s04b", "08", "Financial Strength", [
-    "Solvency Score",
-    "Debt Position",
-    "Liquidity",
-    "Cash Flow",
-  ]);
-  const earnings = stageToSection(findStage(stages, "earnings_quality"), "s07", "09", "Earnings Quality", [
-    "Earnings Score",
-    "Consistency",
-    "Cash Conversion",
-    "Accounting Quality",
-  ]);
-  const growth = stageToSection(findStage(stages, "growth_quality"), "s08", "10", "Growth Quality", [
-    "Growth Score",
-    "Revenue Growth",
-    "Profit Growth",
-    "Reinvestment",
-  ]);
-  const businessQuality = stageToSection(findStage(stages, "business_quality_aggregator"), "s02b", "06", "Business Quality Aggregation", [
-    "Composite Score",
-    "Label",
-    "Decision",
-    "Confidence",
-  ]);
-  const valuation = stageToSection(findStage(stages, "valuation"), "s09", "04", "Valuation & Intrinsic Value", [
-    "Valuation Score",
-    "Model",
-    "Intrinsic Value",
-    "Confidence",
-  ]);
-  const recommendationStage = stageToSection(findStage(stages, "investment_recommendation"), "s13", "12", "Investment Recommendation", [
-    "Recommendation Score",
-    "Action",
-    "Decision",
-    "Confidence",
-  ]);
+  const financial = stageToSection(
+    findStage(stages, "financial"),
+    "s04",
+    "03",
+    "Financial Analysis",
+    ["Financial Score", "Summary", "Decision", "Confidence"],
+  );
+  const moat = stageToSection(
+    findStage(stages, "economic_moat"),
+    "s02",
+    "05",
+    "Economic Moat",
+    ["Moat Score", "Competitive Position", "Moat Duration", "Confidence"],
+  );
+  const management = stageToSection(
+    findStage(stages, "management_quality"),
+    "s06",
+    "07",
+    "Management Quality",
+    ["Governance Score", "Capital Allocation", "Governance", "Confidence"],
+  );
+  const financialStrength = stageToSection(
+    findStage(stages, "financial_strength"),
+    "s04b",
+    "08",
+    "Financial Strength",
+    ["Solvency Score", "Debt Position", "Liquidity", "Cash Flow"],
+  );
+  const earnings = stageToSection(
+    findStage(stages, "earnings_quality"),
+    "s07",
+    "09",
+    "Earnings Quality",
+    ["Earnings Score", "Consistency", "Cash Conversion", "Accounting Quality"],
+  );
+  const growth = stageToSection(
+    findStage(stages, "growth_quality"),
+    "s08",
+    "10",
+    "Growth Quality",
+    ["Growth Score", "Revenue Growth", "Profit Growth", "Reinvestment"],
+  );
+  const businessQuality = stageToSection(
+    findStage(stages, "business_quality_aggregator"),
+    "s02b",
+    "06",
+    "Business Quality Aggregation",
+    ["Composite Score", "Label", "Decision", "Confidence"],
+  );
+  const valuation = stageToSection(
+    findStage(stages, "valuation"),
+    "s09",
+    "04",
+    "Valuation & Intrinsic Value",
+    ["Valuation Score", "Model", "Intrinsic Value", "Confidence"],
+  );
+  const recommendationStage = stageToSection(
+    findStage(stages, "investment_recommendation"),
+    "s13",
+    "12",
+    "Investment Recommendation",
+    ["Recommendation Score", "Action", "Decision", "Confidence"],
+  );
 
   // Buffett Rows
   const buffettRows: ZipBuffettRow[] = [
@@ -391,7 +419,10 @@ export function mapZipResearchView(
     },
     {
       dim: "Financial Strength",
-      result: financialStrength.decision !== "Unavailable" ? financialStrength.decision : "Strong",
+      result:
+        financialStrength.decision !== "Unavailable"
+          ? financialStrength.decision
+          : "Strong",
       status: financialStrength.status,
     },
     {
@@ -401,22 +432,34 @@ export function mapZipResearchView(
     },
     {
       dim: "Debt Position",
-      result: financialStrength.label !== "Unavailable" ? financialStrength.label : "Minimal debt",
+      result:
+        financialStrength.label !== "Unavailable"
+          ? financialStrength.label
+          : "Minimal debt",
       status: financialStrength.status,
     },
     {
       dim: "Return on Equity",
-      result: financial.metrics.find((m) => m.label.toLowerCase().includes("roe"))?.value ?? "High",
+      result:
+        financial.metrics.find((m) => m.label.toLowerCase().includes("roe"))?.value ??
+        "High",
       status: financial.status,
     },
     {
       dim: "Cash Generation",
-      result: earnings.metrics.find((m) => m.label.toLowerCase().includes("cash"))?.value ?? "Strong",
+      result:
+        earnings.metrics.find((m) => m.label.toLowerCase().includes("cash"))?.value ??
+        "Strong",
       status: earnings.status,
     },
     {
       dim: "Valuation",
-      result: valuation.decision !== "Unavailable" ? valuation.decision : rawMos && rawMos < 0 ? "Premium to intrinsic value" : "Fair value",
+      result:
+        valuation.decision !== "Unavailable"
+          ? valuation.decision
+          : rawMos && rawMos < 0
+            ? "Premium to intrinsic value"
+            : "Fair value",
       status: rawMos && rawMos < 0 ? "weak" : "strong",
     },
     {
@@ -477,7 +520,7 @@ export function mapZipResearchView(
   const cashData: ZipFinancialPoint[] = payload.cash_data ?? [];
 
   // Risks
-  const riskPayload = (payload.risk as CompanyRiskPayload | null | undefined);
+  const riskPayload = payload.risk as CompanyRiskPayload | null | undefined;
   const risks: ZipRiskItem[] = [];
   if (riskPayload) {
     const riskCategories = [
@@ -492,7 +535,10 @@ export function mapZipResearchView(
       if (cat && (cat.available || cat.level === "high" || cat.level === "medium")) {
         risks.push({
           risk: `${(cat.category || "General").replace(/_/g, " ").toUpperCase()}: ${cat.level ?? "Evaluated"} risk`,
-          evidence: cat.evidence?.join("; ") || cat.message || "Evaluated by risk assessment pipeline",
+          evidence:
+            cat.evidence?.join("; ") ||
+            cat.message ||
+            "Evaluated by risk assessment pipeline",
           implication: `Risk category level assessed as ${cat.level ?? "moderate"}`,
         });
       }
@@ -509,14 +555,22 @@ export function mapZipResearchView(
   }
 
   // Strengths & Weaknesses
-  const strengths = base.strengths.length > 0 ? base.strengths : [
-    `Strong business quality score (${bqScore ?? "high"}) with sustained market position`,
-    "Solid balance sheet and financial strength",
-    "Consistent cash flow generation",
-  ];
-  const weaknesses = base.weaknesses.length > 0 ? base.weaknesses : [
-    rawMos && rawMos < 0 ? `Current market price implies negative margin of safety (${marginOfSafety})` : "Valuation requires careful entry discipline",
-  ];
+  const strengths =
+    base.strengths.length > 0
+      ? base.strengths
+      : [
+          `Strong business quality score (${bqScore ?? "high"}) with sustained market position`,
+          "Solid balance sheet and financial strength",
+          "Consistent cash flow generation",
+        ];
+  const weaknesses =
+    base.weaknesses.length > 0
+      ? base.weaknesses
+      : [
+          rawMos && rawMos < 0
+            ? `Current market price implies negative margin of safety (${marginOfSafety})`
+            : "Valuation requires careful entry discipline",
+        ];
 
   // Evidence items
   const evidenceItems: ZipEvidenceItem[] = [
@@ -593,15 +647,44 @@ export function mapZipResearchView(
       { label: "Current Price", value: currentPrice },
       { label: "Intrinsic Value", value: intrinsicValue },
       { label: "Margin of Safety", value: marginOfSafety },
-      { label: "Business Quality", value: bqScore != null ? `${bqScore}/100` : "Unavailable" },
+      {
+        label: "Business Quality",
+        value: bqScore != null ? `${bqScore}/100` : "Unavailable",
+      },
     ],
   };
 
   const financialMetrics: ZipMetricItem[] = [
-    { label: "Revenue", value: revenueData.length > 0 ? `${revenueData[revenueData.length - 1].value}` : "Unavailable", status: "adequate" },
-    { label: "Net Profit", value: profitData.length > 0 ? `${profitData[profitData.length - 1].value}` : "Unavailable", status: "adequate" },
-    { label: "Operating Margin", value: marginData.length > 0 ? `${marginData[marginData.length - 1].value}%` : "Unavailable", status: "adequate" },
-    { label: "Free Cash Flow", value: cashData.length > 0 ? `${cashData[cashData.length - 1].value}` : "Unavailable", status: "adequate" },
+    {
+      label: "Revenue",
+      value:
+        revenueData.length > 0
+          ? `${revenueData[revenueData.length - 1].value}`
+          : "Unavailable",
+      status: "adequate",
+    },
+    {
+      label: "Net Profit",
+      value:
+        profitData.length > 0
+          ? `${profitData[profitData.length - 1].value}`
+          : "Unavailable",
+      status: "adequate",
+    },
+    {
+      label: "Operating Margin",
+      value:
+        marginData.length > 0
+          ? `${marginData[marginData.length - 1].value}%`
+          : "Unavailable",
+      status: "adequate",
+    },
+    {
+      label: "Free Cash Flow",
+      value:
+        cashData.length > 0 ? `${cashData[cashData.length - 1].value}` : "Unavailable",
+      status: "adequate",
+    },
   ];
 
   const businessQualityGroup = {
@@ -621,21 +704,37 @@ export function mapZipResearchView(
   const managementGroup = {
     status: management.status,
     overview: management.decision,
-    capitalAllocation: management.metrics.map((m) => ({ label: m.label, value: m.value, status: management.status })),
+    capitalAllocation: management.metrics.map((m) => ({
+      label: m.label,
+      value: m.value,
+      status: management.status,
+    })),
   };
 
   const earningsQualityGroup = {
     status: earnings.status,
-    indicators: earnings.metrics.map((m) => ({ label: m.label, value: m.value, status: earnings.status })),
+    indicators: earnings.metrics.map((m) => ({
+      label: m.label,
+      value: m.value,
+      status: earnings.status,
+    })),
   };
 
   const growthQualityGroup = {
     status: growth.status,
-    indicators: growth.metrics.map((m) => ({ label: m.label, value: m.value, status: growth.status })),
+    indicators: growth.metrics.map((m) => ({
+      label: m.label,
+      value: m.value,
+      status: growth.status,
+    })),
   };
 
   const investmentContextGroup = {
-    metrics: recommendationStage.metrics.map((m) => ({ label: m.label, value: m.value, status: recommendationStage.status })),
+    metrics: recommendationStage.metrics.map((m) => ({
+      label: m.label,
+      value: m.value,
+      status: recommendationStage.status,
+    })),
     narrative: recommendationStage.decision,
   };
 

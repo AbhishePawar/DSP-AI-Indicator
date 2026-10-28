@@ -139,7 +139,5 @@ export function composeResearchTimeline(input: TimelineInput): TimelineEvent[] {
     });
   }
 
-  return events.sort(
-    (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
-  );
+  return events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 }

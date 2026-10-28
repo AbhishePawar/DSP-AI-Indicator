@@ -29,9 +29,8 @@ describe("Forgot password page", () => {
       ok: true,
       result: { challenge_id: "ch-reset", sms: { debug_code: "654321" } },
     });
-    const { default: ForgotPasswordPage } = await import(
-      "@/app/(auth)/forgot-password/page"
-    );
+    const { default: ForgotPasswordPage } =
+      await import("@/app/(auth)/forgot-password/page");
     render(
       <ThemeProvider>
         <ForgotPasswordPage />
@@ -51,9 +50,8 @@ describe("Forgot password page", () => {
       ok: true,
       result: { ok: true, message: "If an account exists, a reset token was issued." },
     });
-    const { default: ForgotPasswordPage } = await import(
-      "@/app/(auth)/forgot-password/page"
-    );
+    const { default: ForgotPasswordPage } =
+      await import("@/app/(auth)/forgot-password/page");
     render(
       <ThemeProvider>
         <ForgotPasswordPage />
@@ -80,9 +78,8 @@ describe("Forgot password page", () => {
         message: "Password recovery is temporarily unavailable. Contact support.",
       },
     });
-    const { default: ForgotPasswordPage } = await import(
-      "@/app/(auth)/forgot-password/page"
-    );
+    const { default: ForgotPasswordPage } =
+      await import("@/app/(auth)/forgot-password/page");
     render(
       <ThemeProvider>
         <ForgotPasswordPage />
@@ -97,6 +94,4 @@ describe("Forgot password page", () => {
     ).toBeTruthy();
     expect(screen.queryByText(/a password reset link has been sent/i)).toBeNull();
   });
-
-
 });

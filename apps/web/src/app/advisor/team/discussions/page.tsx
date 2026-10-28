@@ -6,9 +6,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const DiscussionsSection = dynamic(
   () =>
-    import("@/components/advisor/TeamCollaboration").then(
-      (m) => m.DiscussionsSection,
-    ),
+    import("@/components/advisor/TeamCollaboration").then((m) => m.DiscussionsSection),
   { loading: () => <Skeleton className="h-64 w-full" />, ssr: false },
 );
 

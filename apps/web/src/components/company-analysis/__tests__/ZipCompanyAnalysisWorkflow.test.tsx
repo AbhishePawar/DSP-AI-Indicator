@@ -44,7 +44,7 @@ function renderWorkspace() {
   return render(
     <QueryClientProvider client={queryClient}>
       <ZipCompanyAnalysisWorkspace />
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -112,7 +112,7 @@ describe("ZipCompanyAnalysisWorkflow — Real API Lifecycle & Zero-Fabrication G
         message: "Session expired",
         api_version: "v1",
         status_code: 401,
-      })
+      }),
     );
 
     renderWorkspace();
@@ -136,7 +136,7 @@ describe("ZipCompanyAnalysisWorkflow — Real API Lifecycle & Zero-Fabrication G
         message: "Forbidden",
         api_version: "v1",
         status_code: 403,
-      })
+      }),
     );
 
     renderWorkspace();
@@ -157,7 +157,7 @@ describe("ZipCompanyAnalysisWorkflow — Real API Lifecycle & Zero-Fabrication G
         message: "Timeout",
         api_version: "v1",
         status_code: 408,
-      })
+      }),
     );
 
     renderWorkspace();

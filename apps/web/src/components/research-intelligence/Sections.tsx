@@ -44,11 +44,7 @@ export function PerformanceSection({
         title="Unable to load performance"
         description="Research Intelligence API did not return a dashboard. No metrics were fabricated."
         action={
-          <button
-            type="button"
-            className="text-sm underline"
-            onClick={onRetry}
-          >
+          <button type="button" className="text-sm underline" onClick={onRetry}>
             Retry
           </button>
         }
@@ -207,15 +203,9 @@ export function TimelineSection({
                   label="Recommendation"
                   value={displayText(row.recommendation)}
                 />
-                <FieldRow
-                  label="Confidence"
-                  value={displayMetric(row.confidence)}
-                />
+                <FieldRow label="Confidence" value={displayMetric(row.confidence)} />
                 <FieldRow label="Price" value={displayMetric(row.price)} />
-                <FieldRow
-                  label="MoS"
-                  value={displayMetric(row.margin_of_safety)}
-                />
+                <FieldRow label="MoS" value={displayMetric(row.margin_of_safety)} />
                 <FieldRow
                   label="Research version"
                   value={displayText(row.research_version)}
@@ -268,13 +258,10 @@ export function CalibrationSection({
   }
 
   const buckets =
-    (calibration.bucket_accuracy as Record<string, Record<string, unknown>>) ||
-    {};
-  const curve =
-    (calibration.calibration_curve as Record<string, unknown>[]) || [];
+    (calibration.bucket_accuracy as Record<string, Record<string, unknown>>) || {};
+  const curve = (calibration.calibration_curve as Record<string, unknown>[]) || [];
   const drift = (calibration.drift as Record<string, unknown>) || {};
-  const reliability =
-    (calibration.reliability as Record<string, unknown>) || {};
+  const reliability = (calibration.reliability as Record<string, unknown>) || {};
 
   return (
     <div className="space-y-4">
@@ -367,8 +354,7 @@ export function InsightsSection({
   const best = (insights.best_performers as Record<string, unknown>[]) || [];
   const worst = (insights.worst_performers as Record<string, unknown>[]) || [];
   const gaps = (insights.coverage_gaps as Record<string, unknown>[]) || [];
-  const sectors =
-    (insights.sector_performance as Record<string, unknown>[]) || [];
+  const sectors = (insights.sector_performance as Record<string, unknown>[]) || [];
 
   return (
     <div className="space-y-4">
@@ -382,8 +368,7 @@ export function InsightsSection({
           <ul className="space-y-2 text-sm">
             {best.map((row) => (
               <li key={String(row.research_id)}>
-                {displayText(row.symbol)} ·{" "}
-                {displayMetric(row.price_change_pct)} ·{" "}
+                {displayText(row.symbol)} · {displayMetric(row.price_change_pct)} ·{" "}
                 {displayText(row.recommendation_accuracy)}
               </li>
             ))}
@@ -397,8 +382,7 @@ export function InsightsSection({
           <ul className="space-y-2 text-sm">
             {worst.map((row) => (
               <li key={String(row.research_id)}>
-                {displayText(row.symbol)} ·{" "}
-                {displayMetric(row.price_change_pct)} ·{" "}
+                {displayText(row.symbol)} · {displayMetric(row.price_change_pct)} ·{" "}
                 {displayText(row.recommendation_accuracy)}
               </li>
             ))}

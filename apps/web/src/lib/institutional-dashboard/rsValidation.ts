@@ -74,9 +74,7 @@ export function validateResearchStandards(
     },
     {
       standard: "RS-008",
-      ok: Boolean(
-        view.scenarios.bull && view.scenarios.base && view.scenarios.bear,
-      ),
+      ok: Boolean(view.scenarios.bull && view.scenarios.base && view.scenarios.bear),
       detail: "Scenario panel",
     },
     {
@@ -92,8 +90,6 @@ export function validateResearchStandards(
   ];
 }
 
-export function researchStandardsPass(
-  results: RsValidationResult[],
-): boolean {
+export function researchStandardsPass(results: RsValidationResult[]): boolean {
   return results.every((r) => r.ok);
 }

@@ -86,7 +86,8 @@ export function MfaChallenge({ challenge, onDone }: MfaChallengeProps) {
     setNotConfigured(null);
     try {
       const envelope = await enterpriseAuthApi.webauthnAuthenticateBegin();
-      if (!envelope.ok) throw new Error(envelope.error || "Passkey verification failed");
+      if (!envelope.ok)
+        throw new Error(envelope.error || "Passkey verification failed");
       onDone();
     } catch (err) {
       if (err instanceof ApiClientError && err.status === 501) {
@@ -124,7 +125,11 @@ export function MfaChallenge({ challenge, onDone }: MfaChallengeProps) {
         </div>
 
         {methods.length > 1 ? (
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Verification method">
+          <div
+            className="flex flex-wrap gap-2"
+            role="tablist"
+            aria-label="Verification method"
+          >
             {methods.map((m) => (
               <Button
                 key={m}
@@ -161,7 +166,12 @@ export function MfaChallenge({ challenge, onDone }: MfaChallengeProps) {
               <PasskeyIcon /> Use your device passkey to finish signing in.
             </p>
             {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
-            <Button type="button" disabled={pending} onClick={verifyPasskey} className="w-full">
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={verifyPasskey}
+              className="w-full"
+            >
               {pending ? "Waiting for passkey…" : "Verify with Passkey"}
             </Button>
           </Stack>

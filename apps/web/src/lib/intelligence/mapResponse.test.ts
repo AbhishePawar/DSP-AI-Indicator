@@ -91,9 +91,9 @@ describe("mapAnalyseResponse", () => {
 describe("sample request", () => {
   it("includes ticker and valuation signals for /analyse", () => {
     expect(SAMPLE_ANALYSE_REQUEST.ticker).toBe("ACM");
-    expect(
-      SAMPLE_ANALYSE_REQUEST.valuation_signals?.intrinsic_value_per_share,
-    ).toBe(100);
+    expect(SAMPLE_ANALYSE_REQUEST.valuation_signals?.intrinsic_value_per_share).toBe(
+      100,
+    );
   });
 });
 

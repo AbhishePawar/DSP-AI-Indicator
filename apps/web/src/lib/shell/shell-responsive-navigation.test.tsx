@@ -124,19 +124,32 @@ describe("Shell responsive structure: header, sidebar, content width, breadcrumb
   });
 
   it("enforces max-w-[1440px] and standardized padding rhythm on ContentArea", async () => {
-    const { ContentArea, PageContainer } = await import("@/components/layout/ContentArea");
-    const { container: c1 } = render(<ContentArea><div>Content</div></ContentArea>);
+    const { ContentArea, PageContainer } =
+      await import("@/components/layout/ContentArea");
+    const { container: c1 } = render(
+      <ContentArea>
+        <div>Content</div>
+      </ContentArea>,
+    );
     const areaDiv = c1.firstChild as HTMLElement;
     expect(areaDiv.className).toContain("max-w-[1440px]");
     expect(areaDiv.className).toContain("px-4");
     expect(areaDiv.className).toContain("sm:px-7");
 
-    const { container: c2 } = render(<PageContainer><div>Page Content</div></PageContainer>);
+    const { container: c2 } = render(
+      <PageContainer>
+        <div>Page Content</div>
+      </PageContainer>,
+    );
     const pageDiv = c2.firstChild as HTMLElement;
     expect(pageDiv.className).toContain("max-w-6xl");
     expect(pageDiv.className).toContain("space-y-6");
 
-    const { container: c3 } = render(<PageContainer narrow><div>Narrow Content</div></PageContainer>);
+    const { container: c3 } = render(
+      <PageContainer narrow>
+        <div>Narrow Content</div>
+      </PageContainer>,
+    );
     const narrowDiv = c3.firstChild as HTMLElement;
     expect(narrowDiv.className).toContain("max-w-3xl");
   });
@@ -193,13 +206,7 @@ describe("Responsive navigation drawer: keyboard focus and Escape behavior", () 
 
   it("ensures navigation links have visible focus ring styles", async () => {
     const { Sidebar } = await import("@/components/layout/Sidebar");
-    render(
-      <Sidebar
-        collapsed={false}
-        mobile={false}
-        onNavigate={() => undefined}
-      />,
-    );
+    render(<Sidebar collapsed={false} mobile={false} onNavigate={() => undefined} />);
 
     const dashboardLink = screen.getByTestId("sidebar-desktop-dashboard");
     expect(dashboardLink.className).toContain("focus-visible:ring-2");
@@ -215,13 +222,7 @@ describe("Active and nested navigation states with role filtering", () => {
   it("marks current route with aria-current='page' and active border styling", async () => {
     currentPath = "/dashboard";
     const { Sidebar } = await import("@/components/layout/Sidebar");
-    render(
-      <Sidebar
-        collapsed={false}
-        mobile={false}
-        onNavigate={() => undefined}
-      />,
-    );
+    render(<Sidebar collapsed={false} mobile={false} onNavigate={() => undefined} />);
 
     const activeLink = screen.getByTestId("sidebar-desktop-dashboard");
     expect(activeLink.getAttribute("aria-current")).toBe("page");
@@ -257,10 +258,18 @@ describe("Active and nested navigation states with role filtering", () => {
   });
 
   it("groups navigation into primary, analytical, and management sections", () => {
-    const navItems = filterShellNav(["read_research", "manage_users"], ["administrator"]);
+    const navItems = filterShellNav(
+      ["read_research", "manage_users"],
+      ["administrator"],
+    );
     const groups = groupShellNav(navItems);
     expect(groups.length).toBeGreaterThanOrEqual(2);
-    expect(groups.some((g) => g.section === "overview" || g.section === "research" || g.section === "ops")).toBe(true);
+    expect(
+      groups.some(
+        (g) =>
+          g.section === "overview" || g.section === "research" || g.section === "ops",
+      ),
+    ).toBe(true);
   });
 
   it("traps focus while navigation drawer is open and restores focus to trigger on close", async () => {
@@ -291,12 +300,12 @@ describe("Active and nested navigation states with role filtering", () => {
     // 1. Analyst role configuration
     const analystItems = filterShellNav(["read_research"], ["research_analyst"]);
     expect(analystItems.some((n) => n.id === "admin")).toBe(false);
-    
+
     // Check nested items under research
     const researchItem = analystItems.find((n) => n.id === "research");
     expect(researchItem).toBeDefined();
     expect(researchItem?.children?.length).toBeGreaterThan(0);
-    
+
     // Nested active routing check
     expect(isActivePath("/research/institutional", researchItem!.href)).toBe(true);
     expect(isActivePath("/research/canvas", researchItem!.href)).toBe(true);
@@ -315,7 +324,9 @@ describe("Active and nested navigation states with role filtering", () => {
     expect(analystItems.some((n) => n.id === "saas")).toBe(false);
     expect(analystItems.some((n) => n.id === "portfolio")).toBe(true);
     const analystResearch = analystItems.find((n) => n.id === "research");
-    expect(analystResearch?.children?.some((c) => c.href === "/research/workspace")).toBe(true);
+    expect(
+      analystResearch?.children?.some((c) => c.href === "/research/workspace"),
+    ).toBe(true);
     expect(isActivePath("/research/workspace", analystResearch!.href)).toBe(true);
     expect(isActivePath("/research/institutional", analystResearch!.href)).toBe(true);
 
@@ -339,7 +350,10 @@ describe("Active and nested navigation states with role filtering", () => {
     expect(isActivePath("/admin/roles", adminOps!.href)).toBe(true);
 
     // 4. Platform Owner configuration
-    const ownerItems = filterShellNav(["org.manage", "admin.manage", "configure_platform"], ["owner"]);
+    const ownerItems = filterShellNav(
+      ["org.manage", "admin.manage", "configure_platform"],
+      ["owner"],
+    );
     expect(ownerItems.some((n) => n.id === "admin")).toBe(true);
     expect(ownerItems.some((n) => n.id === "saas")).toBe(true);
     expect(ownerItems.some((n) => n.id === "control-center")).toBe(true);
@@ -354,5 +368,4 @@ describe("Active and nested navigation states with role filtering", () => {
     expect(isActivePath("/dashboards", guestDash!.href)).toBe(false);
     expect(isActivePath("/dashboard", guestDash!.href)).toBe(true);
   });
-
 });

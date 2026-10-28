@@ -80,7 +80,8 @@ describe("Copilot Query Contract Suite — api.copilotQuery() -> /api/v1/copilot
       symbol: "NVDA",
       analysis_id: "analysis-nvda-1",
       section_context: "S09 Valuation Model",
-      prompt: "Context: S09 Valuation Model for NVDA. What is the intrinsic value range?",
+      prompt:
+        "Context: S09 Valuation Model for NVDA. What is the intrinsic value range?",
     });
 
     const call1Body = JSON.parse(fetchMock.mock.calls[0][1].body);
@@ -95,7 +96,8 @@ describe("Copilot Query Contract Suite — api.copilotQuery() -> /api/v1/copilot
       symbol: "NVDA",
       analysis_id: "analysis-nvda-1",
       section_context: "S03 Buffett Assessment",
-      prompt: "Context: S03 Buffett Assessment for NVDA. How did it score on debt-to-equity and moat?",
+      prompt:
+        "Context: S03 Buffett Assessment for NVDA. How did it score on debt-to-equity and moat?",
     });
 
     const call2Body = JSON.parse(fetchMock.mock.calls[1][1].body);
@@ -112,15 +114,16 @@ describe("Copilot Query Contract Suite — api.copilotQuery() -> /api/v1/copilot
         ok: false,
         status: 503,
         statusText: "Service Unavailable",
-        text: async () => JSON.stringify({ detail: "Copilot service is not configured" }),
-      })
+        text: async () =>
+          JSON.stringify({ detail: "Copilot service is not configured" }),
+      }),
     );
 
     await expect(
       api.copilotQuery({
         query: "What is the margin trend?",
         symbol: "TCS",
-      })
+      }),
     ).rejects.toThrow();
   });
 });

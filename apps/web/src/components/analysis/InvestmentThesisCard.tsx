@@ -10,7 +10,10 @@ export function InvestmentThesisCard({ thesis }: { thesis: InvestmentThesisView 
         description="Why this company deserves attention — structured, evidence-aware"
       />
       <CardBody className="space-y-5">
-        <FieldRow label="Why this company deserves attention" field={thesis.whyAttention} />
+        <FieldRow
+          label="Why this company deserves attention"
+          field={thesis.whyAttention}
+        />
         <ListField label="Key strengths" field={thesis.keyStrengths} />
         <ListField label="Key concerns" field={thesis.keyConcerns} />
         <FieldRow label="Long-term thesis" field={thesis.longTermThesis} />
@@ -20,13 +23,7 @@ export function InvestmentThesisCard({ thesis }: { thesis: InvestmentThesisView 
   );
 }
 
-function ListField({
-  label,
-  field,
-}: {
-  label: string;
-  field: DisplayField<string[]>;
-}) {
+function ListField({ label, field }: { label: string; field: DisplayField<string[]> }) {
   const items =
     field.presence === "available" && Array.isArray(field.value) ? field.value : [];
   return (

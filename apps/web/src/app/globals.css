@@ -256,7 +256,9 @@ textarea {
 
 .dsp-interactive:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--accent);
 }
 
 @keyframes dsp-page-enter {
@@ -402,8 +404,12 @@ textarea {
 /* Figma frontend integration — shared utility classes (authoritative target) */
 /* ───────────────────────────────────────────────────────────────────────── */
 
-.font-display { font-family: var(--font-heading); }
-.font-mono { font-family: var(--font-data); }
+.font-display {
+  font-family: var(--font-heading);
+}
+.font-mono {
+  font-family: var(--font-data);
+}
 
 /* Uniform card shell — every surface card */
 .dsp-card {
@@ -438,19 +444,56 @@ textarea {
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.2s;
 }
-.scroll-container:hover { scrollbar-color: var(--border) transparent; }
+.scroll-container:hover {
+  scrollbar-color: var(--border) transparent;
+}
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
 
-.nav-label { display: inline; }
+.nav-label {
+  display: inline;
+}
 
 /* Responsive helpers used by ported Figma screens */
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.scorecard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
-@media (max-width: 640px) { .scorecard-grid { grid-template-columns: repeat(2, 1fr); } }
-.metric-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.score-sticky { position: sticky; top: 24px; align-self: start; }
-@media (max-width: 900px) { .score-sticky { position: static; } }
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scorecard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+@media (max-width: 640px) {
+  .scorecard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.metric-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.score-sticky {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+@media (max-width: 900px) {
+  .score-sticky {
+    position: static;
+  }
+}

@@ -6,7 +6,9 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const AdvisorResearchNotesWorkspace = dynamic(
   () =>
-    import("@/components/advisor/AdvisorResearch").then((m) => m.AdvisorResearchNotesWorkspace),
+    import("@/components/advisor/AdvisorResearch").then(
+      (m) => m.AdvisorResearchNotesWorkspace,
+    ),
   {
     loading: () => <Skeleton className="h-64 w-full" />,
     ssr: false,

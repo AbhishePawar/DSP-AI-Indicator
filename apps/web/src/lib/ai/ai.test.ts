@@ -100,10 +100,9 @@ describe("AIService", () => {
 
 describe("DeterministicProvider", () => {
   it("matches legacy composeCopilotAnswer output", async () => {
-    const service = createAIService(
-      createDefaultRegistry(),
-      { activeProviderId: "deterministic" },
-    );
+    const service = createAIService(createDefaultRegistry(), {
+      activeProviderId: "deterministic",
+    });
     const options = {
       questionId: "why_buy" as const,
       request: SAMPLE_ANALYSE_REQUEST,
@@ -174,11 +173,10 @@ describe("capability discovery", () => {
     const service = createAIService();
     const providers = service.listProviders();
     expect(providers).toHaveLength(3);
-    expect(
-      providers.find((p) => p.id === "deterministic")?.capabilities,
-    ).toEqual(["chat", "compare"]);
-    expect(
-      providers.find((p) => p.id === "mock")?.capabilities,
-    ).toContain("streaming");
+    expect(providers.find((p) => p.id === "deterministic")?.capabilities).toEqual([
+      "chat",
+      "compare",
+    ]);
+    expect(providers.find((p) => p.id === "mock")?.capabilities).toContain("streaming");
   });
 });

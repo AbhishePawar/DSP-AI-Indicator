@@ -16,16 +16,8 @@ export function SectionShell({
   prominent?: boolean;
 }) {
   return (
-    <section
-      id={id}
-      aria-labelledby={`${id}-heading`}
-      className="scroll-mt-24"
-    >
-      <Card
-        className={
-          prominent ? "border-[var(--accent)]/50 shadow-sm" : undefined
-        }
-      >
+    <section id={id} aria-labelledby={`${id}-heading`} className="scroll-mt-24">
+      <Card className={prominent ? "border-[var(--accent)]/50 shadow-sm" : undefined}>
         <div className="border-b border-[var(--border)] px-4 py-3">
           <h2
             id={`${id}-heading`}

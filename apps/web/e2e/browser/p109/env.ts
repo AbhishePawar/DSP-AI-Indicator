@@ -33,7 +33,7 @@ export class P109PreflightError extends Error {
   constructor(
     category: P109PreflightCategory,
     message: string,
-    safeRemediation: string = ""
+    safeRemediation: string = "",
   ) {
     super(message);
     this.name = "P109PreflightError";
@@ -70,7 +70,10 @@ function parseEnvLine(line: string): [string, string] | null {
 export function findP109LocalEnvFile(): string | null {
   const candidates = [
     process.env.DSP_P109_ENV_FILE,
-    path.resolve(typeof __dirname !== "undefined" ? __dirname : process.cwd(), "../../../.env.local"),
+    path.resolve(
+      typeof __dirname !== "undefined" ? __dirname : process.cwd(),
+      "../../../.env.local",
+    ),
     path.resolve(process.cwd(), "apps/web/.env.local"),
     path.resolve(process.cwd(), ".env.local"),
   ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
@@ -113,9 +116,7 @@ export function resolveP109AdminPassword(
   return undefined;
 }
 
-export function resolveP109Config(
-  env: NodeJS.ProcessEnv = process.env,
-): P109Config {
+export function resolveP109Config(env: NodeJS.ProcessEnv = process.env): P109Config {
   if (env === process.env && !env.DSP_SEED_ADMIN_PASSWORD && !env.DSP_P109_PASSWORD) {
     loadP109LocalEnv();
   }
@@ -131,7 +132,7 @@ export function resolveP109Config(
         "2. Add the canonical credential:",
         "   DSP_SEED_ADMIN_PASSWORD=<local_fixture_secret>",
         "   (DSP_P109_PASSWORD is supported only as a legacy fallback)",
-      ].join("\n")
+      ].join("\n"),
     );
   }
 
@@ -145,9 +146,7 @@ export function resolveP109Config(
   return { adminLogin, adminPassword, ticker, apiBaseUrl, baseUrl };
 }
 
-export function assertP109Config(
-  env: NodeJS.ProcessEnv = process.env,
-): P109Config {
+export function assertP109Config(env: NodeJS.ProcessEnv = process.env): P109Config {
   return resolveP109Config(env);
 }
 
@@ -156,8 +155,13 @@ export function assertP109Config(
  */
 export async function validateP109Preflight(
   config: P109Config = assertP109Config(),
-  options: { timeoutMs?: number; fetchFn?: typeof fetch } = {}
-): Promise<{ ok: boolean; backendReady: boolean; frontendReady: boolean; fixtureReady: boolean }> {
+  options: { timeoutMs?: number; fetchFn?: typeof fetch } = {},
+): Promise<{
+  ok: boolean;
+  backendReady: boolean;
+  frontendReady: boolean;
+  fixtureReady: boolean;
+}> {
   const fetcher = options.fetchFn ?? fetch;
   const timeoutMs = options.timeoutMs ?? 5000;
 
@@ -186,7 +190,7 @@ export async function validateP109Preflight(
           "DSP_P109_E2E_FIXTURE=1 \\",
           "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
           "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
-        ].join("\n")
+        ].join("\n"),
       );
     }
   } catch (err) {
@@ -201,7 +205,7 @@ export async function validateP109Preflight(
         "DSP_P109_E2E_FIXTURE=1 \\",
         "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
         "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
-      ].join("\n")
+      ].join("\n"),
     );
   }
 
@@ -210,7 +214,9 @@ export async function validateP109Preflight(
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const quoteRes = await fetcher(quoteUrl, { signal: controller.signal }).catch(() => null);
+    const quoteRes = await fetcher(quoteUrl, { signal: controller.signal }).catch(
+      () => null,
+    );
     clearTimeout(timer);
 
     if (quoteRes && quoteRes.status === 503) {
@@ -221,7 +227,7 @@ export async function validateP109Preflight(
           "Safe Remediation:",
           "Ensure backend is started with fixture memory flags:",
           "DSP_MARKET_QUOTE_MEMORY=1 DSP_FINANCIAL_STATEMENT_MEMORY=1 DSP_P109_E2E_FIXTURE=1",
-        ].join("\n")
+        ].join("\n"),
       );
     }
   } catch (err) {
@@ -232,17 +238,16 @@ export async function validateP109Preflight(
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const feRes = await fetcher(config.baseUrl, { signal: controller.signal }).catch(() => null);
+    const feRes = await fetcher(config.baseUrl, { signal: controller.signal }).catch(
+      () => null,
+    );
     clearTimeout(timer);
 
     if (!feRes || !feRes.ok) {
       throw new P109PreflightError(
         "FRONTEND_UNAVAILABLE",
         `Frontend is unreachable at ${config.baseUrl}.`,
-        [
-          "Safe Startup Command (Frontend):",
-          "cd apps/web && npm run dev",
-        ].join("\n")
+        ["Safe Startup Command (Frontend):", "cd apps/web && npm run dev"].join("\n"),
       );
     }
   } catch (err) {
@@ -250,10 +255,7 @@ export async function validateP109Preflight(
     throw new P109PreflightError(
       "FRONTEND_UNAVAILABLE",
       `Frontend is unreachable at ${config.baseUrl}.`,
-      [
-        "Safe Startup Command (Frontend):",
-        "cd apps/web && npm run dev",
-      ].join("\n")
+      ["Safe Startup Command (Frontend):", "cd apps/web && npm run dev"].join("\n"),
     );
   }
 

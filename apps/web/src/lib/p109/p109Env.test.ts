@@ -94,8 +94,12 @@ describe("P1-09 automated preflight and environment contract", () => {
       throw new Error("expected error");
     } catch (err) {
       expect((err as P109PreflightError).category).toBe("BACKEND_UNAVAILABLE");
-      expect((err as P109PreflightError).safeRemediation).toContain("DSP_ENVIRONMENT=development");
-      expect((err as P109PreflightError).safeRemediation).not.toContain("test-password");
+      expect((err as P109PreflightError).safeRemediation).toContain(
+        "DSP_ENVIRONMENT=development",
+      );
+      expect((err as P109PreflightError).safeRemediation).not.toContain(
+        "test-password",
+      );
     }
   });
 
@@ -141,8 +145,12 @@ describe("P1-09 automated preflight and environment contract", () => {
       await validateP109Preflight(config, { fetchFn: mockFetch as typeof fetch });
       throw new Error("expected error");
     } catch (err) {
-      expect((err as P109PreflightError).category).toBe("FIXTURE_INFRASTRUCTURE_UNAVAILABLE");
-      expect((err as P109PreflightError).safeRemediation).toContain("DSP_MARKET_QUOTE_MEMORY=1");
+      expect((err as P109PreflightError).category).toBe(
+        "FIXTURE_INFRASTRUCTURE_UNAVAILABLE",
+      );
+      expect((err as P109PreflightError).safeRemediation).toContain(
+        "DSP_MARKET_QUOTE_MEMORY=1",
+      );
     }
   });
 
@@ -154,9 +162,11 @@ describe("P1-09 automated preflight and environment contract", () => {
       apiBaseUrl: "http://127.0.0.1:8000/api/v1",
       baseUrl: "http://127.0.0.1:3000",
     };
-    const mockFetch = async () => ({ ok: true, status: 200 } as Response);
+    const mockFetch = async () => ({ ok: true, status: 200 }) as Response;
 
-    const preflight = await validateP109Preflight(config, { fetchFn: mockFetch as typeof fetch });
+    const preflight = await validateP109Preflight(config, {
+      fetchFn: mockFetch as typeof fetch,
+    });
     expect(preflight.ok).toBe(true);
     // At this stage infrastructure passed. If login endpoint subsequently returns 401, it is AUTHENTICATION_FAILED.
   });
@@ -175,7 +185,9 @@ describe("P1-09 automated preflight and environment contract", () => {
           resolveP109Config();
           throw new Error("expected error");
         } catch (err) {
-          const msg = (err as Error).message + ((err as P109PreflightError).safeRemediation || "");
+          const msg =
+            (err as Error).message +
+            ((err as P109PreflightError).safeRemediation || "");
           expect(msg).not.toContain("super-secret");
           expect(msg).not.toMatch(/password\s*[:=]\s*['"][^'"]+['"]/i);
         }
@@ -186,7 +198,11 @@ describe("P1-09 automated preflight and environment contract", () => {
   it("K. .env.local is explicitly discovered across candidate paths", () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "p109-local-"));
     const envFile = path.join(dir, ".env.local");
-    fs.writeFileSync(envFile, "DSP_SEED_ADMIN_PASSWORD=test-secret-from-file\n", "utf8");
+    fs.writeFileSync(
+      envFile,
+      "DSP_SEED_ADMIN_PASSWORD=test-secret-from-file\n",
+      "utf8",
+    );
 
     withEnv({ DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_ENV_FILE: envFile }, () => {
       expect(findP109LocalEnvFile()).toBe(envFile);

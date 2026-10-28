@@ -1,16 +1,10 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-} from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const variants = {
   info: {
-    className:
-      "border-[var(--border)] bg-[var(--surface-2)] text-[var(--fg)]",
+    className: "border-[var(--border)] bg-[var(--surface-2)] text-[var(--fg)]",
     Icon: Info,
   },
   success: {

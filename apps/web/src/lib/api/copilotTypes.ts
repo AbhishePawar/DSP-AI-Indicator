@@ -86,7 +86,6 @@ export type CopilotV2ResponseBody = {
   error?: string;
 };
 
-
 export type CopilotQueryRequestBody = {
   query: string;
   symbol?: string | null;

@@ -33,10 +33,7 @@ export function buildPortfolioMarketSummary(
     totalValue += holdingValue;
     previousValue += holdingPrev;
 
-    if (
-      quote &&
-      (!latestUpdated || quote.lastUpdated > latestUpdated)
-    ) {
+    if (quote && (!latestUpdated || quote.lastUpdated > latestUpdated)) {
       latestUpdated = quote.lastUpdated;
     }
 
@@ -49,8 +46,7 @@ export function buildPortfolioMarketSummary(
   });
 
   const dayChange = totalValue - previousValue;
-  const dayChangePercent =
-    previousValue > 0 ? (dayChange / previousValue) * 100 : null;
+  const dayChangePercent = previousValue > 0 ? (dayChange / previousValue) * 100 : null;
 
   return {
     totalValue,

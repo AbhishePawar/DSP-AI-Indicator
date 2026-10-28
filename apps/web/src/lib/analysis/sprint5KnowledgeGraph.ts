@@ -11,11 +11,16 @@ import type {
 } from "@/lib/analysis/types";
 import type { ConfidenceLevel } from "@/lib/trust/labels";
 
-type GraphSeed = Omit<AnalysisWorkspaceView, "coverage" | "freshness" | "knowledgeGraph">;
+type GraphSeed = Omit<
+  AnalysisWorkspaceView,
+  "coverage" | "freshness" | "knowledgeGraph"
+>;
 
-function node( partial: Omit<KnowledgeGraphNode, "searchText" | "relatedNodeIds"> & {
-  relatedNodeIds?: string[];
-}): KnowledgeGraphNode {
+function node(
+  partial: Omit<KnowledgeGraphNode, "searchText" | "relatedNodeIds"> & {
+    relatedNodeIds?: string[];
+  },
+): KnowledgeGraphNode {
   const relatedNodeIds = partial.relatedNodeIds ?? [];
   const searchText = [
     partial.label,
@@ -41,7 +46,10 @@ function edge(
   return { id, from, to, edgeType, label };
 }
 
-function confFromAvailable(available: boolean, fallback: ConfidenceLevel = "moderate"): ConfidenceLevel {
+function confFromAvailable(
+  available: boolean,
+  fallback: ConfidenceLevel = "moderate",
+): ConfidenceLevel {
   return available ? fallback : "insufficient_evidence";
 }
 
@@ -109,7 +117,9 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
   const companyAvailable = Boolean(view.snapshot.ticker.value);
   const conclusionAvailable = view.conclusion.conclusion.presence === "available";
   const conclusionLabel =
-    view.conclusion.conclusion.value ?? view.decisionTrace.conclusionLabel ?? "Unavailable";
+    view.conclusion.conclusion.value ??
+    view.decisionTrace.conclusionLabel ??
+    "Unavailable";
 
   const companyId = "kg-company";
   const conclusionId = "kg-conclusion";
@@ -242,7 +252,13 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
     );
     edges.push(
       edge(`e-bq-${m.id}-co`, id, companyId, "influences", "Business quality signal"),
-      edge(`e-bq-${m.id}-stmt`, id, stmtId, "derived_from", "Would derive from statements"),
+      edge(
+        `e-bq-${m.id}-stmt`,
+        id,
+        stmtId,
+        "derived_from",
+        "Would derive from statements",
+      ),
     );
   }
 
@@ -285,7 +301,8 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
         label: g.title,
         nodeType: "growth_driver",
         confidence: confFromAvailable(g.available, "low"),
-        evidenceCount: g.evidence.primaryEvidence.length + g.evidence.supportingEvidence.length,
+        evidenceCount:
+          g.evidence.primaryEvidence.length + g.evidence.supportingEvidence.length,
         dataCategory: g.category,
         lastUpdated: g.evidence.lastUpdated ?? updated,
         sourceCategory: g.source,
@@ -357,7 +374,9 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
         available: m.available,
       }),
     );
-    edges.push(edge(`e-mgmt-${m.id}`, id, companyId, "influences", "Management signal"));
+    edges.push(
+      edge(`e-mgmt-${m.id}`, id, companyId, "influences", "Management signal"),
+    );
   }
 
   // Moat / competitive advantage
@@ -457,7 +476,13 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
   );
   edges.push(
     edge("e-conc-co", conclusionId, companyId, "explains", "Concludes on company"),
-    edge("e-conc-val", conclusionId, valuationId, "depends_on", "Uses valuation context"),
+    edge(
+      "e-conc-val",
+      conclusionId,
+      valuationId,
+      "depends_on",
+      "Uses valuation context",
+    ),
   );
 
   // Evidence explorer nodes (research tab)
@@ -499,7 +524,13 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
       }),
     );
     edges.push(
-      edge(`e-ev-${ev.id}-conc`, id, conclusionId, "supports", "Evidence for conclusion"),
+      edge(
+        `e-ev-${ev.id}-conc`,
+        id,
+        conclusionId,
+        "supports",
+        "Evidence for conclusion",
+      ),
     );
   }
 
@@ -526,7 +557,13 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
       }),
     );
     edges.push(
-      edge(`e-as-${a.id}`, id, conclusionId, "influences", "Assumption under conclusion"),
+      edge(
+        `e-as-${a.id}`,
+        id,
+        conclusionId,
+        "influences",
+        "Assumption under conclusion",
+      ),
     );
   }
 
@@ -556,7 +593,13 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
     }),
   );
   edges.push(
-    edge("e-meth-conc", methodologyId, conclusionId, "explains", "Methodology explains output"),
+    edge(
+      "e-meth-conc",
+      methodologyId,
+      conclusionId,
+      "explains",
+      "Methodology explains output",
+    ),
   );
 
   // External consensus
@@ -620,7 +663,13 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
       }),
     );
     edges.push(
-      edge(`e-flow-${rn.id}`, id, conclusionId, "explains", "Pipeline step toward conclusion"),
+      edge(
+        `e-flow-${rn.id}`,
+        id,
+        conclusionId,
+        "explains",
+        "Pipeline step toward conclusion",
+      ),
     );
   }
 
@@ -658,7 +707,8 @@ export function emptyKnowledgeGraph(): KnowledgeGraphView {
     edges: [],
     version: "kg-presentation v1 / web-0.4.0",
     emptyState: {
-      whyIncomplete: "Run Analyze via API to materialize the explainable knowledge graph.",
+      whyIncomplete:
+        "Run Analyze via API to materialize the explainable knowledge graph.",
       missingEvidence: ["No envelope loaded", "No company symbol session"],
       futureEnrichment: [
         "Company → metrics → insights → conclusion edges",
@@ -698,13 +748,19 @@ export function filterGraphNodes(
   const q = filters.query.trim().toLowerCase();
   return nodes.filter((n) => {
     if (activeTab !== "all" && n.tab !== activeTab) return false;
-    if (filters.researchCategory !== "all" && n.tab !== filters.researchCategory) return false;
-    if (filters.nodeType !== "all" && n.nodeType !== filters.nodeType) return false;
-    if (filters.confidence !== "all" && n.confidence !== filters.confidence) return false;
-    if (filters.availableOnly && !n.available) return false;
-    if (filters.hideUnknown && (n.dataCategory === "unavailable" || n.dataCategory === "unknown"))
+    if (filters.researchCategory !== "all" && n.tab !== filters.researchCategory)
       return false;
-    if (filters.evidenceStrength === "has_evidence" && n.evidenceCount <= 0) return false;
+    if (filters.nodeType !== "all" && n.nodeType !== filters.nodeType) return false;
+    if (filters.confidence !== "all" && n.confidence !== filters.confidence)
+      return false;
+    if (filters.availableOnly && !n.available) return false;
+    if (
+      filters.hideUnknown &&
+      (n.dataCategory === "unavailable" || n.dataCategory === "unknown")
+    )
+      return false;
+    if (filters.evidenceStrength === "has_evidence" && n.evidenceCount <= 0)
+      return false;
     if (filters.evidenceStrength === "no_evidence" && n.evidenceCount > 0) return false;
     if (q && !n.searchText.includes(q)) return false;
     return true;

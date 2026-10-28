@@ -5,11 +5,7 @@ import type {
   CopilotStreamChunkBody,
 } from "@/lib/api/copilotTypes";
 import type { AIRequest, AIResponse } from "@/lib/ai";
-import type {
-  AIProvider,
-  AIProviderConfig,
-  AIStreamResult,
-} from "@/lib/ai/types";
+import type { AIProvider, AIProviderConfig, AIStreamResult } from "@/lib/ai/types";
 import type { CopilotIntent, ResearchCitationId } from "@/lib/copilot/types";
 
 const CONFIG: AIProviderConfig = {

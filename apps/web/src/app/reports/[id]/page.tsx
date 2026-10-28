@@ -25,10 +25,7 @@ export default function ReportDetailPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Report"
-        description={`GET /api/v1/report/${reportId}`}
-      />
+      <PageHeader title="Report" description={`GET /api/v1/report/${reportId}`} />
       <Card>
         <CardBody>
           {report.isLoading ? <Spinner label="Loading report…" /> : null}
@@ -41,8 +38,8 @@ export default function ReportDetailPage() {
           {report.data ? (
             <div className="space-y-4">
               <Alert tone="info" title="Thin client">
-                Displaying the API response only. No valuation or recommendation
-                is derived in the browser.
+                Displaying the API response only. No valuation or recommendation is
+                derived in the browser.
               </Alert>
               <pre className="overflow-x-auto rounded-md border border-[var(--border)] bg-[var(--bg)] p-4 text-xs text-[var(--muted)]">
                 {JSON.stringify(report.data, null, 2)}

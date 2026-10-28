@@ -47,18 +47,10 @@ describe("public login journey", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    expect(
-      screen.getByRole("button", { name: /continue with google/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /username and password/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /mobile number and otp/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /username and otp/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /continue with google/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /username and password/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /mobile number and otp/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /username and otp/i })).toBeTruthy();
     expect(screen.queryByText(/demo mode/i)).toBeNull();
     expect(screen.queryByRole("link", { name: /request access/i })).toBeNull();
   });

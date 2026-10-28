@@ -58,9 +58,7 @@ export function mapCommitteeMemo(
 
   const questions = [
     ...outstandingQuestions,
-    ...personalNotes
-      .filter((n) => n.kind === "question")
-      .map((n) => n.text),
+    ...personalNotes.filter((n) => n.kind === "question").map((n) => n.text),
   ];
 
   const decisionNotes = personalNotes
@@ -74,10 +72,7 @@ export function mapCommitteeMemo(
       companies.length >= 2
         ? `Institutional comparison of ${companies.join(", ")} assembled from existing /api/v1/analyse research packs. This memo assists Investment Committee review and never makes the investment decision.`
         : DATA_UNAVAILABLE,
-    winnerMatrixSummary:
-      leaders.length > 0
-        ? leaders.join("; ")
-        : DATA_UNAVAILABLE,
+    winnerMatrixSummary: leaders.length > 0 ? leaders.join("; ") : DATA_UNAVAILABLE,
     tradeOffs:
       tradeOffs.length > 0
         ? tradeOffs.map((t) => `${t.dimension}: ${t.summary}`)

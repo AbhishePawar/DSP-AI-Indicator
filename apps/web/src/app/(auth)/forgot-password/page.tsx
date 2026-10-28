@@ -24,7 +24,8 @@ import {
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
-type Step = "identifier" | "otp" | "password" | "emailSent" | "emailUnavailable" | "done";
+type Step =
+  "identifier" | "otp" | "password" | "emailSent" | "emailUnavailable" | "done";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("identifier");
@@ -129,8 +130,8 @@ export default function ForgotPasswordPage() {
           {step === "emailUnavailable" ? (
             <>
               <Alert variant="info" title="Email recovery unavailable">
-                Email password recovery is not configured for this deployment.
-                Contact your administrator or support team to regain access.
+                Email password recovery is not configured for this deployment. Contact
+                your administrator or support team to regain access.
               </Alert>
               <Link href="/login">
                 <Button className="w-full">Back to sign in</Button>
@@ -141,8 +142,8 @@ export default function ForgotPasswordPage() {
           {step === "emailSent" ? (
             <>
               <Alert variant="success" title="Check your email">
-                If an account with that email exists and email delivery is available, you will receive a reset link.
-                Check your inbox and spam folder.
+                If an account with that email exists and email delivery is available,
+                you will receive a reset link. Check your inbox and spam folder.
               </Alert>
               <Link href="/login">
                 <Button className="w-full">Back to sign in</Button>
@@ -181,7 +182,11 @@ export default function ForgotPasswordPage() {
                 <ValidationMessage tone="error">{error}</ValidationMessage>
               ) : null}
               <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "Sending…" : identifier.includes("@") ? "Send reset link" : "Send OTP"}
+                {pending
+                  ? "Sending…"
+                  : identifier.includes("@")
+                    ? "Send reset link"
+                    : "Send OTP"}
               </Button>
             </form>
           ) : null}
@@ -222,11 +227,7 @@ export default function ForgotPasswordPage() {
                 />
               </FormField>
               <PasswordStrengthMeter password={password} />
-              <FormField
-                label="Confirm new password"
-                htmlFor="forgot-confirm"
-                required
-              >
+              <FormField label="Confirm new password" htmlFor="forgot-confirm" required>
                 <PasswordInput
                   id="forgot-confirm"
                   value={confirm}
@@ -246,7 +247,10 @@ export default function ForgotPasswordPage() {
           ) : null}
 
           {step !== "done" && step !== "emailSent" && step !== "emailUnavailable" ? (
-            <Link href="/login" className="text-center text-sm text-[var(--accent)] underline">
+            <Link
+              href="/login"
+              className="text-center text-sm text-[var(--accent)] underline"
+            >
               Back to sign in
             </Link>
           ) : null}

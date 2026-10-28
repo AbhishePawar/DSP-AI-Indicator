@@ -75,8 +75,7 @@ export function OpsPortal() {
       <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Enterprise health</h2>
         <p className="text-sm">
-          Overall:{" "}
-          <span className="font-medium">{data.enterprise_health.overall}</span>
+          Overall: <span className="font-medium">{data.enterprise_health.overall}</span>
         </p>
         <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           {Object.entries(components).map(([name, c]) => (
@@ -107,9 +106,7 @@ export function OpsPortal() {
           <div>
             <dt className="text-[var(--dsp-text-muted)]">Billing</dt>
             <dd>
-              {data.billing_available
-                ? data.billing_provider
-                : "Billing unavailable."}
+              {data.billing_available ? data.billing_provider : "Billing unavailable."}
             </dd>
           </div>
         </dl>
@@ -129,15 +126,11 @@ export function OpsPortal() {
 
       <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Deployments</h2>
-        <Empty>
-          {data.deployments?.message || "Data unavailable."}
-        </Empty>
+        <Empty>{data.deployments?.message || "Data unavailable."}</Empty>
       </section>
 
       <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
-        <h2 className="mb-2 text-base font-semibold">
-          Collaboration architecture
-        </h2>
+        <h2 className="mb-2 text-base font-semibold">Collaboration architecture</h2>
         <p className="text-sm text-[var(--dsp-text-muted)]">
           Status: {data.collaboration.status}. Realtime:{" "}
           {data.collaboration.realtime ? "enabled" : "not implemented"}.

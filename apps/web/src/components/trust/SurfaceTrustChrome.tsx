@@ -39,10 +39,7 @@ export function CompactTrustLadder({
         description="User Trust Standard — Observed Facts → Analysis → Inference → Recommendation"
       />
       <CardBody className="space-y-3">
-        <div
-          className="flex flex-wrap gap-2"
-          aria-label="Epistemic categories"
-        >
+        <div className="flex flex-wrap gap-2" aria-label="Epistemic categories">
           <Badge variant="outline">Verified / Observed</Badge>
           <Badge variant="outline">Calculated</Badge>
           <Badge variant="outline">AI / Committee</Badge>
@@ -74,9 +71,7 @@ export function CompactTrustLadder({
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
                   {layer.title}
                 </p>
-                <Badge variant={presenceTone(layer.presence)}>
-                  {layer.presence}
-                </Badge>
+                <Badge variant={presenceTone(layer.presence)}>{layer.presence}</Badge>
               </div>
               <p className="mt-1">{layer.summary}</p>
             </li>

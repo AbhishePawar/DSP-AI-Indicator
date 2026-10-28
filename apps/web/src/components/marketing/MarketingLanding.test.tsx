@@ -294,6 +294,8 @@ describe("MarketingLanding - Research Mode Routing & Depth Selector", () => {
     const chip = screen.getByTestId("landing-example-INFY");
     fireEvent.click(chip);
     expect(screen.getByTestId("landing-depth-panel")).toBeInTheDocument();
-    expect(screen.getByTestId<HTMLInputElement>("landing-company-search").value).toBe("INFY");
+    expect(screen.getByTestId<HTMLInputElement>("landing-company-search").value).toBe(
+      "INFY",
+    );
   });
 });

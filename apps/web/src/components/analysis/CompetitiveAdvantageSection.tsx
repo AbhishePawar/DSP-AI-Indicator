@@ -2,11 +2,7 @@ import { InsightCard } from "@/components/analysis/InsightCard";
 import { MoatCard } from "@/components/analysis/MoatCard";
 import type { MoatInsightView } from "@/lib/analysis/types";
 
-export function CompetitiveAdvantageSection({
-  items,
-}: {
-  items: MoatInsightView[];
-}) {
+export function CompetitiveAdvantageSection({ items }: { items: MoatInsightView[] }) {
   return (
     <InsightCard
       title="Competitive Advantage"

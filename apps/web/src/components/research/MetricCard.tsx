@@ -28,10 +28,7 @@ export function MetricCard({
 }: MetricCardProps) {
   return (
     <Card>
-      <CardHeader
-        title={title}
-        action={<Badge tone={ratingTone}>{rating}</Badge>}
-      />
+      <CardHeader title={title} action={<Badge tone={ratingTone}>{rating}</Badge>} />
       <CardBody className="space-y-3 text-sm">
         <p>
           <span className="text-[var(--muted)]">Actual value</span>

@@ -33,9 +33,7 @@ export type AnalysisPhase =
 export const SIMPLE_TOC_GROUPS = [
   {
     label: "OVERVIEW",
-    items: [
-      { id: "s01", label: "Executive Summary" },
-    ],
+    items: [{ id: "s01", label: "Executive Summary" }],
   },
   {
     label: "FINANCIALS & VALUATION",
@@ -65,15 +63,11 @@ const LOADING_STEPS = [
 export const TOC_GROUPS = [
   {
     label: "OVERVIEW",
-    items: [
-      { id: "s01", label: "Executive Summary" },
-    ],
+    items: [{ id: "s01", label: "Executive Summary" }],
   },
   {
     label: "FUNDAMENTALS",
-    items: [
-      { id: "s04", label: "Financials" },
-    ],
+    items: [{ id: "s04", label: "Financials" }],
   },
   {
     label: "VALUATION",
@@ -304,18 +298,54 @@ export function AskButton({ label, onClick }: { label: string; onClick: () => vo
 
 // ─── Simple SVG Charts ───────────────────────────────────────────────────────
 
-export function SvgAreaChart({ data, color, label, unit }: { data: ZipFinancialPoint[]; color: string; label?: string; unit?: string }) {
+export function SvgAreaChart({
+  data,
+  color,
+  label,
+  unit,
+}: {
+  data: ZipFinancialPoint[];
+  color: string;
+  label?: string;
+  unit?: string;
+}) {
   if (!data || data.length === 0) {
     return (
-      <div style={{ height: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--surface-2, rgba(255,255,255,0.02))", borderRadius: 8, border: "1px dashed var(--border)", padding: 16, textAlign: "center" }}>
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Historical {label || "series"} awaiting filing data from backend</p>
-        <span style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 4 }}>Production AnalyseResponse does not include multi-year series</span>
+      <div
+        style={{
+          height: 160,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--surface-2, rgba(255,255,255,0.02))",
+          borderRadius: 8,
+          border: "1px dashed var(--border)",
+          padding: 16,
+          textAlign: "center",
+        }}
+      >
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
+          Historical {label || "series"} awaiting filing data from backend
+        </p>
+        <span style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 4 }}>
+          Production AnalyseResponse does not include multi-year series
+        </span>
       </div>
     );
   }
   if (!data || data.length === 0) {
     return (
-      <div style={{ height: 110, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)", fontSize: 12 }}>
+      <div
+        style={{
+          height: 110,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--muted-foreground)",
+          fontSize: 12,
+        }}
+      >
         No historical trend data available in server response
       </div>
     );
@@ -342,15 +372,30 @@ export function SvgAreaChart({ data, color, label, unit }: { data: ZipFinancialP
 
   return (
     <div style={{ width: "100%" }}>
-      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 110, overflow: "visible" }}>
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        style={{ width: "100%", height: 110, overflow: "visible" }}
+      >
         <defs>
-          <linearGradient id={`grad-${color.replace(/[^a-zA-Z0-9]/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient
+            id={`grad-${color.replace(/[^a-zA-Z0-9]/g, "")}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
             <stop offset="0%" stopColor={color} stopOpacity="0.2" />
             <stop offset="100%" stopColor={color} stopOpacity="0.0" />
           </linearGradient>
         </defs>
         <path d={areaD} fill={`url(#grad-${color.replace(/[^a-zA-Z0-9]/g, "")})`} />
-        <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <path
+          d={pathD}
+          fill="none"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
         {data.map((d, i) => {
           const [cx, cy] = points[i].split(",");
           return (
@@ -374,18 +419,52 @@ export function SvgAreaChart({ data, color, label, unit }: { data: ZipFinancialP
   );
 }
 
-export function SvgBarChart({ data, color, label }: { data: ZipFinancialPoint[]; color: string; label?: string }) {
+export function SvgBarChart({
+  data,
+  color,
+  label,
+}: {
+  data: ZipFinancialPoint[];
+  color: string;
+  label?: string;
+}) {
   if (!data || data.length === 0) {
     return (
-      <div style={{ height: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--surface-2, rgba(255,255,255,0.02))", borderRadius: 8, border: "1px dashed var(--border)", padding: 16, textAlign: "center" }}>
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Historical {label || "cash flow"} awaiting filing data from backend</p>
-        <span style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 4 }}>Production AnalyseResponse does not include multi-year series</span>
+      <div
+        style={{
+          height: 160,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--surface-2, rgba(255,255,255,0.02))",
+          borderRadius: 8,
+          border: "1px dashed var(--border)",
+          padding: 16,
+          textAlign: "center",
+        }}
+      >
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
+          Historical {label || "cash flow"} awaiting filing data from backend
+        </p>
+        <span style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 4 }}>
+          Production AnalyseResponse does not include multi-year series
+        </span>
       </div>
     );
   }
   if (!data || data.length === 0) {
     return (
-      <div style={{ height: 110, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)", fontSize: 12 }}>
+      <div
+        style={{
+          height: 110,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--muted-foreground)",
+          fontSize: 12,
+        }}
+      >
         No historical cash flow data available in server response
       </div>
     );
@@ -402,7 +481,10 @@ export function SvgBarChart({ data, color, label }: { data: ZipFinancialPoint[];
 
   return (
     <div style={{ width: "100%" }}>
-      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 110, overflow: "visible" }}>
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        style={{ width: "100%", height: 110, overflow: "visible" }}
+      >
         {data.map((d, i) => {
           const cx = pad + (i / (data.length - 1 || 1)) * (w - pad * 2);
           const barH = ((d.value - min) / range) * (h - pad * 2);
@@ -495,11 +577,20 @@ export function SelectionScreen({
               lineHeight: 1.6,
             }}
           >
-            Selected: <strong style={{ color: "var(--foreground)" }}>{symbol || "TCS.NS"}</strong> · Select how deep you want the DSP analytical pipeline to run.
+            Selected:{" "}
+            <strong style={{ color: "var(--foreground)" }}>{symbol || "TCS.NS"}</strong>{" "}
+            · Select how deep you want the DSP analytical pipeline to run.
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 16,
+            marginBottom: 28,
+          }}
+        >
           {/* Simple */}
           <div
             onClick={onSimple}
@@ -545,7 +636,8 @@ export function SelectionScreen({
                 flex: 1,
               }}
             >
-              Core valuation, business quality summary, key metrics, and preliminary rating.
+              Core valuation, business quality summary, key metrics, and preliminary
+              rating.
             </p>
             <div
               style={{
@@ -639,7 +731,8 @@ export function SelectionScreen({
                 flex: 1,
               }}
             >
-              10-row matrix, moat evaluation, capital allocation, 5-domain scores, 14 deep-dive sections, full evidence trail.
+              10-row matrix, moat evaluation, capital allocation, 5-domain scores, 14
+              deep-dive sections, full evidence trail.
             </p>
             <div
               style={{
@@ -683,7 +776,14 @@ export function SelectionScreen({
           >
             Or analyze another benchmark:
           </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
             {POPULAR.map((p) => (
               <button
                 key={p.s}
@@ -811,8 +911,8 @@ export function StagedLoader({
                   color: isCurr
                     ? "var(--foreground)"
                     : isDone
-                    ? "var(--muted-foreground)"
-                    : "rgba(255,255,255,0.2)",
+                      ? "var(--muted-foreground)"
+                      : "rgba(255,255,255,0.2)",
                   fontFamily: "var(--font-body)",
                 }}
               >
@@ -829,8 +929,8 @@ export function StagedLoader({
                     background: isDone
                       ? "var(--c-profit, #22c55e)"
                       : isCurr
-                      ? "var(--c-dsp, #3b82f6)"
-                      : "var(--secondary)",
+                        ? "var(--c-dsp, #3b82f6)"
+                        : "var(--secondary)",
                     color: isDone || isCurr ? "#fff" : "var(--muted-foreground)",
                     fontWeight: 600,
                   }}
@@ -927,7 +1027,9 @@ export function CompanyHeader({
           </button>
         </form>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}
+          >
             <h1
               style={{
                 fontSize: 22,
@@ -953,7 +1055,10 @@ export function CompanyHeader({
             >
               {model.header.ticker} · {model.header.exchange}
             </span>
-            <Badge variant="accent" style={{ fontFamily: "var(--font-data)", fontSize: 11 }}>
+            <Badge
+              variant="accent"
+              style={{ fontFamily: "var(--font-data)", fontSize: 11 }}
+            >
               {model.header.sector}
             </Badge>
           </div>
@@ -970,7 +1075,10 @@ export function CompanyHeader({
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }} className="company-header-metrics">
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}
+        className="company-header-metrics"
+      >
         <div style={{ textAlign: "right" }}>
           <div
             style={{
@@ -1039,7 +1147,10 @@ export function CompanyHeader({
               style={{
                 fontSize: 18,
                 fontWeight: 700,
-                color: model.valuation.status === "strong" ? "var(--c-profit, #22c55e)" : "var(--c-risk, #ef4444)",
+                color:
+                  model.valuation.status === "strong"
+                    ? "var(--c-profit, #22c55e)"
+                    : "var(--c-risk, #ef4444)",
                 fontFamily: "var(--font-data)",
                 fontVariantNumeric: "tabular-nums",
               }}
@@ -1106,7 +1217,9 @@ export function InvestmentSummary({
           >
             RESEARCH OUTCOME
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}
+          >
             <h2
               style={{
                 fontSize: 22,
@@ -1129,13 +1242,28 @@ export function InvestmentSummary({
             >
               {model.investmentSummary.verdict}
             </span>
-            <StatusBadge status={model.investmentSummary.recommendationStatus} text={model.investmentSummary.recommendationBadge} />
+            <StatusBadge
+              status={model.investmentSummary.recommendationStatus}
+              text={model.investmentSummary.recommendationBadge}
+            />
           </div>
         </div>
-        {onAsk && <AskButton label="Ask about this verdict" onClick={() => onAsk("Investment verdict and summary")} />}
+        {onAsk && (
+          <AskButton
+            label="Ask about this verdict"
+            onClick={() => onAsk("Investment verdict and summary")}
+          />
+        )}
       </div>
 
-      <p style={{ fontSize: 14, color: "var(--foreground)", lineHeight: 1.7, margin: "0 0 20px" }}>
+      <p
+        style={{
+          fontSize: 14,
+          color: "var(--foreground)",
+          lineHeight: 1.7,
+          margin: "0 0 20px",
+        }}
+      >
         {model.investmentSummary.summaryText}
       </p>
 
@@ -1213,33 +1341,124 @@ export function BuffettAssessmentTable({
         subtitle="Presentation synthesis of existing /api/v1/analyse outputs — no recalculation"
       />
       <div style={{ display: "none" }}>
-        <span>Presentation synthesis of existing /api/v1/analyse outputs — no recalculation</span>
+        <span>
+          Presentation synthesis of existing /api/v1/analyse outputs — no recalculation
+        </span>
       </div>
       <Card style={{ marginBottom: 14, padding: "14px 18px" }}>
-        <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, margin: 0 }}>
+        <dl
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 16,
+            margin: 0,
+          }}
+        >
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Overall Buffett Rating</dt>
-            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.businessQualityStatus.toUpperCase()}</dd>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              Overall Buffett Rating
+            </dt>
+            <dd
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                margin: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              {model.businessQualityStatus.toUpperCase()}
+            </dd>
           </div>
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Buffett Action</dt>
-            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.recommendation}</dd>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              Buffett Action
+            </dt>
+            <dd
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                margin: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              {model.recommendation}
+            </dd>
           </div>
         </dl>
       </Card>
       <Card>
         <div style={{ overflowX: "auto" }}>
-          <table role="table" aria-label="Buffett Assessment Dimension Matrix" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-      <caption className="sr-only" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", border: 0 }}>Evaluation of 10 core Buffett investment criteria</caption>
+          <table
+            role="table"
+            aria-label="Buffett Assessment Dimension Matrix"
+            style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
+          >
+            <caption
+              className="sr-only"
+              style={{
+                position: "absolute",
+                width: 1,
+                height: 1,
+                padding: 0,
+                margin: -1,
+                overflow: "hidden",
+                clip: "rect(0,0,0,0)",
+                border: 0,
+              }}
+            >
+              Evaluation of 10 core Buffett investment criteria
+            </caption>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                <th style={{ textAlign: "left", padding: "8px 12px", fontFamily: "var(--font-data)", fontSize: 10, letterSpacing: "0.08em", color: "var(--muted-foreground)", fontWeight: 400 }}>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    fontFamily: "var(--font-data)",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: "var(--muted-foreground)",
+                    fontWeight: 400,
+                  }}
+                >
                   DIMENSION
                 </th>
-                <th style={{ textAlign: "left", padding: "8px 12px", fontFamily: "var(--font-data)", fontSize: 10, letterSpacing: "0.08em", color: "var(--muted-foreground)", fontWeight: 400 }}>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    fontFamily: "var(--font-data)",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: "var(--muted-foreground)",
+                    fontWeight: 400,
+                  }}
+                >
                   RESULT / STAGE SUMMARY
                 </th>
-                <th style={{ textAlign: "left", padding: "8px 12px", fontFamily: "var(--font-data)", fontSize: 10, letterSpacing: "0.08em", color: "var(--muted-foreground)", fontWeight: 400 }}>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    fontFamily: "var(--font-data)",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: "var(--muted-foreground)",
+                    fontWeight: 400,
+                  }}
+                >
                   STATUS
                 </th>
               </tr>
@@ -1249,13 +1468,30 @@ export function BuffettAssessmentTable({
                 <tr
                   key={r.dim}
                   style={{
-                    borderBottom: i < model.buffettRows.length - 1 ? "1px solid var(--border)" : "none",
+                    borderBottom:
+                      i < model.buffettRows.length - 1
+                        ? "1px solid var(--border)"
+                        : "none",
                   }}
                 >
-                  <td style={{ padding: "12px 12px", color: "var(--foreground)", fontFamily: "var(--font-body)", fontWeight: 500 }}>
+                  <td
+                    style={{
+                      padding: "12px 12px",
+                      color: "var(--foreground)",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 500,
+                    }}
+                  >
                     {r.dim}
                   </td>
-                  <td style={{ padding: "12px 12px", color: "var(--muted-foreground)", fontFamily: "var(--font-data)", fontSize: 12 }}>
+                  <td
+                    style={{
+                      padding: "12px 12px",
+                      color: "var(--muted-foreground)",
+                      fontFamily: "var(--font-data)",
+                      fontSize: 12,
+                    }}
+                  >
                     {r.result}
                   </td>
                   <td style={{ padding: "12px 12px" }}>
@@ -1268,7 +1504,10 @@ export function BuffettAssessmentTable({
         </div>
       </Card>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-        <AskButton label="Ask about this assessment" onClick={() => onAsk("Buffett assessment")} />
+        <AskButton
+          label="Ask about this assessment"
+          onClick={() => onAsk("Buffett assessment")}
+        />
       </div>
     </div>
   );
@@ -1295,41 +1534,94 @@ export function FinancialAnalysisSection({
         }}
       >
         {model.financialMetrics.map((m) => (
-          <div key={m.label} style={{ background: "var(--secondary)", borderRadius: 8, padding: "12px 14px" }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.06em", marginBottom: 4 }}>
+          <div
+            key={m.label}
+            style={{
+              background: "var(--secondary)",
+              borderRadius: 8,
+              padding: "12px 14px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.06em",
+                marginBottom: 4,
+              }}
+            >
               {m.label}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: (m as any).color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: (m as any).color || "var(--foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
               {m.value}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 14,
+        }}
+      >
         <Card>
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 12,
+            }}
+          >
             REVENUE TREND · {model.header.currency} · Source: Production DSP
           </div>
           <SvgAreaChart data={model.revenueData} color="var(--c-revenue, #f59e0b)" />
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 12 }}>
+          <div
+            style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 12 }}
+          >
             Server-backed revenue progression across reported financial periods.
           </div>
         </Card>
 
         <Card>
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 12,
+            }}
+          >
             NET PROFIT TREND · {model.header.currency} · Source: Production DSP
           </div>
           <SvgAreaChart data={model.profitData} color="var(--c-profit, #22c55e)" />
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 12 }}>
+          <div
+            style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 12 }}
+          >
             Reported earnings and net income across available filing intervals.
           </div>
         </Card>
       </div>
 
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-        {onAsk && <AskButton label="Ask about the financials" onClick={() => onAsk("financial analysis")} />}
+        {onAsk && (
+          <AskButton
+            label="Ask about the financials"
+            onClick={() => onAsk("financial analysis")}
+          />
+        )}
       </div>
     </div>
   );
@@ -1355,62 +1647,206 @@ export function ValuationSection({
 
   return (
     <div style={{ marginBottom: 36 }}>
-      <SectionHead id="s09" num="04" title="Valuation" status={model.valuation.status} />
+      <SectionHead
+        id="s09"
+        num="04"
+        title="Valuation"
+        status={model.valuation.status}
+      />
       <Card style={{ marginBottom: 14, padding: "14px 18px" }}>
-        <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, margin: 0 }}>
+        <dl
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 16,
+            margin: 0,
+          }}
+        >
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Intrinsic Value</dt>
-            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.valuation.intrinsicValueFormatted}</dd>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              Intrinsic Value
+            </dt>
+            <dd
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                margin: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              {model.valuation.intrinsicValueFormatted}
+            </dd>
           </div>
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Current Price</dt>
-            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.valuation.currentPriceFormatted}</dd>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              Current Price
+            </dt>
+            <dd
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                margin: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              {model.valuation.currentPriceFormatted}
+            </dd>
           </div>
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Margin of Safety</dt>
-            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.valuation.marginOfSafetyFormatted}</dd>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              Margin of Safety
+            </dt>
+            <dd
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                margin: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              {model.valuation.marginOfSafetyFormatted}
+            </dd>
           </div>
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Stage status</dt>
-            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{valuationStageStatus}</dd>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              Stage status
+            </dt>
+            <dd
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                margin: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              {valuationStageStatus}
+            </dd>
           </div>
         </dl>
       </Card>
       <Card style={{ marginBottom: 14 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 24, marginBottom: 20 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: 24,
+            marginBottom: 20,
+          }}
+        >
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.07em",
+                marginBottom: 6,
+              }}
+            >
               CURRENT MARKET PRICE
             </div>
-            <div style={{ fontSize: 32, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-heading)", lineHeight: 1, marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 32,
+                fontWeight: 700,
+                color: "var(--foreground)",
+                fontFamily: "var(--font-heading)",
+                lineHeight: 1,
+                marginBottom: 4,
+              }}
+            >
               {model.valuation.currentPriceFormatted}
             </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
               {model.header.exchange} · Current
             </div>
           </div>
 
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.07em",
+                marginBottom: 6,
+              }}
+            >
               DSP INTRINSIC VALUE
             </div>
-            <div style={{ fontSize: 32, fontWeight: 700, color: "var(--c-cashflow, #2dd4bf)", fontFamily: "var(--font-heading)", lineHeight: 1, marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 32,
+                fontWeight: 700,
+                color: "var(--c-cashflow, #2dd4bf)",
+                fontFamily: "var(--font-heading)",
+                lineHeight: 1,
+                marginBottom: 4,
+              }}
+            >
               {model.valuation.intrinsicValueFormatted}
             </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
               Server-authoritative estimate
             </div>
           </div>
 
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.07em",
+                marginBottom: 6,
+              }}
+            >
               MARGIN OF SAFETY
             </div>
             <div
               style={{
                 fontSize: 32,
                 fontWeight: 700,
-                color: model.valuation.status === "strong" ? "var(--c-profit, #22c55e)" : "var(--c-risk, #ef4444)",
+                color:
+                  model.valuation.status === "strong"
+                    ? "var(--c-profit, #22c55e)"
+                    : "var(--c-risk, #ef4444)",
                 fontFamily: "var(--font-heading)",
                 lineHeight: 1,
                 marginBottom: 4,
@@ -1418,20 +1854,45 @@ export function ValuationSection({
             >
               {model.valuation.marginOfSafetyFormatted}
             </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
-              {model.valuation.status === "strong" ? "Positive cushion" : "Negative · Premium pricing"}
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              {model.valuation.status === "strong"
+                ? "Positive cushion"
+                : "Negative · Premium pricing"}
             </div>
           </div>
         </div>
 
         {/* Bar comparison */}
         <div style={{ margin: "0 0 16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontFamily: "var(--font-data)", color: "var(--muted-foreground)", marginBottom: 6 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 11,
+              fontFamily: "var(--font-data)",
+              color: "var(--muted-foreground)",
+              marginBottom: 6,
+            }}
+          >
             <span>0</span>
             <span>{model.valuation.intrinsicValueFormatted} Intrinsic</span>
             <span>{model.valuation.currentPriceFormatted} Price</span>
           </div>
-          <div style={{ height: 10, background: "var(--border)", borderRadius: 99, overflow: "hidden", position: "relative" }}>
+          <div
+            style={{
+              height: 10,
+              background: "var(--border)",
+              borderRadius: 99,
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <div
               style={{
                 position: "absolute",
@@ -1458,16 +1919,36 @@ export function ValuationSection({
           </div>
         </div>
 
-        <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 6 }}>
+        <div
+          style={{
+            fontSize: 10,
+            color: "var(--muted-foreground)",
+            fontFamily: "var(--font-data)",
+            letterSpacing: "0.07em",
+            marginBottom: 6,
+          }}
+        >
           METHODOLOGY NOTE
         </div>
-        <p style={{ fontSize: 13, color: "var(--foreground)", margin: 0, lineHeight: 1.7 }}>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--foreground)",
+            margin: 0,
+            lineHeight: 1.7,
+          }}
+        >
           {model.valuation.methodologyNote}
         </p>
       </Card>
 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        {onAsk && <AskButton label="Why is valuation a concern?" onClick={() => onAsk("valuation and intrinsic value")} />}
+        {onAsk && (
+          <AskButton
+            label="Why is valuation a concern?"
+            onClick={() => onAsk("valuation and intrinsic value")}
+          />
+        )}
       </div>
     </div>
   );
@@ -1484,8 +1965,20 @@ export function BusinessQualityScores({
 }) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <SectionHead id="s02" num="05" title="Business Quality" status={model.businessQuality.status} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 16 }}>
+      <SectionHead
+        id="s02"
+        num="05"
+        title="Business Quality"
+        status={model.businessQuality.status}
+      />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
         <Card
           style={{
             display: "flex",
@@ -1497,36 +1990,130 @@ export function BusinessQualityScores({
             borderTop: "2px solid var(--c-profit, #22c55e)",
           }}
         >
-          <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.08em" }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.08em",
+            }}
+          >
             COMPOSITE SCORE
           </div>
-          <div style={{ fontSize: 56, fontWeight: 700, color: "var(--c-profit, #22c55e)", fontFamily: "var(--font-heading)", lineHeight: 1 }}>
+          <div
+            style={{
+              fontSize: 56,
+              fontWeight: 700,
+              color: "var(--c-profit, #22c55e)",
+              fontFamily: "var(--font-heading)",
+              lineHeight: 1,
+            }}
+          >
             {model.businessQuality.compositeScore}
           </div>
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>/ 100</div>
-          <StatusBadge status={model.businessQuality.status} text={model.businessQuality.verdict} />
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0, lineHeight: 1.6 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+            }}
+          >
+            / 100
+          </div>
+          <StatusBadge
+            status={model.businessQuality.status}
+            text={model.businessQuality.verdict}
+          />
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--muted-foreground)",
+              margin: 0,
+              lineHeight: 1.6,
+            }}
+          >
             Weighted across 5 analytical domains.
           </p>
         </Card>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gap: 10,
+          }}
+        >
           {model.domainScores.map((d) => (
-            <Card key={d.label} style={{ borderTop: `2px solid ${d.color}`, padding: "14px 16px" }}>
-              <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.06em", marginBottom: 6 }}>
+            <Card
+              key={d.label}
+              style={{ borderTop: `2px solid ${d.color}`, padding: "14px 16px" }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "var(--muted-foreground)",
+                  fontFamily: "var(--font-data)",
+                  letterSpacing: "0.06em",
+                  marginBottom: 6,
+                }}
+              >
                 {d.label.toUpperCase()}
               </div>
-              <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", marginBottom: 8 }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "var(--muted-foreground)",
+                  fontFamily: "var(--font-data)",
+                  marginBottom: 8,
+                }}
+              >
                 Weight: {d.weight}%
               </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 8 }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: d.color, fontFamily: "var(--font-heading)", lineHeight: 1 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 3,
+                  marginBottom: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: d.color,
+                    fontFamily: "var(--font-heading)",
+                    lineHeight: 1,
+                  }}
+                >
                   {d.score}
                 </span>
-                <span style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>/100</span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: "var(--muted-foreground)",
+                    fontFamily: "var(--font-data)",
+                  }}
+                >
+                  /100
+                </span>
               </div>
-              <div style={{ height: 3, background: "var(--border)", borderRadius: 99, overflow: "hidden" }}>
-                <div style={{ width: `${d.score}%`, height: "100%", background: d.color, borderRadius: 99 }} />
+              <div
+                style={{
+                  height: 3,
+                  background: "var(--border)",
+                  borderRadius: 99,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${d.score}%`,
+                    height: "100%",
+                    background: d.color,
+                    borderRadius: 99,
+                  }}
+                />
               </div>
             </Card>
           ))}
@@ -1536,37 +2123,106 @@ export function BusinessQualityScores({
       <Card style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.07em",
+                marginBottom: 4,
+              }}
+            >
               ECONOMIC MOAT
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "var(--c-profit, #22c55e)", fontFamily: "var(--font-heading)", marginBottom: 10 }}>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--c-profit, #22c55e)",
+                fontFamily: "var(--font-heading)",
+                marginBottom: 10,
+              }}
+            >
               {model.moat.status.toUpperCase()} MOAT
             </div>
-            <p style={{ fontSize: 13, color: "var(--foreground)", lineHeight: 1.7, margin: "0 0 12px" }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--foreground)",
+                lineHeight: 1.7,
+                margin: "0 0 12px",
+              }}
+            >
               {model.moat.description}
             </p>
-            <AskButton label="Explain the moat" onClick={() => onAsk("economic moat")} />
+            <AskButton
+              label="Explain the moat"
+              onClick={() => onAsk("economic moat")}
+            />
           </div>
           <div style={{ textAlign: "center", flexShrink: 0 }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.07em",
+                marginBottom: 4,
+              }}
+            >
               SCORE
             </div>
-            <div style={{ fontSize: 48, fontWeight: 700, color: "var(--c-dsp, #3b82f6)", fontFamily: "var(--font-heading)", lineHeight: 1, marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 48,
+                fontWeight: 700,
+                color: "var(--c-dsp, #3b82f6)",
+                fontFamily: "var(--font-heading)",
+                lineHeight: 1,
+                marginBottom: 4,
+              }}
+            >
               {model.moat.score}
             </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>/ 100</div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              / 100
+            </div>
           </div>
         </div>
       </Card>
 
       <Card style={{ borderLeft: "3px solid var(--c-risk, #ef4444)" }}>
-        <div style={{ fontSize: 10, color: "var(--c-risk, #ef4444)", fontFamily: "var(--font-data)", letterSpacing: "0.08em", marginBottom: 6 }}>
+        <div
+          style={{
+            fontSize: 10,
+            color: "var(--c-risk, #ef4444)",
+            fontFamily: "var(--font-data)",
+            letterSpacing: "0.08em",
+            marginBottom: 6,
+          }}
+        >
           QUALITY NOTE
         </div>
-        <p style={{ fontSize: 13, color: "var(--foreground)", margin: "0 0 8px", lineHeight: 1.65 }}>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--foreground)",
+            margin: "0 0 8px",
+            lineHeight: 1.65,
+          }}
+        >
           {model.businessQuality.qualityNote}
         </p>
-        <AskButton label="Ask why this score was assigned" onClick={() => onAsk("Business Quality score and quality conflicts")} />
+        <AskButton
+          label="Ask why this score was assigned"
+          onClick={() => onAsk("Business Quality score and quality conflicts")}
+        />
       </Card>
     </div>
   );
@@ -1587,26 +2243,55 @@ export function KeyRisksSection({
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {model.risks.map((r, i) => (
           <Card key={i} style={{ borderLeft: "3px solid var(--c-risk, #ef4444)" }}>
-            <div style={{ fontFamily: "var(--font-body)", fontSize: 14, fontWeight: 500, color: "var(--foreground)", marginBottom: 6 }}>
+            <div
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                fontWeight: 500,
+                color: "var(--foreground)",
+                marginBottom: 6,
+              }}
+            >
               {r.risk}
             </div>
             <div style={{ display: "flex", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontFamily: "var(--font-data)", color: "var(--muted-foreground)", letterSpacing: "0.07em" }}>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontFamily: "var(--font-data)",
+                  color: "var(--muted-foreground)",
+                  letterSpacing: "0.07em",
+                }}
+              >
                 EVIDENCE
               </span>
-              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{r.evidence}</span>
+              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+                {r.evidence}
+              </span>
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontFamily: "var(--font-data)", color: "var(--c-risk, #ef4444)", letterSpacing: "0.07em" }}>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontFamily: "var(--font-data)",
+                  color: "var(--c-risk, #ef4444)",
+                  letterSpacing: "0.07em",
+                }}
+              >
                 IMPLICATION
               </span>
-              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{r.implication}</span>
+              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+                {r.implication}
+              </span>
             </div>
           </Card>
         ))}
       </div>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-        <AskButton label="What is the biggest risk?" onClick={() => onAsk("key risks")} />
+        <AskButton
+          label="What is the biggest risk?"
+          onClick={() => onAsk("key risks")}
+        />
       </div>
     </div>
   );
@@ -1617,30 +2302,97 @@ export function KeyRisksSection({
 export function ManagementDeepDive({ model }: { model: ZipResearchViewModel }) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
+          DEEP DIVE
+        </span>
         Management & Capital Allocation
         <StatusBadge status={model.management.status} />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
+        }}
+      >
         <Card>
-          <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 10 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 10,
+            }}
+          >
             MANAGEMENT QUALITY
           </div>
           <StatusBadge status={model.management.status} />
-          <p style={{ fontSize: 13, color: "var(--foreground)", margin: "12px 0 0", lineHeight: 1.7 }}>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--foreground)",
+              margin: "12px 0 0",
+              lineHeight: 1.7,
+            }}
+          >
             {model.management.overview}
           </p>
         </Card>
         <Card>
-          <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 10 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 10,
+            }}
+          >
             CAPITAL ALLOCATION
           </div>
           {model.management.capitalAllocation.map((r) => (
-            <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 13, color: "var(--foreground)" }}>{r.label}</span>
+            <div
+              key={r.label}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "8px 0",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "var(--foreground)" }}>
+                {r.label}
+              </span>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>{r.value}</span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "var(--muted-foreground)",
+                    fontFamily: "var(--font-data)",
+                  }}
+                >
+                  {r.value}
+                </span>
                 <StatusBadge status={r.status} />
               </div>
             </div>
@@ -1651,11 +2403,36 @@ export function ManagementDeepDive({ model }: { model: ZipResearchViewModel }) {
   );
 }
 
-export function EarningsQualityDeepDive({ model, onAsk }: { model: ZipResearchViewModel; onAsk: (ctx: string) => void }) {
+export function EarningsQualityDeepDive({
+  model,
+  onAsk,
+}: {
+  model: ZipResearchViewModel;
+  onAsk: (ctx: string) => void;
+}) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
+          DEEP DIVE
+        </span>
         Earnings Quality
         <StatusBadge status={model.earningsQuality.status} />
       </div>
@@ -1666,27 +2443,63 @@ export function EarningsQualityDeepDive({ model, onAsk }: { model: ZipResearchVi
         status={model.earningsQuality.status}
         subtitle="Are reported earnings durable and supported by real underlying operations?"
       />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
+        }}
+      >
         <Card>
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 12,
+            }}
+          >
             OPERATING MARGIN TREND · Source: Server Evidence
           </div>
           <SvgAreaChart data={model.marginData} color="var(--c-cashflow, #2dd4bf)" />
         </Card>
         <Card>
-          <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 10 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 10,
+            }}
+          >
             INDICATORS
           </div>
           {model.earningsQuality.indicators.map((r) => (
-            <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 13, color: "var(--foreground)" }}>{r.label}</span>
+            <div
+              key={r.label}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "8px 0",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "var(--foreground)" }}>
+                {r.label}
+              </span>
               <StatusBadge status={r.status} text={r.value} />
             </div>
           ))}
         </Card>
       </div>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-        <AskButton label="Ask about earnings" onClick={() => onAsk("earnings quality")} />
+        <AskButton
+          label="Ask about earnings"
+          onClick={() => onAsk("earnings quality")}
+        />
       </div>
     </div>
   );
@@ -1695,8 +2508,27 @@ export function EarningsQualityDeepDive({ model, onAsk }: { model: ZipResearchVi
 export function GrowthQualityDeepDive({ model }: { model: ZipResearchViewModel }) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
+          DEEP DIVE
+        </span>
         Growth Quality
         <StatusBadge status={model.growthQuality.status} />
       </div>
@@ -1707,20 +2539,53 @@ export function GrowthQualityDeepDive({ model }: { model: ZipResearchViewModel }
         status={model.growthQuality.status}
         subtitle="Growth assessed together with cash generation, margins, and capital discipline — not in isolation."
       />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
+        }}
+      >
         <Card>
-          <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 12,
+            }}
+          >
             FREE CASH FLOW · Source: Server Evidence
           </div>
           <SvgBarChart data={model.cashData} color="var(--c-cashflow, #2dd4bf)" />
         </Card>
         <Card>
-          <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 10 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--muted-foreground)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 10,
+            }}
+          >
             GROWTH INDICATORS
           </div>
           {model.growthQuality.indicators.map((r) => (
-            <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 13, color: "var(--foreground)" }}>{r.label}</span>
+            <div
+              key={r.label}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "8px 0",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              <span style={{ fontSize: 13, color: "var(--foreground)" }}>
+                {r.label}
+              </span>
               <StatusBadge status={r.status} text={r.value} />
             </div>
           ))}
@@ -1730,11 +2595,36 @@ export function GrowthQualityDeepDive({ model }: { model: ZipResearchViewModel }
   );
 }
 
-export function MarginOfSafetyDeepDive({ model, onAsk }: { model: ZipResearchViewModel; onAsk: (ctx: string) => void }) {
+export function MarginOfSafetyDeepDive({
+  model,
+  onAsk,
+}: {
+  model: ZipResearchViewModel;
+  onAsk: (ctx: string) => void;
+}) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
+          DEEP DIVE
+        </span>
         Margin of Safety
       </div>
       <SectionHead
@@ -1744,34 +2634,99 @@ export function MarginOfSafetyDeepDive({ model, onAsk }: { model: ZipResearchVie
         status={model.valuation.status}
         subtitle="Business quality and valuation are separate analytical questions. A high-quality business can still carry an unattractive valuation."
       />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
+        }}
+      >
         <Card style={{ borderTop: "2px solid var(--c-profit, #22c55e)" }}>
-          <div style={{ fontSize: 10, color: "var(--c-profit, #22c55e)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--c-profit, #22c55e)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 8,
+            }}
+          >
             BUSINESS QUALITY
           </div>
-          <div style={{ fontSize: 36, fontWeight: 700, color: "var(--c-profit, #22c55e)", fontFamily: "var(--font-heading)", marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: "var(--c-profit, #22c55e)",
+              fontFamily: "var(--font-heading)",
+              marginBottom: 6,
+            }}
+          >
             {model.businessQuality.compositeScore} / 100
           </div>
-          <StatusBadge status={model.businessQuality.status} text={model.businessQuality.verdict} />
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: "10px 0 0", lineHeight: 1.6 }}>
+          <StatusBadge
+            status={model.businessQuality.status}
+            text={model.businessQuality.verdict}
+          />
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--muted-foreground)",
+              margin: "10px 0 0",
+              lineHeight: 1.6,
+            }}
+          >
             {model.businessQuality.overview}
           </p>
         </Card>
         <Card style={{ borderTop: "2px solid var(--c-risk, #ef4444)" }}>
-          <div style={{ fontSize: 10, color: "var(--c-risk, #ef4444)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--c-risk, #ef4444)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.07em",
+              marginBottom: 8,
+            }}
+          >
             MARGIN OF SAFETY
           </div>
-          <div style={{ fontSize: 36, fontWeight: 700, color: model.valuation.status === "strong" ? "var(--c-profit, #22c55e)" : "var(--c-risk, #ef4444)", fontFamily: "var(--font-heading)", marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color:
+                model.valuation.status === "strong"
+                  ? "var(--c-profit, #22c55e)"
+                  : "var(--c-risk, #ef4444)",
+              fontFamily: "var(--font-heading)",
+              marginBottom: 6,
+            }}
+          >
             {model.valuation.marginOfSafetyFormatted}
           </div>
-          <StatusBadge status={model.valuation.status} text={model.valuation.status === "strong" ? "Adequate Cushion" : "Negative"} />
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: "10px 0 0", lineHeight: 1.6 }}>
-            Assessed against server-authoritative intrinsic value of {model.valuation.intrinsicValueFormatted}.
+          <StatusBadge
+            status={model.valuation.status}
+            text={model.valuation.status === "strong" ? "Adequate Cushion" : "Negative"}
+          />
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--muted-foreground)",
+              margin: "10px 0 0",
+              lineHeight: 1.6,
+            }}
+          >
+            Assessed against server-authoritative intrinsic value of{" "}
+            {model.valuation.intrinsicValueFormatted}.
           </p>
         </Card>
       </div>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-        <AskButton label="Ask about the margin of safety" onClick={() => onAsk("margin of safety")} />
+        <AskButton
+          label="Ask about the margin of safety"
+          onClick={() => onAsk("margin of safety")}
+        />
       </div>
     </div>
   );
@@ -1780,30 +2735,109 @@ export function MarginOfSafetyDeepDive({ model, onAsk }: { model: ZipResearchVie
 export function StrengthsWeaknessesSection({ model }: { model: ZipResearchViewModel }) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
+          DEEP DIVE
+        </span>
         Strengths & Weaknesses
       </div>
       <SectionHead id="s12" num="" title="Strengths & Weaknesses" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
+        }}
+      >
         <Card style={{ borderTop: "2px solid var(--c-profit, #22c55e)" }}>
-          <div style={{ fontSize: 10, color: "var(--c-profit, #22c55e)", fontFamily: "var(--font-data)", letterSpacing: "0.08em", marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--c-profit, #22c55e)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.08em",
+              marginBottom: 12,
+            }}
+          >
             KEY STRENGTHS
           </div>
           {model.strengths.map((s, i) => (
-            <div key={i} style={{ display: "flex", gap: 9, marginBottom: 10, fontSize: 13, color: "var(--foreground)", lineHeight: 1.55 }}>
-              <span style={{ color: "var(--c-profit, #22c55e)", flexShrink: 0, marginTop: 1, fontSize: 12 }}>+</span>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                gap: 9,
+                marginBottom: 10,
+                fontSize: 13,
+                color: "var(--foreground)",
+                lineHeight: 1.55,
+              }}
+            >
+              <span
+                style={{
+                  color: "var(--c-profit, #22c55e)",
+                  flexShrink: 0,
+                  marginTop: 1,
+                  fontSize: 12,
+                }}
+              >
+                +
+              </span>
               {s}
             </div>
           ))}
         </Card>
         <Card style={{ borderTop: "2px solid var(--c-risk, #ef4444)" }}>
-          <div style={{ fontSize: 10, color: "var(--c-risk, #ef4444)", fontFamily: "var(--font-data)", letterSpacing: "0.08em", marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--c-risk, #ef4444)",
+              fontFamily: "var(--font-data)",
+              letterSpacing: "0.08em",
+              marginBottom: 12,
+            }}
+          >
             KEY WEAKNESSES
           </div>
           {model.weaknesses.map((w, i) => (
-            <div key={i} style={{ display: "flex", gap: 9, marginBottom: 10, fontSize: 13, color: "var(--foreground)", lineHeight: 1.55 }}>
-              <span style={{ color: "var(--c-risk, #ef4444)", flexShrink: 0, marginTop: 1, fontSize: 12 }}>−</span>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                gap: 9,
+                marginBottom: 10,
+                fontSize: 13,
+                color: "var(--foreground)",
+                lineHeight: 1.55,
+              }}
+            >
+              <span
+                style={{
+                  color: "var(--c-risk, #ef4444)",
+                  flexShrink: 0,
+                  marginTop: 1,
+                  fontSize: 12,
+                }}
+              >
+                −
+              </span>
               {w}
             </div>
           ))}
@@ -1816,8 +2850,27 @@ export function StrengthsWeaknessesSection({ model }: { model: ZipResearchViewMo
 export function InvestmentContextSection({ model }: { model: ZipResearchViewModel }) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
+          DEEP DIVE
+        </span>
         Investment Context
       </div>
       <SectionHead
@@ -1827,20 +2880,57 @@ export function InvestmentContextSection({ model }: { model: ZipResearchViewMode
         subtitle="Backend-authoritative DSP analytical context. This is not an independent frontend recommendation."
       />
       <Card>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 16 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
           {model.investmentContext.metrics.map((c) => (
-            <div key={c.label} style={{ background: "var(--secondary)", borderRadius: 8, padding: "12px 14px" }}>
-              <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.06em", marginBottom: 6 }}>
+            <div
+              key={c.label}
+              style={{
+                background: "var(--secondary)",
+                borderRadius: 8,
+                padding: "12px 14px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "var(--muted-foreground)",
+                  fontFamily: "var(--font-data)",
+                  letterSpacing: "0.06em",
+                  marginBottom: 6,
+                }}
+              >
                 {c.label}
               </div>
-              <div style={{ marginBottom: 6, fontSize: 14, fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-data)" }}>
+              <div
+                style={{
+                  marginBottom: 6,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "var(--foreground)",
+                  fontFamily: "var(--font-data)",
+                }}
+              >
                 {c.value}
               </div>
               <StatusBadge status={c.status} />
             </div>
           ))}
         </div>
-        <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: 0, lineHeight: 1.7 }}>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--muted-foreground)",
+            margin: 0,
+            lineHeight: 1.7,
+          }}
+        >
           {model.investmentContext.narrative}
         </p>
       </Card>
@@ -1876,7 +2966,13 @@ export function EvidenceExplorerSection({
           gap: 8,
         }}
       >
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>
+        <span
+          style={{
+            padding: "2px 8px",
+            background: "var(--secondary)",
+            borderRadius: 4,
+          }}
+        >
           DEEP DIVE
         </span>
         Supporting Evidence
@@ -1899,7 +2995,13 @@ export function EvidenceExplorerSection({
           }}
         >
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
               Analysis ID
             </dt>
             <dd
@@ -1915,7 +3017,13 @@ export function EvidenceExplorerSection({
             </dd>
           </div>
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+            <dt
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
               Audit Reference
             </dt>
             <dd
@@ -1934,7 +3042,16 @@ export function EvidenceExplorerSection({
       </Card>
 
       {/* Evidence Trail Control */}
-      <div style={{ marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+      <div
+        style={{
+          marginBottom: 14,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
         <button
           type="button"
           aria-expanded={open}
@@ -1975,17 +3092,27 @@ export function EvidenceExplorerSection({
 
       {/* Evidence Trail Items */}
       {open && (
-        <div id="evidence-trail-container" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div
+          id="evidence-trail-container"
+          style={{ display: "flex", flexDirection: "column", gap: 10 }}
+        >
           {evidenceList.length === 0 ? (
             <Card style={{ padding: "20px 22px", textAlign: "center" }}>
-              <div style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "var(--muted-foreground)",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
                 No evidence items reported by the backend analytical pipeline.
               </div>
             </Card>
           ) : (
             evidenceList.map((e, i) => {
               const isRowExpanded = expandedIndex === i;
-              const sourceLabel = e.source && e.source.trim() ? e.source : "Source unavailable";
+              const sourceLabel =
+                e.source && e.source.trim() ? e.source : "Source unavailable";
 
               return (
                 <Card key={i} style={{ padding: "16px 20px" }}>
@@ -2000,7 +3127,14 @@ export function EvidenceExplorerSection({
                     }}
                   >
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          flexWrap: "wrap",
+                        }}
+                      >
                         <span
                           style={{
                             fontSize: 10,
@@ -2011,7 +3145,9 @@ export function EvidenceExplorerSection({
                             borderRadius: 4,
                             background: "var(--surface-2, #181e2e)",
                             border: "1px solid var(--border)",
-                            color: e.source ? "var(--foreground)" : "var(--muted-foreground)",
+                            color: e.source
+                              ? "var(--foreground)"
+                              : "var(--muted-foreground)",
                             fontFamily: "var(--font-data)",
                           }}
                         >
@@ -2141,7 +3277,6 @@ export function EvidenceExplorerSection({
   );
 }
 
-
 // ─── Downloads & Export Section ──────────────────────────────────────────────
 
 function DownloadsSection({
@@ -2180,18 +3315,54 @@ function DownloadsSection({
         subtitle="Export institutional research snapshots and JSON audit trails."
       />
       <Card style={{ padding: "22px 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-              <span style={{ fontWeight: 600, fontSize: 15, color: "var(--foreground)", fontFamily: "var(--font-heading)" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}
+            >
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: 15,
+                  color: "var(--foreground)",
+                  fontFamily: "var(--font-heading)",
+                }}
+              >
                 Audit-Grade JSON Research Snapshot
               </span>
-              <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--surface-2, #181e2e)", border: "1px solid var(--border)", color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  background: "var(--surface-2, #181e2e)",
+                  border: "1px solid var(--border)",
+                  color: "var(--muted-foreground)",
+                  fontFamily: "var(--font-data)",
+                }}
+              >
                 .JSON
               </span>
             </div>
-            <div style={{ fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.5, maxWidth: 540 }}>
-              Export machine-readable research telemetry including authoritative valuation parameters, Buffett criteria statuses, stage execution timestamps, and cryptographic audit reference.
+            <div
+              style={{
+                fontSize: 12,
+                color: "var(--muted-foreground)",
+                lineHeight: 1.5,
+                maxWidth: 540,
+              }}
+            >
+              Export machine-readable research telemetry including authoritative
+              valuation parameters, Buffett criteria statuses, stage execution
+              timestamps, and cryptographic audit reference.
             </div>
           </div>
           <button
@@ -2243,41 +3414,47 @@ export function ResearchChatDrawer({
   const [thinking, setThinking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const sendMsg = useCallback(async (text: string) => {
-    if (!text.trim() || thinking) return;
-    setMessages((prev) => [...prev, { role: "user", text }]);
-    setInput("");
-    setThinking(true);
+  const sendMsg = useCallback(
+    async (text: string) => {
+      if (!text.trim() || thinking) return;
+      setMessages((prev) => [...prev, { role: "user", text }]);
+      setInput("");
+      setThinking(true);
 
-    try {
-      const res = await api.copilotQuery({
-        mode: "buffett",
-        query: text,
-        symbol,
-        analysis_id: analysisId,
-        section_context: initCtx,
-        prompt: `Context: ${initCtx || "General analysis"} for ${symbol} (Analysis ID: ${analysisId || "unknown"}). Question: ${text}`,
-        response: analyseResponse ?? undefined,
-      });
+      try {
+        const res = await api.copilotQuery({
+          mode: "buffett",
+          query: text,
+          symbol,
+          analysis_id: analysisId,
+          section_context: initCtx,
+          prompt: `Context: ${initCtx || "General analysis"} for ${symbol} (Analysis ID: ${analysisId || "unknown"}). Question: ${text}`,
+          response: analyseResponse ?? undefined,
+        });
 
-      const reply =
-        res?.content ||
-        (res as any)?.text ||
-        `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
-      const citations = Array.isArray(res?.citations) && res.citations.length > 0 ? res.citations : undefined;
-      setMessages((prev) => [...prev, { role: "dsp", text: reply, citations }]);
-    } catch (e: any) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "dsp",
-          text: `DSP Research Assistant: Regarding ${symbol} (${initCtx || "Workspace"}), analytical output is unavailable or temporarily unreached.`,
-        },
-      ]);
-    } finally {
-      setThinking(false);
-    }
-  }, [thinking, initCtx, symbol, analysisId]);
+        const reply =
+          res?.content ||
+          (res as any)?.text ||
+          `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
+        const citations =
+          Array.isArray(res?.citations) && res.citations.length > 0
+            ? res.citations
+            : undefined;
+        setMessages((prev) => [...prev, { role: "dsp", text: reply, citations }]);
+      } catch (e: any) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "dsp",
+            text: `DSP Research Assistant: Regarding ${symbol} (${initCtx || "Workspace"}), analytical output is unavailable or temporarily unreached.`,
+          },
+        ]);
+      } finally {
+        setThinking(false);
+      }
+    },
+    [thinking, initCtx, symbol, analysisId],
+  );
 
   useEffect(() => {
     if (initCtx && open) {
@@ -2319,12 +3496,32 @@ export function ResearchChatDrawer({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--c-dsp, #3b82f6)" }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-body)" }}>
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: "var(--c-dsp, #3b82f6)",
+            }}
+          />
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--foreground)",
+              fontFamily: "var(--font-body)",
+            }}
+          >
             Research Assistant · {symbol}
           </span>
           {initCtx && (
-            <span style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+            <span
+              style={{
+                fontSize: 11,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
               Context: {initCtx}
             </span>
           )}
@@ -2332,13 +3529,28 @@ export function ResearchChatDrawer({
         <button
           type="button"
           onClick={onClose}
-          style={{ background: "none", border: "none", color: "var(--muted-foreground)", cursor: "pointer", fontSize: 16 }}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--muted-foreground)",
+            cursor: "pointer",
+            fontSize: 16,
+          }}
         >
           ✕
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}
+      >
         {messages.map((m, i) => (
           <div
             key={i}
@@ -2349,7 +3561,8 @@ export function ResearchChatDrawer({
               borderRadius: 8,
               fontSize: 13,
               lineHeight: 1.5,
-              background: m.role === "user" ? "var(--c-dsp, #3b82f6)" : "var(--secondary)",
+              background:
+                m.role === "user" ? "var(--c-dsp, #3b82f6)" : "var(--secondary)",
               color: m.role === "user" ? "#fff" : "var(--foreground)",
               fontFamily: "var(--font-body)",
             }}
@@ -2362,7 +3575,10 @@ export function ResearchChatDrawer({
                   paddingTop: 6,
                   borderTop: "1px solid rgba(255, 255, 255, 0.15)",
                   fontSize: 11,
-                  color: m.role === "user" ? "rgba(255,255,255,0.85)" : "var(--muted-foreground)",
+                  color:
+                    m.role === "user"
+                      ? "rgba(255,255,255,0.85)"
+                      : "var(--muted-foreground)",
                   fontFamily: "var(--font-data)",
                 }}
               >
@@ -2373,7 +3589,14 @@ export function ResearchChatDrawer({
           </div>
         ))}
         {thinking && (
-          <div style={{ alignSelf: "flex-start", fontSize: 12, color: "var(--muted-foreground)", fontStyle: "italic" }}>
+          <div
+            style={{
+              alignSelf: "flex-start",
+              fontSize: 12,
+              color: "var(--muted-foreground)",
+              fontStyle: "italic",
+            }}
+          >
             Consulting DSP evidence...
           </div>
         )}
@@ -2385,7 +3608,12 @@ export function ResearchChatDrawer({
           e.preventDefault();
           sendMsg(input);
         }}
-        style={{ padding: "8px 16px", borderTop: "1px solid var(--border)", display: "flex", gap: 8 }}
+        style={{
+          padding: "8px 16px",
+          borderTop: "1px solid var(--border)",
+          display: "flex",
+          gap: 8,
+        }}
       >
         <input
           type="text"
@@ -2428,10 +3656,16 @@ export function ResearchChatDrawer({
 
 function getStatusCode(error: unknown): number {
   if (error && typeof error === "object") {
-    if ("status" in error && typeof (error as { status: unknown }).status === "number") {
+    if (
+      "status" in error &&
+      typeof (error as { status: unknown }).status === "number"
+    ) {
       return (error as { status: number }).status;
     }
-    if ("status_code" in error && typeof (error as { status_code: unknown }).status_code === "number") {
+    if (
+      "status_code" in error &&
+      typeof (error as { status_code: unknown }).status_code === "number"
+    ) {
       return (error as { status_code: number }).status_code;
     }
   }
@@ -2460,23 +3694,23 @@ function AnalysisErrorState({
   const title = isAuth
     ? "Authentication Required"
     : isForbidden
-    ? "Access Forbidden"
-    : isTimeout
-    ? "Request Timed Out"
-    : isValidation
-    ? "Invalid Request"
-    : "Analysis Failed";
+      ? "Access Forbidden"
+      : isTimeout
+        ? "Request Timed Out"
+        : isValidation
+          ? "Invalid Request"
+          : "Analysis Failed";
 
-  const message =
-    isAuth
-      ? "Please sign in to access stock research and financial analysis."
-      : isForbidden
+  const message = isAuth
+    ? "Please sign in to access stock research and financial analysis."
+    : isForbidden
       ? "You do not have permission to access research for this instrument."
       : isTimeout
-      ? "The analysis request took too long to complete. Please try again."
-      : isValidation
-      ? error?.message || "Invalid symbol or parameter provided."
-      : error?.message || "An unexpected error occurred while analysing the requested company.";
+        ? "The analysis request took too long to complete. Please try again."
+        : isValidation
+          ? error?.message || "Invalid symbol or parameter provided."
+          : error?.message ||
+            "An unexpected error occurred while analysing the requested company.";
 
   return (
     <div
@@ -2606,9 +3840,11 @@ export function ZipCompanyAnalysisWorkspace({
   const initialSymbol = searchParamSymbol || "TCS.NS";
 
   const [loadedData, setLoadedData] = useState<AnalyseResponse | null>(
-    initialResponse ?? null
+    initialResponse ?? null,
   );
-  const [analysisError, setAnalysisError] = useState<ApiClientError | Error | null>(null);
+  const [analysisError, setAnalysisError] = useState<ApiClientError | Error | null>(
+    null,
+  );
 
   const [phase, setPhase] = useState<AnalysisPhase>(() => {
     if (initialResponse) return "workspace-ready";
@@ -2660,18 +3896,14 @@ export function ZipCompanyAnalysisWorkspace({
       const resp = await api.analyse(req);
       if (!resp || !resp.ok) {
         const errMsg = resp?.errors?.[0] || "Analysis request failed";
-        throw new ApiClientError(
-          errMsg,
-          500,
-          {
-            ok: false,
-            error: "AnalysisError",
-            detail: errMsg,
-            message: errMsg,
-            api_version: "v1",
-            status_code: 500,
-          }
-        );
+        throw new ApiClientError(errMsg, 500, {
+          ok: false,
+          error: "AnalysisError",
+          detail: errMsg,
+          message: errMsg,
+          api_version: "v1",
+          status_code: 500,
+        });
       }
       return resp;
     },
@@ -2681,7 +3913,9 @@ export function ZipCompanyAnalysisWorkspace({
       setPhase(mode === "simple" ? "simple-result" : "buffett-result");
       pushRecentAnalysis({
         ticker: variables.ticker,
-        company: (data.payload as { company?: string } | undefined)?.company || variables.ticker,
+        company:
+          (data.payload as { company?: string } | undefined)?.company ||
+          variables.ticker,
         exchange: variables.exchange || "US",
         recommendation: "Analysed",
         analysedAt: new Date().toISOString(),
@@ -2700,7 +3934,8 @@ export function ZipCompanyAnalysisWorkspace({
       if (customSymbol && customSymbol !== symbol) {
         setSymbol(customSymbol);
       }
-      const targetMode: ResearchMode = targetPhase === "simple-loading" ? "simple" : "buffett";
+      const targetMode: ResearchMode =
+        targetPhase === "simple-loading" ? "simple" : "buffett";
       setMode(targetMode);
       setPhase(targetPhase);
       setAnalysisError(null);
@@ -2713,7 +3948,12 @@ export function ZipCompanyAnalysisWorkspace({
           const url = new URL(window.location.href);
           url.searchParams.set("symbol", sym);
           url.searchParams.set("mode", targetMode === "simple" ? "simple" : "full");
-          url.searchParams.set("intent", targetMode === "simple" ? ANALYSIS_INTENTS.company : ANALYSIS_INTENTS.dspIndicator);
+          url.searchParams.set(
+            "intent",
+            targetMode === "simple"
+              ? ANALYSIS_INTENTS.company
+              : ANALYSIS_INTENTS.dspIndicator,
+          );
           window.history.replaceState({}, "", url.toString());
         } catch {}
       }
@@ -2722,20 +3962,26 @@ export function ZipCompanyAnalysisWorkspace({
       };
       analyseMutation.mutate(req);
     },
-    [symbol, analyseMutation]
+    [symbol, analyseMutation],
   );
 
   useEffect(() => {
     if (initialResponse) return;
     if (searchParamSymbol && executedSymbolRef.current !== searchParamSymbol) {
       executedSymbolRef.current = searchParamSymbol;
-      const targetPhase = initialMode === "simple" ? "simple-loading" : "buffett-loading";
+      const targetPhase =
+        initialMode === "simple" ? "simple-loading" : "buffett-loading";
       runAnalysis(targetPhase, searchParamSymbol);
     }
   }, [searchParamSymbol, initialMode, initialResponse, runAnalysis]);
 
   useEffect(() => {
-    if (phase !== "buffett-result" && phase !== "simple-result" && phase !== "workspace-ready") return;
+    if (
+      phase !== "buffett-result" &&
+      phase !== "simple-result" &&
+      phase !== "workspace-ready"
+    )
+      return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -2743,7 +3989,7 @@ export function ZipCompanyAnalysisWorkspace({
           if (e.isIntersecting) setActiveSection(e.target.id);
         }
       },
-      { rootMargin: "-25% 0px -65% 0px", threshold: 0 }
+      { rootMargin: "-25% 0px -65% 0px", threshold: 0 },
     );
 
     Object.values(sectionRefs.current).forEach((el) => {
@@ -2770,8 +4016,10 @@ export function ZipCompanyAnalysisWorkspace({
   const activeResponse = loadedData ?? analyseMutation.data;
   const hasValidResult = Boolean(
     activeResponse &&
-      activeResponse.ok &&
-      (phase === "buffett-result" || phase === "simple-result" || phase === "workspace-ready")
+    activeResponse.ok &&
+    (phase === "buffett-result" ||
+      phase === "simple-result" ||
+      phase === "workspace-ready"),
   );
 
   const viewModel: ZipResearchViewModel | null = useMemo(() => {
@@ -2823,17 +4071,40 @@ export function ZipCompanyAnalysisWorkspace({
       )}
 
       {hasValidResult && viewModel && (
-        <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden" }}>
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
           <CompanyHeader
             model={viewModel}
-            onModeSwitch={() => { setPhase("select"); setChatOpen(false); setChatCtx(""); }}
+            onModeSwitch={() => {
+              setPhase("select");
+              setChatOpen(false);
+              setChatCtx("");
+            }}
             searchValue={searchInput}
             onSearchChange={setSearchInput}
-            onAnalyze={(val) => runAnalysis(mode === "simple" ? "simple-loading" : "buffett-loading", val || searchInput)}
+            onAnalyze={(val) =>
+              runAnalysis(
+                mode === "simple" ? "simple-loading" : "buffett-loading",
+                val || searchInput,
+              )
+            }
             isAnalyzing={analyseMutation.isPending}
           />
 
-          <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+          <div
+            style={{
+              display: "flex",
+              flex: 1,
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <nav
               aria-label="Analysis sections"
               className="toc-sidebar"
@@ -2931,20 +4202,41 @@ export function ZipCompanyAnalysisWorkspace({
                           fontSize: 13,
                           fontFamily: "var(--font-body)",
                           fontWeight: isActive ? 600 : 400,
-                          color: isActive ? "var(--foreground)" : "var(--muted-foreground)",
-                          borderLeft: isActive ? "3px solid var(--accent, #7c6af7)" : "3px solid transparent",
-                          transition: "background 0.15s, color 0.15s, border-color 0.15s",
+                          color: isActive
+                            ? "var(--foreground)"
+                            : "var(--muted-foreground)",
+                          borderLeft: isActive
+                            ? "3px solid var(--accent, #7c6af7)"
+                            : "3px solid transparent",
+                          transition:
+                            "background 0.15s, color 0.15s, border-color 0.15s",
                         }}
                       >
                         {t.label}
                       </button>
                     );
                   })}
-                  <div style={{ height: 1, background: "var(--border)", margin: "8px 16px 4px" }} />
+                  <div
+                    style={{
+                      height: 1,
+                      background: "var(--border)",
+                      margin: "8px 16px 4px",
+                    }}
+                  />
                 </div>
               ))}
 
-              <div style={{ padding: "6px 16px 4px", fontSize: 11, fontWeight: 600, color: "var(--accent, #7c6af7)", fontFamily: "var(--font-data)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
+              <div
+                style={{
+                  padding: "6px 16px 4px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--accent, #7c6af7)",
+                  fontFamily: "var(--font-data)",
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                }}
+              >
                 TOOLS
               </div>
               <button
@@ -3038,7 +4330,12 @@ export function ZipCompanyAnalysisWorkspace({
                   <div
                     onClick={() => setTocOpen(false)}
                     aria-hidden="true"
-                    style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 60 }}
+                    style={{
+                      position: "fixed",
+                      inset: 0,
+                      background: "rgba(0,0,0,0.55)",
+                      zIndex: 60,
+                    }}
                   />
                   <div
                     id="mobile-nav-dialog"
@@ -3117,54 +4414,65 @@ export function ZipCompanyAnalysisWorkspace({
                       </button>
                     </div>
 
-                    {(mode === "simple" ? SIMPLE_TOC_GROUPS : TOC_GROUPS).map((group) => (
-                      <div key={group.label} style={{ marginBottom: 14, marginTop: 4 }}>
+                    {(mode === "simple" ? SIMPLE_TOC_GROUPS : TOC_GROUPS).map(
+                      (group) => (
                         <div
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: "var(--accent, #7c6af7)",
-                            fontFamily: "var(--font-data)",
-                            letterSpacing: "0.14em",
-                            textTransform: "uppercase",
-                            marginBottom: 6,
-                            paddingLeft: 14,
-                          }}
+                          key={group.label}
+                          style={{ marginBottom: 14, marginTop: 4 }}
                         >
-                          {group.label}
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "var(--accent, #7c6af7)",
+                              fontFamily: "var(--font-data)",
+                              letterSpacing: "0.14em",
+                              textTransform: "uppercase",
+                              marginBottom: 6,
+                              paddingLeft: 14,
+                            }}
+                          >
+                            {group.label}
+                          </div>
+                          {group.items.map((t) => {
+                            const isActive = activeSection === t.id;
+                            return (
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => scrollTo(t.id)}
+                                aria-current={isActive ? "page" : undefined}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  width: "100%",
+                                  textAlign: "left",
+                                  minHeight: 44,
+                                  padding: "10px 14px 10px 24px",
+                                  marginBottom: 4,
+                                  background: isActive
+                                    ? "var(--surface-2)"
+                                    : "transparent",
+                                  border: "none",
+                                  borderRadius: 6,
+                                  fontSize: 13,
+                                  fontWeight: isActive ? 600 : 400,
+                                  color: isActive
+                                    ? "var(--foreground)"
+                                    : "var(--muted-foreground)",
+                                  borderLeft: isActive
+                                    ? "3px solid var(--accent, #7c6af7)"
+                                    : "3px solid transparent",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {t.label}
+                              </button>
+                            );
+                          })}
                         </div>
-                        {group.items.map((t) => {
-                          const isActive = activeSection === t.id;
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              onClick={() => scrollTo(t.id)}
-                              aria-current={isActive ? "page" : undefined}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "100%",
-                                textAlign: "left",
-                                minHeight: 44,
-                                padding: "10px 14px 10px 24px",
-                                marginBottom: 4,
-                                background: isActive ? "var(--surface-2)" : "transparent",
-                                border: "none",
-                                borderRadius: 6,
-                                fontSize: 13,
-                                fontWeight: isActive ? 600 : 400,
-                                color: isActive ? "var(--foreground)" : "var(--muted-foreground)",
-                                borderLeft: isActive ? "3px solid var(--accent, #7c6af7)" : "3px solid transparent",
-                                cursor: "pointer",
-                              }}
-                            >
-                              {t.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 </>
               )}
@@ -3197,7 +4505,15 @@ export function ZipCompanyAnalysisWorkspace({
                         model={viewModel}
                         onAsk={undefined}
                         valuationStageStatus={
-                          (analyseMutation.data?.payload as { stage_summaries?: Array<{ stage: string; status: string }> })?.stage_summaries?.find((s) => s.stage === "valuation")?.status || "succeeded"
+                          (
+                            analyseMutation.data?.payload as {
+                              stage_summaries?: Array<{
+                                stage: string;
+                                status: string;
+                              }>;
+                            }
+                          )?.stage_summaries?.find((s) => s.stage === "valuation")
+                            ?.status || "succeeded"
                         }
                       />
                     </div>
@@ -3229,7 +4545,15 @@ export function ZipCompanyAnalysisWorkspace({
                         model={viewModel}
                         onAsk={askAbout}
                         valuationStageStatus={
-                          (analyseMutation.data?.payload as { stage_summaries?: Array<{ stage: string; status: string }> })?.stage_summaries?.find((s) => s.stage === "valuation")?.status || "succeeded"
+                          (
+                            analyseMutation.data?.payload as {
+                              stage_summaries?: Array<{
+                                stage: string;
+                                status: string;
+                              }>;
+                            }
+                          )?.stage_summaries?.find((s) => s.stage === "valuation")
+                            ?.status || "succeeded"
                         }
                       />
                     </div>
@@ -3289,7 +4613,9 @@ export function ZipCompanyAnalysisWorkspace({
           {mode === "buffett" && phase === "buffett-result" && (
             <ResearchChatDrawer
               symbol={symbol}
-              analysisId={activeResponse?.analysis_id ? activeResponse.analysis_id : undefined}
+              analysisId={
+                activeResponse?.analysis_id ? activeResponse.analysis_id : undefined
+              }
               open={chatOpen}
               onClose={() => setChatOpen(false)}
               initCtx={chatCtx}

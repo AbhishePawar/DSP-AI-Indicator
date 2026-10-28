@@ -40,10 +40,7 @@ export function CanvasCenterPanel({
         ) {
           return false;
         }
-        if (
-          t.requiresFlag === "companyComparison" &&
-          !featureFlags.companyComparison
-        ) {
+        if (t.requiresFlag === "companyComparison" && !featureFlags.companyComparison) {
           return false;
         }
         return true;
@@ -51,8 +48,7 @@ export function CanvasCenterPanel({
     [],
   );
 
-  const activeMeta =
-    visibleTabs.find((t) => t.id === activeTab) ?? visibleTabs[0];
+  const activeMeta = visibleTabs.find((t) => t.id === activeTab) ?? visibleTabs[0];
   const deepLink = activeMeta.href(symbol);
 
   const searchHits = useMemo(
@@ -187,16 +183,11 @@ export function CanvasCenterPanel({
           <SectionCard
             title={activeMeta.label}
             description={activeMeta.description}
-            action={
-              <Badge variant="outline">
-                {symbol ?? "No symbol"}
-              </Badge>
-            }
+            action={<Badge variant="outline">{symbol ?? "No symbol"}</Badge>}
           >
             <p className="text-sm text-[var(--muted)]">
-              Canvas composes existing institutional surfaces. Analytical engines
-              remain unchanged — open the linked workspace for full interactive
-              research.
+              Canvas composes existing institutional surfaces. Analytical engines remain
+              unchanged — open the linked workspace for full interactive research.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link href={deepLink}>
@@ -239,9 +230,7 @@ export function CanvasCenterPanel({
             <dl className="mt-4">
               <div className="flex justify-between gap-4 border-b border-[var(--border)] py-2 text-sm">
                 <dt className="text-[var(--muted)]">Deep link</dt>
-                <dd className="truncate text-right font-mono text-xs">
-                  {deepLink}
-                </dd>
+                <dd className="truncate text-right font-mono text-xs">{deepLink}</dd>
               </div>
               <div className="flex justify-between gap-4 py-2 text-sm">
                 <dt className="text-[var(--muted)]">Composition mode</dt>

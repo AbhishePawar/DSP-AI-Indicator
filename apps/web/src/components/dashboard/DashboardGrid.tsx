@@ -2,7 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { PlatformHealthWidget } from "./widgets/SystemAiWidgets";
-import { RecentlyViewedCompaniesWidget, PinnedCompaniesWidget } from "./widgets/CompanyWidgets";
+import {
+  RecentlyViewedCompaniesWidget,
+  PinnedCompaniesWidget,
+} from "./widgets/CompanyWidgets";
 import { QuickActionsWidget } from "./widgets/QuickActionsWidget";
 import { ResearchCommandCenterWidget } from "./widgets/ResearchCommandCenterWidget";
 import { WelcomeWidget } from "./widgets/WelcomeWidget";

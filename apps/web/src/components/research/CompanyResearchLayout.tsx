@@ -19,7 +19,15 @@ import { CompanyHeader } from "./CompanyHeader";
 import { MetricGrid, ResearchSection } from "./ResearchSection";
 import { ResearchSidebar } from "./ResearchSidebar";
 
-export function CompanyResearchLayout({ view, request, response }: { view: ResearchView; request?: AnalyseRequest | null; response?: AnalyseResponse | null }) {
+export function CompanyResearchLayout({
+  view,
+  request,
+  response,
+}: {
+  view: ResearchView;
+  request?: AnalyseRequest | null;
+  response?: AnalyseResponse | null;
+}) {
   const [showMinorityNotes, setShowMinorityNotes] = useState(false);
   const [showAuditDetails, setShowAuditDetails] = useState(false);
 
@@ -35,7 +43,10 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
         <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[var(--muted)]" aria-hidden="true" />
+              <span
+                className="h-2 w-2 rounded-full bg-[var(--muted)]"
+                aria-hidden="true"
+              />
               <h3 className="text-sm font-semibold text-[var(--fg)]">
                 Deep Research &amp; AI Boundary
               </h3>
@@ -43,7 +54,11 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
             <Badge tone="neutral">Provider Unavailable</Badge>
           </div>
           <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
-            Generative multi-source synthesis and external document retrieval are bounded by provider availability. All analysis displayed is computed deterministically through the server composition pipeline using audited financial records and authenticated market data. No synthetic citations or simulated narratives are generated.
+            Generative multi-source synthesis and external document retrieval are
+            bounded by provider availability. All analysis displayed is computed
+            deterministically through the server composition pipeline using audited
+            financial records and authenticated market data. No synthetic citations or
+            simulated narratives are generated.
           </p>
         </div>
 
@@ -74,7 +89,9 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                   {view.strengths.length ? (
                     <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[var(--muted)]">
                       {view.strengths.slice(0, 5).map((s) => (
-                        <li key={s} className="leading-snug">{s}</li>
+                        <li key={s} className="leading-snug">
+                          {s}
+                        </li>
                       ))}
                     </ul>
                   ) : (
@@ -84,12 +101,15 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
 
                 <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3.5">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--fg)]">
-                    Key Risks &amp; Vulnerabilities ({(view.risks.length + view.weaknesses.length)})
+                    Key Risks &amp; Vulnerabilities (
+                    {view.risks.length + view.weaknesses.length})
                   </h4>
                   {view.risks.length || view.weaknesses.length ? (
                     <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[var(--muted)]">
                       {[...view.risks, ...view.weaknesses].slice(0, 5).map((r) => (
-                        <li key={r} className="leading-snug">{r}</li>
+                        <li key={r} className="leading-snug">
+                          {r}
+                        </li>
                       ))}
                     </ul>
                   ) : (
@@ -120,11 +140,26 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
         >
           <MetricGrid
             metrics={[
-              { label: "Intrinsic Value", value: view.valuation.intrinsicValue || "Data unavailable" },
-              { label: "Current Price", value: view.valuation.currentPrice || "Data unavailable" },
-              { label: "Margin of Safety", value: view.valuation.marginOfSafety || "Data unavailable" },
-              { label: "Valuation Method", value: view.valuation.method || "Data unavailable" },
-              { label: "Confidence", value: view.valuation.confidence || "Data unavailable" },
+              {
+                label: "Intrinsic Value",
+                value: view.valuation.intrinsicValue || "Data unavailable",
+              },
+              {
+                label: "Current Price",
+                value: view.valuation.currentPrice || "Data unavailable",
+              },
+              {
+                label: "Margin of Safety",
+                value: view.valuation.marginOfSafety || "Data unavailable",
+              },
+              {
+                label: "Valuation Method",
+                value: view.valuation.method || "Data unavailable",
+              },
+              {
+                label: "Confidence",
+                value: view.valuation.confidence || "Data unavailable",
+              },
             ]}
           />
         </ResearchSection>
@@ -205,7 +240,9 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <h4 className="text-sm font-medium text-[var(--fg)]">Supporting Reasons</h4>
+                  <h4 className="text-sm font-medium text-[var(--fg)]">
+                    Supporting Reasons
+                  </h4>
                   {view.committee.supportingReasons.length ? (
                     <ul className="mt-1 list-inside list-disc space-y-1 text-sm text-[var(--muted)]">
                       {view.committee.supportingReasons.map((r) => (
@@ -218,7 +255,9 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-[var(--fg)]">Opposing Reasons</h4>
+                  <h4 className="text-sm font-medium text-[var(--fg)]">
+                    Opposing Reasons
+                  </h4>
                   {view.committee.opposingReasons.length ? (
                     <ul className="mt-1 list-inside list-disc space-y-1 text-sm text-[var(--muted)]">
                       {view.committee.opposingReasons.map((r) => (
@@ -278,7 +317,11 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                     {view.sourceAttribution.statementProvider || "Source unavailable"}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--muted)]">
-                    Status: {view.sourceAttribution.authenticated && view.sourceAttribution.statementProvider ? "Authenticated metadata" : "Unavailable / not attributed"}
+                    Status:{" "}
+                    {view.sourceAttribution.authenticated &&
+                    view.sourceAttribution.statementProvider
+                      ? "Authenticated metadata"
+                      : "Unavailable / not attributed"}
                   </p>
                 </div>
 
@@ -290,7 +333,11 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                     {view.sourceAttribution.quoteProvider || "Source unavailable"}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--muted)]">
-                    Status: {view.sourceAttribution.authenticated && view.sourceAttribution.quoteProvider ? "Authenticated metadata" : "Unavailable / not attributed"}
+                    Status:{" "}
+                    {view.sourceAttribution.authenticated &&
+                    view.sourceAttribution.quoteProvider
+                      ? "Authenticated metadata"
+                      : "Unavailable / not attributed"}
                   </p>
                 </div>
 
@@ -331,7 +378,9 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                   Citations &amp; Document Excerpts
                 </h4>
                 <p className="mt-1 text-xs text-[var(--muted)]">
-                  Source unavailable. Deep document extraction and live filing citations are bounded by external provider availability. No mock or fabricated citations are displayed.
+                  Source unavailable. Deep document extraction and live filing citations
+                  are bounded by external provider availability. No mock or fabricated
+                  citations are displayed.
                 </p>
               </div>
 
@@ -342,29 +391,47 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                   aria-expanded={showAuditDetails}
                   className="inline-flex min-h-[44px] items-center text-xs font-medium text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
-                  {showAuditDetails ? "Hide Audit & Provenance Metadata" : "Show Audit & Provenance Metadata"}
+                  {showAuditDetails
+                    ? "Hide Audit & Provenance Metadata"
+                    : "Show Audit & Provenance Metadata"}
                 </button>
 
                 {showAuditDetails ? (
                   <dl className="mt-3 grid gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3 sm:grid-cols-2">
                     <div>
-                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">Correlation ID</dt>
-                      <dd className="font-mono text-xs text-[var(--fg)] break-all">{view.correlationId || "Data unavailable"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">Pipeline Version</dt>
-                      <dd className="font-mono text-xs text-[var(--fg)]">{view.pipelineVersion || "Data unavailable"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">Total Elapsed Time</dt>
-                      <dd className="font-mono text-xs text-[var(--fg)]">
-                        {view.totalElapsedMs != null ? `${view.totalElapsedMs} ms` : "Data unavailable"}
+                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                        Correlation ID
+                      </dt>
+                      <dd className="font-mono text-xs text-[var(--fg)] break-all">
+                        {view.correlationId || "Data unavailable"}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">Analysis Timestamp</dt>
+                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                        Pipeline Version
+                      </dt>
                       <dd className="font-mono text-xs text-[var(--fg)]">
-                        {view.analysedAt ? new Date(view.analysedAt).toISOString() : "Data unavailable"}
+                        {view.pipelineVersion || "Data unavailable"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                        Total Elapsed Time
+                      </dt>
+                      <dd className="font-mono text-xs text-[var(--fg)]">
+                        {view.totalElapsedMs != null
+                          ? `${view.totalElapsedMs} ms`
+                          : "Data unavailable"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                        Analysis Timestamp
+                      </dt>
+                      <dd className="font-mono text-xs text-[var(--fg)]">
+                        {view.analysedAt
+                          ? new Date(view.analysedAt).toISOString()
+                          : "Data unavailable"}
                       </dd>
                     </div>
                   </dl>
@@ -374,7 +441,6 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
           </Card>
         </section>
 
-        
         {/* Research Copilot & Two-Way Follow-up Section */}
         <section id="copilot" className="scroll-mt-24 space-y-4">
           <Card>
@@ -387,7 +453,9 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                 <div className="flex items-center gap-2">
                   <span className="inline-flex min-h-[32px] items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs">
                     <span className="text-[var(--muted)]">Active Context:</span>
-                    <span className="font-semibold text-[var(--fg)]">{view.ticker}</span>
+                    <span className="font-semibold text-[var(--fg)]">
+                      {view.ticker}
+                    </span>
                     <span className="text-[var(--muted)]">({view.company})</span>
                   </span>
                   <Badge tone="neutral">AI Boundary: Deterministic Grounding</Badge>
@@ -403,13 +471,15 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                     Valuation & Margin of Safety
                   </h4>
                   <p className="mt-1 text-xs text-[var(--fg)]">
-                    Model: {view.valuation.method || "DCF Analysis"} · Intrinsic: {view.valuation.intrinsicValue || "Data unavailable"}
+                    Model: {view.valuation.method || "DCF Analysis"} · Intrinsic:{" "}
+                    {view.valuation.intrinsicValue || "Data unavailable"}
                   </p>
                   <Link
                     href={`/analysis?ticker=${view.ticker}&section=valuation`}
                     className="mt-2 inline-flex min-h-[44px] items-center gap-1 text-xs font-medium text-[var(--accent)] hover:underline"
                   >
-                    Explore Valuation in Analysis Workspace <ExternalLink className="size-3" />
+                    Explore Valuation in Analysis Workspace{" "}
+                    <ExternalLink className="size-3" />
                   </Link>
                 </div>
 
@@ -418,7 +488,8 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                     Security Comparison & Peer Analysis
                   </h4>
                   <p className="mt-1 text-xs text-[var(--fg)]">
-                    Compare {view.ticker} directly against sector peers across quantitative dimensions.
+                    Compare {view.ticker} directly against sector peers across
+                    quantitative dimensions.
                   </p>
                   <Link
                     href={`/analysis/compare?symbols=${view.ticker}`}
@@ -434,7 +505,9 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                   AI Provider Boundary Status
                 </p>
                 <p className="mt-1 text-xs text-[var(--muted)]">
-                  External LLM synthesis and conversational multi-turn generation are bounded by provider availability. Authoritative results above are verified and server-authoritative.
+                  External LLM synthesis and conversational multi-turn generation are
+                  bounded by provider availability. Authoritative results above are
+                  verified and server-authoritative.
                 </p>
               </div>
             </CardBody>

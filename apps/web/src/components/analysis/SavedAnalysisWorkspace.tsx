@@ -66,7 +66,10 @@ export const SavedAnalysisWorkspace = memo(function SavedAnalysisWorkspace({
   onReopen,
 }: {
   view: AnalysisWorkspaceView;
-  onReopen: (view: AnalysisWorkspaceView, meta: { ticker: string; name: string }) => void;
+  onReopen: (
+    view: AnalysisWorkspaceView,
+    meta: { ticker: string; name: string },
+  ) => void;
 }) {
   const [store, setStore] = useState<WorkspaceStore>(() =>
     typeof window === "undefined"
@@ -124,7 +127,7 @@ export const SavedAnalysisWorkspace = memo(function SavedAnalysisWorkspace({
 
   const onSaveCurrent = () => {
     const next = createSavedAnalysis(store, view, {
-      folderId: folderId === "all" ? store.folders[0]?.id ?? null : folderId,
+      folderId: folderId === "all" ? (store.folders[0]?.id ?? null) : folderId,
     });
     const created = next.analyses[0];
     persist(next, `Saved analysis “${created.name}” (local only).`);
@@ -171,7 +174,10 @@ export const SavedAnalysisWorkspace = memo(function SavedAnalysisWorkspace({
             onCreateFolder={() => setDialog({ type: "folder_create" })}
             onRenameFolder={(id) => setDialog({ type: "folder_rename", id })}
             onDeleteFolder={(id) => {
-              persist(deleteFolder(store, id), "Folder deleted (analyses moved to default).");
+              persist(
+                deleteFolder(store, id),
+                "Folder deleted (analyses moved to default).",
+              );
               if (folderId === id) setFolderId("all");
             }}
           />
@@ -237,7 +243,11 @@ export const SavedAnalysisWorkspace = memo(function SavedAnalysisWorkspace({
             </ul>
           )}
           {visible.length > listLimit ? (
-            <Button variant="secondary" size="sm" onClick={() => setListLimit((n) => n + 24)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setListLimit((n) => n + 24)}
+            >
               Show more ({visible.length - listLimit} remaining)
             </Button>
           ) : null}
@@ -396,18 +406,24 @@ function WorkspaceToolbar({
   canVersion: boolean;
 }) {
   return (
-    <div
-      className="flex flex-wrap gap-2"
-      role="toolbar"
-      aria-label="Workspace actions"
-    >
-      <Button size="sm" className="lg:hidden" variant="secondary" onClick={onOpenDrawer}>
+    <div className="flex flex-wrap gap-2" role="toolbar" aria-label="Workspace actions">
+      <Button
+        size="sm"
+        className="lg:hidden"
+        variant="secondary"
+        onClick={onOpenDrawer}
+      >
         Folders
       </Button>
       <Button size="sm" onClick={onSave}>
         Save analysis
       </Button>
-      <Button size="sm" variant="secondary" onClick={onSaveVersion} disabled={!canVersion}>
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={onSaveVersion}
+        disabled={!canVersion}
+      >
         Save as new version
       </Button>
     </div>
@@ -479,7 +495,9 @@ export function AnalysisFolderCard({
   return (
     <div
       className={`rounded-md border p-2 ${
-        selected ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)]"
+        selected
+          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+          : "border-[var(--border)]"
       }`}
     >
       <button
@@ -490,7 +508,11 @@ export function AnalysisFolderCard({
         {folder.name}
       </button>
       <div className="mt-1 flex gap-2">
-        <button type="button" className="text-xs text-[var(--accent)] underline" onClick={onRename}>
+        <button
+          type="button"
+          className="text-xs text-[var(--accent)] underline"
+          onClick={onRename}
+        >
           Rename
         </button>
         {folder.id !== "folder-default" ? (
@@ -610,11 +632,15 @@ export const AnalysisCard = memo(function AnalysisCard({
   return (
     <article
       className={`rounded-md border p-3 ${
-        selected ? "border-[var(--accent)] bg-[var(--accent-soft)]/40" : "border-[var(--border)]"
+        selected
+          ? "border-[var(--accent)] bg-[var(--accent-soft)]/40"
+          : "border-[var(--border)]"
       } ${favorite ? "border-[var(--accent)]/50" : ""}`}
     >
       {favorite ? (
-        <p className="mb-1 text-xs font-medium uppercase text-[var(--muted)]">Favorite</p>
+        <p className="mb-1 text-xs font-medium uppercase text-[var(--muted)]">
+          Favorite
+        </p>
       ) : null}
       <button
         type="button"
@@ -681,11 +707,11 @@ export function AnalysisMetadataCard({ analysis }: { analysis: SavedAnalysis }) 
       <CardBody className="grid gap-2 text-sm sm:grid-cols-2">
         <Meta label="Company" value={analysis.company} />
         <Meta label="Ticker" value={analysis.ticker} />
+        <Meta label="Analysis date" value={analysis.analysisDate ?? "Unavailable"} />
         <Meta
-          label="Analysis date"
-          value={analysis.analysisDate ?? "Unavailable"}
+          label="Last modified"
+          value={new Date(analysis.updatedAt).toLocaleString()}
         />
-        <Meta label="Last modified" value={new Date(analysis.updatedAt).toLocaleString()} />
         <Meta label="Template used" value={analysis.templateUsed} />
         <Meta label="Research mode" value={analysis.researchMode} />
         <Meta label="Confidence" value={analysis.confidenceLabel} />
@@ -1001,9 +1027,7 @@ export function DuplicateAnalysisDialog({
 }) {
   return (
     <DialogShell title="Duplicate analysis" onClose={onClose}>
-      <p className="text-sm text-[var(--muted)]">
-        Create a local copy of “{name}”?
-      </p>
+      <p className="text-sm text-[var(--muted)]">Create a local copy of “{name}”?</p>
       <div className="mt-4 flex justify-end gap-2">
         <Button variant="secondary" size="sm" onClick={onClose}>
           Cancel

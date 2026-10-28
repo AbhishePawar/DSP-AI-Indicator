@@ -5,19 +5,14 @@ import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthProvider } from "./AuthProvider";
-import {
-  clearCookieMeta,
-  clearCsrfToken,
-  readCsrfToken,
-} from "./cookieSession";
+import { clearCookieMeta, clearCsrfToken, readCsrfToken } from "./cookieSession";
 import { clearStoredSession, persistSession } from "./sessionStore";
 
 const probeCookieSession = vi.fn();
 
 vi.mock("./cookieSession", async () => {
-  const actual = await vi.importActual<typeof import("./cookieSession")>(
-    "./cookieSession",
-  );
+  const actual =
+    await vi.importActual<typeof import("./cookieSession")>("./cookieSession");
 
   return {
     ...actual,
@@ -52,10 +47,12 @@ vi.mock("@/lib/observability/logger", () => ({
 }));
 
 vi.mock("./authStore", () => ({
-  useAuthStore: (selector: (state: {
-    setAuth: ReturnType<typeof vi.fn>;
-    reset: ReturnType<typeof vi.fn>;
-  }) => unknown) =>
+  useAuthStore: (
+    selector: (state: {
+      setAuth: ReturnType<typeof vi.fn>;
+      reset: ReturnType<typeof vi.fn>;
+    }) => unknown,
+  ) =>
     selector({
       setAuth: vi.fn(),
       reset: vi.fn(),
@@ -97,7 +94,7 @@ describe("AuthProvider cookie-session restoration", () => {
       tokenType: "bearer",
       role: "research_analyst",
       roles: ["research_analyst"],
-    permissions: [],
+      permissions: [],
       subject: "u-1",
       username: "analyst1",
       displayName: "Analyst One",
@@ -166,13 +163,16 @@ describe("AuthProvider cookie-session restoration", () => {
       }),
     );
     const lastCall = fetchMock.mock.calls.find((call) =>
-      String(call[0]).includes("/auth/logout")
+      String(call[0]).includes("/auth/logout"),
     );
     if (!lastCall) {
       throw new Error("expected a fetch call to /auth/logout");
     }
     const headers = lastCall[1].headers;
-    const csrfSent = headers instanceof Headers ? headers.get("X-CSRF-Token") : headers["X-CSRF-Token"];
+    const csrfSent =
+      headers instanceof Headers
+        ? headers.get("X-CSRF-Token")
+        : headers["X-CSRF-Token"];
     expect(csrfSent).toBe("csrf-restored");
     vi.unstubAllGlobals();
   });

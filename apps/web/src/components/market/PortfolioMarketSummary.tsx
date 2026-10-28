@@ -14,15 +14,8 @@ import { LiveMarketDataLabel } from "./MarketStatusIndicator";
 import { MarketStatusIndicator } from "./MarketStatusIndicator";
 import { RefreshButton } from "./RefreshButton";
 
-export function PortfolioMarketSummary({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
-  const tickers = useMemo(
-    () => holdings.map((h) => h.ticker),
-    [holdings],
-  );
+export function PortfolioMarketSummary({ holdings }: { holdings: PortfolioHolding[] }) {
+  const tickers = useMemo(() => holdings.map((h) => h.ticker), [holdings]);
   const { quotes, status, refresh, isRefreshing, lastUpdated } =
     useMarketQuotes(tickers);
 
@@ -34,7 +27,9 @@ export function PortfolioMarketSummary({
   if (!holdings.length) return null;
 
   const dayTone =
-    summary.dayChange != null && summary.dayChange >= 0 ? "text-[var(--accent)]" : "text-[var(--danger-fg)]";
+    summary.dayChange != null && summary.dayChange >= 0
+      ? "text-[var(--accent)]"
+      : "text-[var(--danger-fg)]";
 
   return (
     <Card className="border-[var(--accent-soft)]">
@@ -66,9 +61,7 @@ export function PortfolioMarketSummary({
           <div>
             <p className="text-xs text-[var(--muted)]">Last Updated</p>
             <p className="mt-1 font-mono text-sm">
-              {lastUpdated
-                ? new Date(lastUpdated).toLocaleString()
-                : "—"}
+              {lastUpdated ? new Date(lastUpdated).toLocaleString() : "—"}
             </p>
           </div>
         </div>

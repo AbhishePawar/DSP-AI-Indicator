@@ -58,7 +58,9 @@ export const TransparencyPanel = memo(function TransparencyPanel({
 function Field({ label, text }: { label: string; text: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        {label}
+      </p>
       <p className="mt-1">{text}</p>
     </div>
   );
@@ -67,7 +69,9 @@ function Field({ label, text }: { label: string; text: string }) {
 function List({ label, items }: { label: string; items: string[] }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        {label}
+      </p>
       <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
         {items.map((i) => (
           <li key={i}>{i}</li>

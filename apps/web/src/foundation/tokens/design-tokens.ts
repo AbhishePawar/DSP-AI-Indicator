@@ -42,8 +42,8 @@ export const colorTokens = {
 export const forbiddenAccents = ["purple", "magenta", "neon"] as const;
 
 export const typographyTokens = {
-  display: 'var(--font-display)',
-  body: 'var(--font-body)',
+  display: "var(--font-display)",
+  body: "var(--font-body)",
   scale: {
     xs: "0.75rem",
     sm: "0.875rem",
@@ -109,7 +109,6 @@ export const zIndexTokens = {
   modal: 60,
   toast: 70,
 } as const;
-
 
 export const shadowTokens = {
   sm: "var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.4))",

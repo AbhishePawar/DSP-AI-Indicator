@@ -158,19 +158,11 @@ describe("P2.3 valuation transparency", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     expect(view.valuationTransparency.kind).toBe("valuation_transparency");
-    expect(view.valuationTransparency.version).toBe(
-      VALUATION_TRANSPARENCY_VERSION,
-    );
+    expect(view.valuationTransparency.version).toBe(VALUATION_TRANSPARENCY_VERSION);
     expect(view.valuationTransparency.methods).toHaveLength(8);
-    const dcf = view.valuationTransparency.methods.find(
-      (m) => m.methodName === "DCF",
-    );
+    const dcf = view.valuationTransparency.methods.find((m) => m.methodName === "DCF");
     expect(dcf?.status).toBe("Available");
     expect(dcf?.weight).toBe("Unavailable");
     expect(dcf?.contributionToConsensus).toBe("Unavailable");
@@ -179,9 +171,7 @@ describe("P2.3 valuation transparency", () => {
     );
     expect(reverse?.status).toBe("Unavailable");
     expect(reverse?.intrinsicValue).toBe("Unavailable");
-    expect(view.valuationTransparency.consensus.highestValuation).toBe(
-      "Unavailable",
-    );
+    expect(view.valuationTransparency.consensus.highestValuation).toBe("Unavailable");
     expect(view.valuationTransparency.consensus.numberOfMethodsUsed).toBe(
       "Unavailable",
     );
@@ -202,11 +192,7 @@ describe("P2.3 valuation transparency", () => {
       premium_discount: null,
       confidence: 0.7,
     };
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const vt = mapValuationTransparency(view);
     expect(vt.consensus.dispersionIndicator).toBe("Unavailable");
     expect(vt.consensus.lowestValuation).toBe("Unavailable");
@@ -218,16 +204,8 @@ describe("P2.3 valuation transparency", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
-    render(
-      <ValuationTransparencySection
-        transparency={view.valuationTransparency}
-      />,
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
+    render(<ValuationTransparencySection transparency={view.valuationTransparency} />);
     expect(screen.getByText("Executive Valuation Card")).toBeTruthy();
     expect(screen.getByText("Valuation Method Cards")).toBeTruthy();
     expect(screen.getByText("Consensus Panel")).toBeTruthy();
@@ -242,11 +220,7 @@ describe("P2.3 valuation transparency", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const json = researchViewToJson(view);
     const html = researchViewToHtml(view);
     const csv = researchViewToCsv(view);

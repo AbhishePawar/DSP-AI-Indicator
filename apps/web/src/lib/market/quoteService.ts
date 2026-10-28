@@ -38,9 +38,7 @@ export function seedQuoteForTicker(ticker: string): MarketQuote {
   const previousClose = Number((base * 0.985).toFixed(2));
   const currentPrice = Number((base * (1 + ((hash % 7) - 3) / 1000)).toFixed(2));
   const dailyChange = Number((currentPrice - previousClose).toFixed(2));
-  const dailyChangePercent = Number(
-    ((dailyChange / previousClose) * 100).toFixed(2),
-  );
+  const dailyChangePercent = Number(((dailyChange / previousClose) * 100).toFixed(2));
   const marketCapBillions =
     catalogue?.marketCapBucket === "large"
       ? 200 + (hash % 2800)
@@ -83,17 +81,13 @@ export function marketQuoteFromAuthenticated(
       : currentPrice;
   const dailyChange = Number((currentPrice - previousClose).toFixed(2));
   const dailyChangePercent =
-    previousClose > 0
-      ? Number(((dailyChange / previousClose) * 100).toFixed(2))
-      : 0;
+    previousClose > 0 ? Number(((dailyChange / previousClose) * 100).toFixed(2)) : 0;
   const week52High =
-    payload.fields.week_52_high != null &&
-    Number.isFinite(payload.fields.week_52_high)
+    payload.fields.week_52_high != null && Number.isFinite(payload.fields.week_52_high)
       ? Number(payload.fields.week_52_high)
       : null;
   const week52Low =
-    payload.fields.week_52_low != null &&
-    Number.isFinite(payload.fields.week_52_low)
+    payload.fields.week_52_low != null && Number.isFinite(payload.fields.week_52_low)
       ? Number(payload.fields.week_52_low)
       : null;
 
@@ -116,8 +110,7 @@ export function marketQuoteFromAuthenticated(
     dailyChange,
     dailyChangePercent,
     marketCap:
-      payload.fields.market_cap != null &&
-      Number.isFinite(payload.fields.market_cap)
+      payload.fields.market_cap != null && Number.isFinite(payload.fields.market_cap)
         ? Number(payload.fields.market_cap)
         : null,
     volume:

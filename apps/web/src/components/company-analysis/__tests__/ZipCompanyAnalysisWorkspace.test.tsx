@@ -121,7 +121,9 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     // When stages are missing, criteria should reflect unavailable/neutral status
     expect(model.buffettRows.length).toBe(10);
     model.buffettRows.forEach((row) => {
-      expect(["strong", "watch", "weak", "neutral", "unavailable"]).toContain(row.status);
+      expect(["strong", "watch", "weak", "neutral", "unavailable"]).toContain(
+        row.status,
+      );
     });
   });
 
@@ -132,8 +134,18 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       payload: {
         ok: true,
         risk: {
-          business_risk: { category: "business", available: true, level: "low", message: "Stable market position" },
-          financial_risk: { category: "financial", available: true, level: "low", message: "Zero debt" },
+          business_risk: {
+            category: "business",
+            available: true,
+            level: "low",
+            message: "Stable market position",
+          },
+          financial_risk: {
+            category: "financial",
+            available: true,
+            level: "low",
+            message: "Zero debt",
+          },
           regulatory_risk: { category: "regulatory", available: false },
           technology_risk: { category: "technology", available: false },
           currency_risk: { category: "currency", available: false },
@@ -166,7 +178,10 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       pipeline_version: "1.0",
       correlation_id: "corr-empty",
     };
-    const model = mapZipResearchView(emptyResponse, { ticker: "INFY", exchange: "NSE" });
+    const model = mapZipResearchView(emptyResponse, {
+      ticker: "INFY",
+      exchange: "NSE",
+    });
     expect(model.symbol).toBe("INFY");
     expect(model.currentPrice).toBe("Unavailable");
     expect(model.intrinsicValue).toBe("Unavailable");
@@ -188,12 +203,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     };
     const model = mapZipResearchView(mockResponse, { ticker: "TCS", exchange: "NSE" });
 
-    render(
-      <CompanyHeader
-        model={model}
-        onModeSwitch={() => {}}
-      />
-    );
+    render(<CompanyHeader model={model} onModeSwitch={() => {}} />);
 
     const searchElements = screen.getAllByLabelText(/Company search/i);
     expect(searchElements.length).toBe(1);
@@ -220,7 +230,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     } as any;
 
     const { getByText, getByRole } = render(
-      <EvidenceExplorerSection model={mockModel} analysisId="test-analysis-123" />
+      <EvidenceExplorerSection model={mockModel} analysisId="test-analysis-123" />,
     );
 
     // Provenance rendering
@@ -241,7 +251,9 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     expect(getByText("25.4%")).toBeDefined();
 
     // Expand item details
-    const detailsBtn = getByRole("button", { name: /Toggle details for Operating Margin/i });
+    const detailsBtn = getByRole("button", {
+      name: /Toggle details for Operating Margin/i,
+    });
     expect(detailsBtn).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(detailsBtn);
     expect(detailsBtn).toHaveAttribute("aria-expanded", "true");
@@ -255,14 +267,14 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     } as any;
 
     const { getByRole, getByText } = render(
-      <EvidenceExplorerSection model={emptyModel} />
+      <EvidenceExplorerSection model={emptyModel} />,
     );
 
     const trailToggle = getByRole("button", { name: /View evidence trail/i });
     fireEvent.click(trailToggle);
 
     expect(
-      getByText("No evidence items reported by the backend analytical pipeline.")
+      getByText("No evidence items reported by the backend analytical pipeline."),
     ).toBeDefined();
   });
 
@@ -283,7 +295,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     } as any;
 
     const { getByRole, getByText } = render(
-      <EvidenceExplorerSection model={noSourceModel} />
+      <EvidenceExplorerSection model={noSourceModel} />,
     );
 
     const trailToggle = getByRole("button", { name: /View evidence trail/i });
@@ -345,7 +357,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
             <InvestmentSummary model={model} onAsk={() => {}} />
             <ValuationSection model={model} onAsk={() => {}} />
             <EvidenceExplorerSection model={model} />
-          </div>
+          </div>,
         );
 
         expect(container).toBeDefined();
@@ -403,7 +415,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         <InvestmentSummary model={model} onAsk={() => {}} />
         <ValuationSection model={model} onAsk={() => {}} />
         <EvidenceExplorerSection model={model} />
-      </div>
+      </div>,
     );
 
     // Metric cards rendered
@@ -435,9 +447,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         evidence: [],
       } as any;
 
-      const { getByText } = render(
-        <EvidenceExplorerSection model={model} />
-      );
+      const { getByText } = render(<EvidenceExplorerSection model={model} />);
 
       expect(getByText("Data unavailable")).toBeDefined();
     });
@@ -449,11 +459,11 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         evidence: [],
       } as any;
 
-      const { container } = render(
-        <EvidenceExplorerSection model={model} />
-      );
+      const { container } = render(<EvidenceExplorerSection model={model} />);
 
-      expect(within(container).getAllByText("Unavailable").length).toBeGreaterThanOrEqual(1);
+      expect(
+        within(container).getAllByText("Unavailable").length,
+      ).toBeGreaterThanOrEqual(1);
     });
 
     it("handles missing research objects and stage summaries without fabricating AI or financial data", () => {
@@ -471,7 +481,10 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         correlation_id: "corr-no-research",
       };
 
-      const model = mapZipResearchView(emptyResponse, { ticker: "TEST", exchange: "NSE" });
+      const model = mapZipResearchView(emptyResponse, {
+        ticker: "TEST",
+        exchange: "NSE",
+      });
 
       expect(model.analysisId).toBeNull();
       expect(model.auditReference).toBeNull();
@@ -501,7 +514,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       } as any;
 
       const { getByRole, getByText } = render(
-        <EvidenceExplorerSection model={emptySourceModel} />
+        <EvidenceExplorerSection model={emptySourceModel} />,
       );
 
       const toggle = getByRole("button", { name: /View evidence trail/i });
@@ -531,7 +544,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       return render(
         <QueryClientProvider client={queryClient}>
           <ZipCompanyAnalysisWorkspace initialResponse={response} />
-        </QueryClientProvider>
+        </QueryClientProvider>,
       );
     };
 
@@ -579,7 +592,9 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         },
       ];
 
-      expect(TOC_GROUPS.map((g) => ({ label: g.label, items: g.items }))).toEqual(expectedGroups);
+      expect(TOC_GROUPS.map((g) => ({ label: g.label, items: g.items }))).toEqual(
+        expectedGroups,
+      );
 
       // Verify Key Risks is under RISKS and not FUNDAMENTALS
       const fundamentalsGroup = TOC_GROUPS.find((g) => g.label === "FUNDAMENTALS");
@@ -590,7 +605,22 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
 
     it("contains all 14 section IDs in the flattened section list without omissions or fabrications", () => {
       expect(ALL_SECTIONS.length).toBe(14);
-      const expectedIds = ["s01", "s04", "s09", "s10", "s03", "s02", "s06", "s07", "s08", "s11", "s12", "s13", "s14", "s15"];
+      const expectedIds = [
+        "s01",
+        "s04",
+        "s09",
+        "s10",
+        "s03",
+        "s02",
+        "s06",
+        "s07",
+        "s08",
+        "s11",
+        "s12",
+        "s13",
+        "s14",
+        "s15",
+      ];
       expect(ALL_SECTIONS.map((s) => s.id)).toEqual(expectedIds);
     });
 
@@ -614,7 +644,9 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       const downloadsBtns = getAllByRole("button", { name: "Downloads" });
       expect(downloadsBtns.length).toBeGreaterThanOrEqual(1);
 
-      const summaryBtns = getAllByRole("button", { name: /Executive Summary|Summary/i });
+      const summaryBtns = getAllByRole("button", {
+        name: /Executive Summary|Summary/i,
+      });
       expect(summaryBtns.length).toBeGreaterThanOrEqual(1);
     });
 
@@ -627,7 +659,9 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       expect(activeItem?.textContent).toContain("Executive Summary");
 
       // Dynamic progress indicator is present derived from section list
-      const progressBar = getByRole("progressbar", { name: "Analysis reading progress" });
+      const progressBar = getByRole("progressbar", {
+        name: "Analysis reading progress",
+      });
       expect(progressBar).toHaveAttribute("aria-valuenow", "1");
       expect(progressBar).toHaveAttribute("aria-valuemax", "14");
       expect(nav.textContent).toContain("Section 1 of 14");
@@ -720,11 +754,15 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
             {message.citations.join(" · ")}
           </div>
         )}
-      </div>
+      </div>,
     );
 
-    expect(getByText("Apple maintains an exceptional return on invested capital.")).toBeDefined();
-    expect(getByText(/10-K FY2025 Item 7 · Buffett Indicator Methodology §3.2/)).toBeDefined();
+    expect(
+      getByText("Apple maintains an exceptional return on invested capital."),
+    ).toBeDefined();
+    expect(
+      getByText(/10-K FY2025 Item 7 · Buffett Indicator Methodology §3.2/),
+    ).toBeDefined();
     // Proves raw JSON is not dumped
     expect(queryByText(/\{"citations"/)).toBeNull();
   });
@@ -745,7 +783,7 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
             {message.citations.join(" · ")}
           </div>
         )}
-      </div>
+      </div>,
     );
 
     expect(queryByTestId("citations")).toBeNull();
@@ -759,7 +797,11 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
         ok: true,
         ticker: "AAPL",
         company: "Apple Inc",
-        recommendation_summary: { decision: "Buy", confidence: 0.85, margin_of_safety: 0.2 },
+        recommendation_summary: {
+          decision: "Buy",
+          confidence: 0.85,
+          margin_of_safety: 0.2,
+        },
       },
       limitations: [],
       errors: [],
@@ -785,5 +827,4 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
     expect(payload.response.payload.recommendation_summary).toBeDefined();
     expect(payload.response.payload.recommendation_summary?.decision).toBe("Buy");
   });
-
 });

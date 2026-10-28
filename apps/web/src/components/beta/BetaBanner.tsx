@@ -16,8 +16,7 @@ export function BetaBanner({
   if (!featureFlags.betaBanner && !featureFlags.closedBeta) return null;
 
   const campaign = text?.trim() || null;
-  const immutableDisclaimer =
-    "Research tools only — not investment advice.";
+  const immutableDisclaimer = "Research tools only — not investment advice.";
 
   return (
     <div

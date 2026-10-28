@@ -15,7 +15,9 @@ for (const vp of VIEWPORTS) {
   test.describe(`Global Shell visual baseline — ${vp.name}`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height } });
 
-    test("header, sidebar, content width, and breadcrumbs baseline", async ({ page }) => {
+    test("header, sidebar, content width, and breadcrumbs baseline", async ({
+      page,
+    }) => {
       await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
       await page.waitForTimeout(300);
 
@@ -32,7 +34,9 @@ for (const vp of VIEWPORTS) {
       }
 
       // Verify full shell layout baseline
-      await expect(page).toHaveScreenshot(`shell-layout-${vp.name}.png`, { fullPage: false });
+      await expect(page).toHaveScreenshot(`shell-layout-${vp.name}.png`, {
+        fullPage: false,
+      });
     });
   });
 }

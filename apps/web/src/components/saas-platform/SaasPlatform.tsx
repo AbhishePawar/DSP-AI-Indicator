@@ -141,8 +141,7 @@ export function SaasPlatform() {
       void qc.invalidateQueries({ queryKey: ["saas-orgs"] });
       void qc.invalidateQueries({ queryKey: ["saas-dashboard"] });
     },
-    onError: (err) =>
-      setStatusMsg((err as Error).message || "Data unavailable."),
+    onError: (err) => setStatusMsg((err as Error).message || "Data unavailable."),
   });
 
   const subscribe = useMutation({
@@ -167,10 +166,7 @@ export function SaasPlatform() {
   const checkout = useMutation({
     mutationFn: () => {
       if (!selectedOrgId) throw new Error("Select an organization");
-      return api.saasCheckout(
-        { org_id: selectedOrgId, plan_id: planId },
-        opts,
-      );
+      return api.saasCheckout({ org_id: selectedOrgId, plan_id: planId }, opts);
     },
     onSuccess: (res) => {
       const msg =
@@ -303,9 +299,7 @@ export function SaasPlatform() {
 
       {tab === "dashboard" ? (
         <Suspense
-          fallback={
-            <p className="text-xs text-[var(--muted)]">Loading dashboard…</p>
-          }
+          fallback={<p className="text-xs text-[var(--muted)]">Loading dashboard…</p>}
         >
           <LazyAdminDashboard
             data={dashQuery.data?.result}
@@ -374,11 +368,7 @@ export function SaasPlatform() {
               ) : null}
             </ul>
             {selectedOrgId ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => archiveOrg.mutate()}
-              >
+              <Button size="sm" variant="secondary" onClick={() => archiveOrg.mutate()}>
                 Archive selected
               </Button>
             ) : null}
@@ -388,9 +378,7 @@ export function SaasPlatform() {
 
       {tab === "plans" ? (
         <Suspense
-          fallback={
-            <p className="text-xs text-[var(--muted)]">Loading plans…</p>
-          }
+          fallback={<p className="text-xs text-[var(--muted)]">Loading plans…</p>}
         >
           <LazyPlanMatrix data={plansQuery.data?.result} />
         </Suspense>
@@ -399,9 +387,7 @@ export function SaasPlatform() {
       {tab === "subscription" ? (
         <section className="space-y-3 rounded-md border border-[var(--border)] p-3">
           {!selectedOrgId ? (
-            <p className="text-sm text-[var(--muted)]">
-              Select an organization first.
-            </p>
+            <p className="text-sm text-[var(--muted)]">Select an organization first.</p>
           ) : (
             <>
               <select
@@ -419,11 +405,7 @@ export function SaasPlatform() {
                 <Button size="sm" onClick={() => subscribe.mutate()}>
                   Assign subscription
                 </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => checkout.mutate()}
-                >
+                <Button size="sm" variant="secondary" onClick={() => checkout.mutate()}>
                   Checkout
                 </Button>
               </div>
@@ -438,14 +420,12 @@ export function SaasPlatform() {
       {tab === "billing" ? (
         <section className="space-y-3 rounded-md border border-[var(--border)] p-3">
           {!selectedOrgId ? (
-            <p className="text-sm text-[var(--muted)]">
-              Select an organization first.
-            </p>
+            <p className="text-sm text-[var(--muted)]">Select an organization first.</p>
           ) : (
             <>
               <Alert variant="warning" title="Billing provider interfaces only.">
-                Checkout and invoices stay unavailable until a payment gateway
-                is configured. No fake charges.
+                Checkout and invoices stay unavailable until a payment gateway is
+                configured. No fake charges.
               </Alert>
               <Input
                 value={taxId}
@@ -467,9 +447,7 @@ export function SaasPlatform() {
       {tab === "license" ? (
         <section className="rounded-md border border-[var(--border)] p-3">
           {!selectedOrgId ? (
-            <p className="text-sm text-[var(--muted)]">
-              Select an organization first.
-            </p>
+            <p className="text-sm text-[var(--muted)]">Select an organization first.</p>
           ) : (
             <pre className="max-h-80 overflow-auto whitespace-pre-wrap text-xs">
               {JSON.stringify(licenseQuery.data?.result || {}, null, 2)}
@@ -481,9 +459,7 @@ export function SaasPlatform() {
       {tab === "usage" ? (
         <section className="rounded-md border border-[var(--border)] p-3">
           {!selectedOrgId ? (
-            <p className="text-sm text-[var(--muted)]">
-              Select an organization first.
-            </p>
+            <p className="text-sm text-[var(--muted)]">Select an organization first.</p>
           ) : (
             <pre className="max-h-80 overflow-auto whitespace-pre-wrap text-xs">
               {JSON.stringify(usageQuery.data?.result || {}, null, 2)}
@@ -495,9 +471,7 @@ export function SaasPlatform() {
       {tab === "settings" ? (
         <section className="space-y-3 rounded-md border border-[var(--border)] p-3">
           {!selectedOrgId ? (
-            <p className="text-sm text-[var(--muted)]">
-              Select an organization first.
-            </p>
+            <p className="text-sm text-[var(--muted)]">Select an organization first.</p>
           ) : (
             <>
               <Input

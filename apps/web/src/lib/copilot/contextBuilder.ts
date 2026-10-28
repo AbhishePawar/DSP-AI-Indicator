@@ -8,15 +8,9 @@ import {
   mapAnalyseResponse,
   type IntelligenceView,
 } from "@/lib/intelligence/mapResponse";
-import type {
-  CopilotCompanyContext,
-  StageFieldSummary,
-} from "./types";
+import type { CopilotCompanyContext, StageFieldSummary } from "./types";
 
-function stageSummary(
-  view: IntelligenceView,
-  stageName: string,
-): StageFieldSummary {
+function stageSummary(view: IntelligenceView, stageName: string): StageFieldSummary {
   const stage = view.stages.find((s) => s.stage === stageName);
   if (!stage) {
     return {
@@ -30,10 +24,10 @@ function stageSummary(
   }
   const available = Boolean(
     stage.label ||
-      stage.decision ||
-      stage.score != null ||
-      stage.confidence != null ||
-      stage.status === "succeeded",
+    stage.decision ||
+    stage.score != null ||
+    stage.confidence != null ||
+    stage.status === "succeeded",
   );
   return {
     status: stage.status ?? null,
@@ -58,8 +52,7 @@ export function buildCopilotContext(
     exchange: request?.exchange ?? null,
     recommendation: view.recommendation,
     recommendationConfidence: view.recommendationConfidence,
-    intrinsicValue:
-      request?.valuation_signals?.intrinsic_value_per_share ?? null,
+    intrinsicValue: request?.valuation_signals?.intrinsic_value_per_share ?? null,
     currentPrice:
       request?.current_market_price ??
       request?.valuation_signals?.current_market_price ??

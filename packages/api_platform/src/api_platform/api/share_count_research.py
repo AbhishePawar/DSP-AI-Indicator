@@ -167,7 +167,10 @@ def _evidence_is_grounded(
     return quoted_count, as_of
 
 
-def build_share_count_researcher() -> Callable[[str, str | None, str | None], ShareCountResearchEvidence | None] | None:
+def build_share_count_researcher() -> (
+    Callable[[str, str | None, str | None], ShareCountResearchEvidence | None]
+    | None
+):
     """Build a callback around configured Gemini/OpenAI adapters, or return None."""
     try:
         registry = build_default_registry()

@@ -52,9 +52,9 @@ class CompositionRequest:
     exchange: str | None = None
     stop_on_stage_failure: bool = False
     # Internal server-only callback; never populated from the HTTP request body.
-    research_missing_shares: Callable[[str, str | None, str | None], Any] | None = field(
-        default=None, repr=False, compare=False
-    )
+    research_missing_shares: Callable[
+        [str, str | None, str | None], Any
+    ] | None = field(default=None, repr=False, compare=False)
 
 
 @dataclass(frozen=True, slots=True)

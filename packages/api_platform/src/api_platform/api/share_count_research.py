@@ -8,6 +8,7 @@ returns None so the valuation path remains fail-closed.
 from __future__ import annotations
 
 import http.cookiejar
+from collections.abc import Callable
 import json
 import math
 import re
@@ -166,7 +167,7 @@ def _evidence_is_grounded(
     return quoted_count, as_of
 
 
-def build_share_count_researcher():
+def build_share_count_researcher() -> Callable[[str, str | None, str | None], ShareCountResearchEvidence | None] | None:
     """Build a callback around configured Gemini/OpenAI adapters, or return None."""
     try:
         registry = build_default_registry()
@@ -188,7 +189,9 @@ def build_share_count_researcher():
     except Exception:  # noqa: BLE001 - optional AI adapters are not mandatory to boot
         return None
 
-    def research(ticker: str, company_name: str | None, exchange: str | None):
+    def research(
+        ticker: str, company_name: str | None, exchange: str | None
+    ) -> ShareCountResearchEvidence | None:
         symbol = ticker.strip().upper()
         fetched = _fetch_nse_record(symbol)
         if fetched is None:

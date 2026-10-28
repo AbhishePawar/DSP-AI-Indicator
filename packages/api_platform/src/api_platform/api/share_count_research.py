@@ -223,20 +223,25 @@ def build_share_count_researcher():
             return None
         grounded = [
             _evidence_is_grounded(item, source_text, symbol, source_date)
+            if item is not None
+            else None
             for item in parsed
-            if item
         ]
-        if len(grounded) != 2 or any(item is None for item in grounded):
+        valid = [item for item in grounded if item is not None]
+        if not valid:
             return None
-        first, second = grounded
-        assert first is not None and second is not None
-        count_a, date_a = first
-        count_b, date_b = second
-        if (
-            date_a != date_b
-            or abs(count_a - count_b) / max(count_a, count_b) > 0.000001
-        ):
+        # The official field is deterministic; one AI verifier may be unavailable
+        # (e.g. provider quota). If both return grounded evidence, they must agree.
+        count_a, date_a = valid[0]
+        if abs(count_a - float(source_count)) > 0.000001:
             return None
+        if len(valid) > 1:
+            count_b, date_b = valid[1]
+            if (
+                date_a != date_b
+                or abs(count_a - count_b) / max(count_a, count_b) > 0.000001
+            ):
+                return None
         return ShareCountResearchEvidence(
             ticker=symbol,
             shares_outstanding=count_a,

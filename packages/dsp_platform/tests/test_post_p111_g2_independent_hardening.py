@@ -18,6 +18,7 @@ from data_engine.evidence_classes import (
 )
 from dsp_platform.composition.authenticated_valuation import (
     AuthenticatedValuationError,
+    ShareCountResearchEvidence,
     _resolve_shares,
     _select_homogeneous_periods,
 )
@@ -81,3 +82,69 @@ def test_shares_from_authenticated_quote() -> None:
         eps_diluted=SimpleNamespace(available=True, value=1.0),
     )
     assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
+
+
+
+def test_researched_shares_require_explicit_valid_evidence() -> None:
+    from dsp_platform.composition.authenticated_valuation import _resolve_researched_shares
+
+    evidence = ShareCountResearchEvidence(
+        ticker="ABC",
+        shares_outstanding=50_000_000,
+        source="Issuer annual report",
+        evidence_url="https://example.com/annual-report.pdf",
+        as_of="2025-03-31",
+    )
+    shares, provenance = _resolve_researched_shares(
+        "ABC", "ABC Ltd", "NSE", lambda *_: evidence
+    )
+    assert shares == 50_000_000
+    assert provenance["evidence_url"] == "https://example.com/annual-report.pdf"
+    assert provenance["evidence_class"] == "public_research_unverified_for_g2"
+
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        None,
+        ShareCountResearchEvidence(
+            ticker="OTHER",
+            shares_outstanding=50_000_000,
+            source="Issuer report",
+            evidence_url="https://example.com/report",
+        ),
+        ShareCountResearchEvidence(
+            ticker="ABC",
+            shares_outstanding=-1,
+            source="Issuer report",
+            evidence_url="https://example.com/report",
+        ),
+        ShareCountResearchEvidence(
+            ticker="ABC",
+            shares_outstanding=float("nan"),
+            source="Issuer report",
+            evidence_url="https://example.com/report",
+        ),
+        ShareCountResearchEvidence(
+            ticker="ABC",
+            shares_outstanding=50_000_000,
+            source="",
+            evidence_url="",
+        ),
+    ],
+)
+def test_researched_shares_reject_invalid_or_unverifiable_evidence(evidence) -> None:
+    from dsp_platform.composition.authenticated_valuation import (
+        ShareCountResearchEvidence,
+        _resolve_researched_shares,
+    )
+
+    with pytest.raises(AuthenticatedValuationError):
+        _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: evidence)
+
+
+def test_researched_shares_fail_closed_when_adapter_not_configured() -> None:
+    from dsp_platform.composition.authenticated_valuation import _resolve_researched_shares
+
+    with pytest.raises(AuthenticatedValuationError, match="not configured"):
+        _resolve_researched_shares("ABC", "ABC Ltd", "NSE", None)

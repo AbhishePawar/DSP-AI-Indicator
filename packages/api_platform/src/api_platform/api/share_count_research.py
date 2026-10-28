@@ -8,10 +8,10 @@ returns None so the valuation path remains fail-closed.
 from __future__ import annotations
 
 import http.cookiejar
-from collections.abc import Callable
 import json
 import math
 import re
+from collections.abc import Callable
 from datetime import date, datetime
 from typing import Any
 from urllib.parse import quote

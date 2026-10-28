@@ -13,7 +13,11 @@ from dsp_platform.composition import pipeline
 def test_pipeline_passes_researcher_to_authenticated_loader(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    callback = lambda ticker, company_name, exchange: None
+    def callback(
+        ticker: str, company_name: str | None, exchange: str | None
+    ) -> None:
+        return None
+
     bundle = object()
     seen: dict[str, Any] = {}
 

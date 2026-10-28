@@ -239,58 +239,48 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     """
     from data_engine.connector_framework.production_profile import (
         ConnectorConfigurationError,
-        is_production_environment,
         memory_adapter_allowed,
+        require_authenticated_http_adapter,
     )
-
-    api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
-    base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
-    if is_production_environment():
-        # Preserve the explicit test failure for attempted memory-adapter use,
-        # even when its credentials are also absent.
-        memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote")
-        selected = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
-        quote_selected = os.environ.get("DSP_MARKET_QUOTE_PROVIDER", "").strip().lower()
-        for variable, value in (
-            ("DSP_INVESTMENT_DATA_PROVIDER", selected),
-            ("DSP_MARKET_QUOTE_PROVIDER", quote_selected),
-        ):
-            if value and value not in {"http", "auto"}:
-                raise ConnectorConfigurationError(
-                    f"P1-03: invalid {variable}={value!r}; "
-                    "allowed values: http, auto (or unset); commercial vendors are disabled"
-                )
-        if not api_key:
-            raise ConnectorConfigurationError(
-                "P1-03: production market_quote requires DSP_MARKET_QUOTE_API_KEY"
-            )
-        if not base_url:
-            raise ConnectorConfigurationError(
-                "P1-03: production market_quote requires DSP_MARKET_QUOTE_BASE_URL"
-            )
-    if api_key and base_url:
-        return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
-
-    quote_provider = os.environ.get("DSP_MARKET_QUOTE_PROVIDER", "").strip().lower()
-    inv_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
-    upstox_token = (
-        os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
-        or os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", "").strip()
-        or os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
-    )
-
-    if quote_provider == "upstox" or inv_provider == "upstox":
-        if upstox_token:
-            from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
-
-            return UpstoxQuoteAdapter(access_token=upstox_token)
-        return NullAuthenticatedQuoteAdapter()
-
-    if os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip():
+    selected_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    if selected_provider == "upstox":
+        from data_engine.connector_framework.production_profile import (
+            ConnectorConfigurationError,
+        )
         from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 
-        return UpstoxQuoteAdapter(access_token=os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip())
+        # Prefer the canonical application credential. Legacy aliases remain
+        # supported for existing deployments; values are never logged.
+        token = (
+            os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
+            or os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", "").strip()
+            or os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
+        )
+        if not token:
+            raise ConnectorConfigurationError(
+                "Upstox selected but credentials are missing; set "
+                "DSP_UPSTOX_ANALYTICS_TOKEN."
+            )
+        return UpstoxQuoteAdapter(access_token=token)
 
-    if memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote"):
+    from data_engine.investment_data_provider import resolve_investment_data_provider
+
+    resolve_investment_data_provider()
+
+    memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote")
+    api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
+    base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
+    require_authenticated_http_adapter(
+        connector="market_quote",
+        api_key=api_key,
+        base_url=base_url,
+        api_key_env="DSP_MARKET_QUOTE_API_KEY",
+        base_url_env="DSP_MARKET_QUOTE_BASE_URL",
+    )
+    if api_key and base_url:
+        return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
+    if os.environ.get("DSP_MARKET_QUOTE_MEMORY", "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }:
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
     return NullAuthenticatedQuoteAdapter()

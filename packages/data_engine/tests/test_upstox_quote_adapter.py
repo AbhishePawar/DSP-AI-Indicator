@@ -426,6 +426,7 @@ def test_v3_quote_unresolved_instrument_returns_none() -> None:
 
 
 def test_factory_selection_with_upstox_access_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("UPSTOX_ACCESS_TOKEN", "mock_server_token_123")
     monkeypatch.delenv("DSP_MARKET_QUOTE_API_KEY", raising=False)
     monkeypatch.delenv("DSP_MARKET_QUOTE_BASE_URL", raising=False)

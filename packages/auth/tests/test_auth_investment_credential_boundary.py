@@ -223,6 +223,7 @@ def test_d_health_ready_while_investment_limitation_visible(
             "DSP_INVESTMENT_DATA_PROVIDER",
             "investment_capability",
             "P1-03",
+            "DSP_UPSTOX_ANALYTICS_TOKEN",
         )
     )
 
@@ -308,16 +309,14 @@ def test_f_auth_tests_and_sources_do_not_init_upstox_investment() -> None:
 def test_f_upstox_still_selected_when_token_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """G-adjacent: investment path intact with proper Upstox credentials in development, fails closed in production."""
+    """G-adjacent: Upstox is selected with proper credentials in development and production."""
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
     quote = build_default_quote_adapter_from_env()
     assert type(quote).__name__ == "UpstoxQuoteAdapter"
 
-    # In production, commercial vendors are disabled and fail closed
+    # Upstox is an allowed production provider when its credential is present.
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    with pytest.raises(
-        ConnectorConfigurationError, match=r"commercial vendors are disabled"
-    ):
-        build_default_quote_adapter_from_env()
+    quote = build_default_quote_adapter_from_env()
+    assert type(quote).__name__ == "UpstoxQuoteAdapter"

@@ -37,6 +37,7 @@ def _clear_connector_env(monkeypatch: pytest.MonkeyPatch) -> None:
             "DSP_INVESTMENT_DATA_PROVIDER",
             "DSP_UPSTOX_ANALYTICS_TOKEN",
             "DSP_UPSTOX_ACCESS_TOKEN",
+            "UPSTOX_ACCESS_TOKEN",
             "DSP_FMP_API_KEY",
             "DSP_INVESTMENT_FMP_API_KEY",
             "DSP_MARKET_QUOTE_API_KEY",

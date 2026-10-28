@@ -41,6 +41,7 @@ __all__ = [
     "MarketQuoteService",
     "MarketQuoteServiceMetrics",
     "NullAuthenticatedQuoteAdapter",
+    "UpstoxQuoteAdapter",
     "QuoteField",
     "QuoteProviderHealth",
     "RateLimiter",

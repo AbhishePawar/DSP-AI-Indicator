@@ -12,9 +12,7 @@ loadP109LocalEnv(path.resolve(__dirname, ".env.local"));
  * EPIC-019A — Visual regression + multi-browser smoke.
  * Baselines under e2e/visual/__screenshots__.
  */
-const baseURL =
-  process.env.PLAYWRIGHT_BASE_URL ??
-  (process.env.PORT ? `http://127.0.0.1:${process.env.PORT}` : "http://127.0.0.1:3000");
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 
 export default defineConfig({
   testDir: "./e2e",

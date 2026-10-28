@@ -255,13 +255,13 @@ def build_research_orchestrator(platform: DSPPlatform) -> Any | None:
                 tier=ModelTier.COST_EFFICIENT,
                 model_identity="gemini:gemini-3.1-flash-lite",
                 min_quality_score=60.0,
-                description="Default DSP Gateway research model.",
+                description="Default direct Gemini research model.",
             ),
             ModelTier.PREMIUM: TierConfig(
                 tier=ModelTier.PREMIUM,
                 model_identity="openai:gpt-4.1-mini",
                 min_quality_score=80.0,
-                description="Independent DSP Gateway verification model.",
+                description="Independent direct OpenAI verification model.",
             ),
         },
     )

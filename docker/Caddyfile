@@ -4,7 +4,6 @@
 
 {
 	email {$DSP_ACME_EMAIL:ops@localhost}
-	auto_https {$DSP_AUTO_HTTPS:on}
 	admin 0.0.0.0:2019
 	servers {
 		metrics

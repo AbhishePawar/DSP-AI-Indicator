@@ -46,7 +46,7 @@ export function Topbar({
             <Button
               variant="ghost"
               data-testid="open-navigation"
-              className="size-9 px-0 md:hidden"
+              className="size-9 min-h-11 px-0 md:hidden"
               onClick={onMenuClick}
               aria-label="Open navigation menu"
             >

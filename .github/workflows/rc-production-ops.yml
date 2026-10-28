@@ -35,7 +35,7 @@ jobs:
             packages/api_platform/tests/test_ops_api.py \
             -q --import-mode=importlib -p no:cov --tb=short
       - name: Env validation (production profile dry-run)
-        run: python scripts/validate_env.py --profile development || true
+        run: python scripts/validate_env.py --profile development
 
   security-scan:
     name: Dependency / security scan pointer

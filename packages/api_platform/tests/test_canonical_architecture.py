@@ -33,7 +33,9 @@ def _imports(path: Path) -> set[str]:
 class TestCanonicalArchitecture:
     def test_public_dashboard_is_search_first(self) -> None:
         page = (_WEB / "app" / "dashboard" / "page.tsx").read_text(encoding="utf-8")
-        assert "SearchFirstDashboard" in page
+        # The dashboard route renders the research overview (search → watchlist →
+        # /analysis). Legacy grid dashboards must not return.
+        assert "SearchFirstDashboard" in page or "ResearchOverview" in page
         assert "DashboardGrid" not in page
         assert "InstitutionalDashboard" not in page
 
@@ -42,7 +44,9 @@ class TestCanonicalArchitecture:
             _WEB / "components" / "dashboard" / "SearchFirstDashboard.tsx"
         ).read_text(encoding="utf-8")
         assert "/analysis?symbol=" in dashboard
-        assert "intent=dsp_indicator" in dashboard
+        # Intent is URL-encoded dynamically from the selected card.
+        assert "&intent=${encodeURIComponent(intent)}" in dashboard
+        assert 'intent: "dsp_indicator"' in dashboard
 
     def test_http_composition_delegates_to_platform(self) -> None:
         source = _COMPOSITION.read_text(encoding="utf-8")

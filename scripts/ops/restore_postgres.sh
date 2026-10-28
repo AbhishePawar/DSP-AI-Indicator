@@ -25,9 +25,9 @@ fi
 
 echo "[restore] restoring ${ARCHIVE}"
 if [[ -n "${DSP_DATABASE_URL:-}" ]]; then
-  gunzip -c "${ARCHIVE}" | psql "${DSP_DATABASE_URL}"
+  gunzip -c "${ARCHIVE}" | psql -v ON_ERROR_STOP=1 --single-transaction "${DSP_DATABASE_URL}"
 else
-  gunzip -c "${ARCHIVE}" | psql
+  gunzip -c "${ARCHIVE}" | psql -v ON_ERROR_STOP=1 --single-transaction
 fi
 
 echo "[restore] OK — run /health/ready and application smoke next"

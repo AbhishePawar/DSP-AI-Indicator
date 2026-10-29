@@ -243,6 +243,8 @@ def build_share_count_researcher() -> (
         if (
             source_date is None
             or source_count is None
+            or not isinstance(source_company, str)
+            or not source_company.strip()
             or not _company_identity_matches(company_name, source_company)
         ):
             return None
@@ -287,6 +289,8 @@ def build_share_count_researcher() -> (
                 return None
         return ShareCountResearchEvidence(
             ticker=symbol,
+            company_name=source_company,
+            metric="issued_equity_shares",
             shares_outstanding=count_a,
             source=(
                 "NSE quote-equity securityInfo.issuedSize; "

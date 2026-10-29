@@ -31,6 +31,7 @@ def _research_evidence(**overrides: Any) -> ShareCountResearchEvidence:
         "company_name": "ABC Ltd",
         "metric": "issued_equity_shares",
         "shares_outstanding": 50_000_000,
+        "source_id": "COMPANY_OFFICIAL_WEBSITE",
         "source": "Issuer annual report",
         "evidence_url": "https://example.com/annual-report.pdf",
         "as_of": "2025-03-31",
@@ -113,6 +114,7 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
     assert provenance["evidence_class"] == "public_research_unverified_for_g2"
     assert provenance["company_name"] == "ABC Ltd"
     assert provenance["metric"] == "issued_equity_shares"
+    assert provenance["source_id"] == "COMPANY_OFFICIAL_WEBSITE"
     assert provenance["unit"] == "shares"
     assert provenance["as_of"] == "2025-03-31"
 
@@ -125,6 +127,7 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
         _research_evidence(shares_outstanding=-1),
         _research_evidence(shares_outstanding=float("nan")),
         _research_evidence(source="", evidence_url=""),
+        _research_evidence(source_id="UNAPPROVED_VENDOR"),
         _research_evidence(company_name="Other Ltd"),
         _research_evidence(metric="weighted_average_eps_shares"),
         _research_evidence(shares_outstanding=50_000_000.5),

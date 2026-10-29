@@ -85,6 +85,36 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
         return None
 
 
+def _normalise_company_name(value: str | None) -> str:
+    """Normalise common legal suffixes without fuzzy identity guessing."""
+    raw = str(value or "").upper().replace("&", " AND ")
+    tokens = re.sub(r"[^A-Z0-9]+", " ", raw).split()
+    suffixes = {
+        "LIMITED",
+        "LTD",
+        "PRIVATE",
+        "PVT",
+        "COMPANY",
+        "CO",
+        "INCORPORATED",
+        "INC",
+        "CORPORATION",
+        "CORP",
+    }
+    while tokens and tokens[-1] in suffixes:
+        tokens.pop()
+    return " ".join(tokens)
+
+
+def _company_identity_matches(requested: str | None, source: str | None) -> bool:
+    """Reject a researched ticker when supplied company identity disagrees."""
+    if not requested or not requested.strip():
+        return bool(source and source.strip())
+    expected = _normalise_company_name(requested)
+    observed = _normalise_company_name(source)
+    return bool(expected and observed and expected == observed)
+
+
 def _json_completion(
     provider: AdapterBackedAIProvider, prompt: str
 ) -> dict[str, Any] | None:
@@ -202,13 +232,19 @@ def build_share_count_researcher() -> (
         source_text, source_url = fetched
         try:
             source_payload = json.loads(source_text)
+            source_info = source_payload.get("info") or {}
             source_date = _as_date(
                 (source_payload.get("metadata") or {}).get("lastUpdateTime")
             )
             source_count = (source_payload.get("securityInfo") or {}).get("issuedSize")
+            source_company = source_info.get("companyName")
         except (TypeError, ValueError, AttributeError):
             return None
-        if source_date is None or source_count is None:
+        if (
+            source_date is None
+            or source_count is None
+            or not _company_identity_matches(company_name, source_company)
+        ):
             return None
         # Avoid sending an unbounded source payload to an LLM.
         prompt = (

@@ -294,6 +294,7 @@ def build_share_count_researcher() -> (
             ),
             evidence_url=source_url,
             as_of=date_a.isoformat(),
+            unit="shares",
         )
 
     return research

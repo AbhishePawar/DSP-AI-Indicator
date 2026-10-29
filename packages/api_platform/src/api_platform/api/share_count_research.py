@@ -5,6 +5,7 @@ The models may interpret a retrieved official record; they cannot supply an
 unsupported number. Any retrieval, citation, freshness, or agreement failure
 returns None so the valuation path remains fail-closed.
 """
+
 from __future__ import annotations
 
 import http.cookiejar
@@ -200,8 +201,7 @@ def _evidence_is_grounded(
 
 
 def build_share_count_researcher() -> (
-    Callable[[str, str | None, str | None], ShareCountResearchEvidence | None]
-    | None
+    Callable[[str, str | None, str | None], ShareCountResearchEvidence | None] | None
 ):
     """Build a callback around configured Gemini/OpenAI adapters, or return None."""
     try:
@@ -267,9 +267,11 @@ def build_share_count_researcher() -> (
                 pool.map(_json_completion, providers, [prompt] * len(providers))
             )
         grounded = [
-            _evidence_is_grounded(item, source_text, symbol, source_date)
-            if item is not None
-            else None
+            (
+                _evidence_is_grounded(item, source_text, symbol, source_date)
+                if item is not None
+                else None
+            )
             for item in parsed
         ]
         # A provider that returns a parsed but ungrounded/conflicting answer is

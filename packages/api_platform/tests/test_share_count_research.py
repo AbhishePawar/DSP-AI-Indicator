@@ -1,4 +1,5 @@
 """Unit tests for evidence-grounded missing-share-count research."""
+
 from __future__ import annotations
 
 from datetime import date, timedelta
@@ -94,6 +95,7 @@ def test_company_identity_accepts_legal_suffix_variants() -> None:
 def test_company_identity_rejects_mismatched_company() -> None:
     assert not _company_identity_matches("HDFC Bank Limited", "ABC Industries Ltd")
 
+
 def test_researcher_returns_only_source_grounded_share_evidence(
     monkeypatch,
 ) -> None:
@@ -178,14 +180,13 @@ def test_researcher_rejects_company_identity_mismatch(monkeypatch) -> None:
     monkeypatch.setattr(
         share_count_research,
         "_json_completion",
-        lambda *_: pytest.fail(
-            "AI must not be called for mismatched company identity"
-        ),
+        lambda *_: pytest.fail("AI must not be called for mismatched company identity"),
     )
 
     researcher = share_count_research.build_share_count_researcher()
     assert researcher is not None
     assert researcher("ABC", "Different Company Ltd", "NSE") is None
+
 
 def test_researcher_rejects_conflicting_grounded_provider_response(
     monkeypatch,

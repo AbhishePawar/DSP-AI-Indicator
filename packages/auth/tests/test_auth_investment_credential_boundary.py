@@ -190,7 +190,9 @@ def test_c_missing_upstox_still_fail_closed_for_investment(
 ) -> None:
     _auth_boot_env(monkeypatch)
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    with pytest.raises(ConnectorConfigurationError, match="commercial vendors are disabled"):
+    with pytest.raises(
+        ConnectorConfigurationError, match="commercial vendors are disabled"
+    ):
         build_default_quote_adapter_from_env()
 
 
@@ -303,5 +305,7 @@ def test_f_upstox_remains_disabled_even_when_token_present(
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
-    with pytest.raises(ConnectorConfigurationError, match="commercial vendors are disabled"):
+    with pytest.raises(
+        ConnectorConfigurationError, match="commercial vendors are disabled"
+    ):
         build_default_quote_adapter_from_env()

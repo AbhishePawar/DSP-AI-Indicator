@@ -36,6 +36,14 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
     stmt = dict(trace.get("statement_provenance") or {})
     quote = dict(trace.get("quote_provenance") or {})
     authenticated = bool(trace.get("authenticated"))
+    # A researched share count is public research, not authenticated-provider
+    # evidence. Surface that at the top level so it cannot be mistaken for a
+    # fully authenticated denominator.
+    raw_research = quote.get("shares_research_fallback")
+    shares_research: Mapping[str, Any] = (
+        raw_research if isinstance(raw_research, Mapping) else {}
+    )
+    research_used = bool(shares_research)
     return dict(
         redact_secrets(
             {
@@ -48,6 +56,12 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
                 "unit_scale": trace.get("unit_scale"),
                 "current_market_price": trace.get("current_market_price"),
                 "shares_outstanding": trace.get("shares_outstanding"),
+                "shares_source": (
+                    "research_fallback" if research_used else "authenticated_quote"
+                ),
+                "shares_evidence_class": (
+                    shares_research.get("evidence_class") if research_used else None
+                ),
                 "statement_provider": stmt.get("provider_id")
                 or stmt.get("provider_name")
                 or stmt.get("provider")
@@ -111,7 +125,11 @@ def build_investment_provenance(
         "unit_scale": source.get("unit_scale"),
         "currency": source.get("reporting_currency"),
         "integrity": (
-            "authenticated_bundle"
+            (
+                "authenticated_bundle_with_research_shares"
+                if source.get("shares_source") == "research_fallback"
+                else "authenticated_bundle"
+            )
             if source.get("authenticated")
             else "client_or_degraded_path"
         ),

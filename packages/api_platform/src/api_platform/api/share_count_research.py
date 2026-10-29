@@ -8,11 +8,11 @@ returns None so the valuation path remains fail-closed.
 from __future__ import annotations
 
 import http.cookiejar
-from concurrent.futures import ThreadPoolExecutor
 import json
 import math
 import re
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from typing import Any
 from urllib.parse import quote
@@ -72,7 +72,11 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
         issued_size = security.get("issuedSize")
         if isinstance(issued_size, bool) or not isinstance(issued_size, (int, float)):
             return None
-        if not math.isfinite(float(issued_size)) or float(issued_size) <= 0:
+        if (
+            not math.isfinite(float(issued_size))
+            or float(issued_size) <= 0
+            or not float(issued_size).is_integer()
+        ):
             return None
         if not _as_date(metadata.get("lastUpdateTime")):
             return None
@@ -149,6 +153,8 @@ def _evidence_is_grounded(
         or not math.isfinite(model_count)
         or quoted_count <= 0
         or model_count <= 0
+        or not quoted_count.is_integer()
+        or not model_count.is_integer()
         or abs(model_count - quoted_count) / quoted_count > 0.000001
     ):
         return None
@@ -170,7 +176,10 @@ def build_share_count_researcher() -> (
     """Build a callback around configured Gemini/OpenAI adapters, or return None."""
     try:
         registry = build_default_registry()
-        if registry.config.provider_mode == "deterministic":
+        if (
+            registry.config.provider_mode == "deterministic"
+            or registry.config.default_provider == "deterministic"
+        ):
             return None
         adapters = (registry.get("gemini"), registry.get("openai"))
         providers = tuple(

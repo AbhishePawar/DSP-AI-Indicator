@@ -71,6 +71,7 @@ def test_rejects_model_date_that_differs_from_source_date() -> None:
     source = '{"info":{"symbol":"ABC"},"securityInfo":{"issuedSize":12345}}'
     assert _evidence_is_grounded(result, source, "ABC", source_date) is None
 
+
 def test_rejects_fractional_share_count() -> None:
     result = {
         "ticker": "ABC",

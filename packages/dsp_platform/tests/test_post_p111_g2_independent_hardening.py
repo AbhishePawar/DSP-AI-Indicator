@@ -100,6 +100,44 @@ def test_shares_from_authenticated_quote() -> None:
     )
     assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
 
+@pytest.mark.parametrize("bad_shares", [float("inf"), float("-inf"), float("nan")])
+def test_non_finite_quote_shares_fail_closed(bad_shares: float) -> None:
+    quote = SimpleNamespace(
+        shares_outstanding=SimpleNamespace(available=True, value=bad_shares)
+    )
+    latest = SimpleNamespace(
+        net_income=SimpleNamespace(available=False, value=None),
+        eps_basic=SimpleNamespace(available=False, value=None),
+        eps_diluted=SimpleNamespace(available=False, value=None),
+    )
+    with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
+        _resolve_shares(quote, latest)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("quote_shares", "derived_shares"),
+    [
+        (float("inf"), 10.0),
+        (10.0, float("inf")),
+        (float("nan"), 10.0),
+        (10.0, float("nan")),
+        (-float("inf"), 10.0),
+    ],
+)
+def test_share_count_integrity_rejects_non_finite_counts(
+    quote_shares: float, derived_shares: float
+) -> None:
+    from dsp_platform.composition.financial_integrity import (
+        FinancialIntegrityError,
+        assert_share_count_integrity,
+    )
+
+    with pytest.raises(FinancialIntegrityError, match="invalid"):
+        assert_share_count_integrity(
+            quote_shares=quote_shares,
+            derived_shares=derived_shares,
+        )
+
 
 def test_researched_shares_require_explicit_valid_evidence() -> None:
     from dsp_platform.composition.authenticated_valuation import (

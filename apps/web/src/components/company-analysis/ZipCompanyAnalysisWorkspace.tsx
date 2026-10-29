@@ -1297,7 +1297,7 @@ export function InvestmentSummary({
               style={{
                 fontSize: 20,
                 fontWeight: 700,
-                color: (m as any).color || "var(--foreground)",
+                color: m.color || "var(--foreground)",
                 fontFamily: "var(--font-data)",
                 fontVariantNumeric: "tabular-nums",
                 lineHeight: 1.2,
@@ -1557,7 +1557,7 @@ export function FinancialAnalysisSection({
               style={{
                 fontSize: 15,
                 fontWeight: 600,
-                color: (m as any).color || "var(--foreground)",
+                color: m.color || "var(--foreground)",
                 fontFamily: "var(--font-data)",
               }}
             >
@@ -3434,14 +3434,14 @@ export function ResearchChatDrawer({
 
         const reply =
           res?.content ||
-          (res as any)?.text ||
+          ("text" in res && typeof res.text === "string" ? res.text : "") ||
           `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
         const citations =
           Array.isArray(res?.citations) && res.citations.length > 0
             ? res.citations
             : undefined;
         setMessages((prev) => [...prev, { role: "dsp", text: reply, citations }]);
-      } catch (e: any) {
+      } catch {
         setMessages((prev) => [
           ...prev,
           {
@@ -4009,10 +4009,6 @@ export function ZipCompanyAnalysisWorkspace({
     setChatOpen(true);
   };
 
-  const sectionRef = (id: string) => (el: HTMLDivElement | null) => {
-    sectionRefs.current[id] = el;
-  };
-
   const activeResponse = loadedData ?? analyseMutation.data;
   const hasValidResult = Boolean(
     activeResponse &&
@@ -4492,15 +4488,30 @@ export function ZipCompanyAnalysisWorkspace({
               <div style={{ maxWidth: 1000, margin: "0 auto" }}>
                 {mode === "simple" ? (
                   <>
-                    <div ref={sectionRef("s01")} id="s01">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s01"] = el;
+                      }}
+                      id="s01"
+                    >
                       <InvestmentSummary model={viewModel} onAsk={undefined} />
                     </div>
 
-                    <div ref={sectionRef("s04")} id="s04">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s04"] = el;
+                      }}
+                      id="s04"
+                    >
                       <FinancialAnalysisSection model={viewModel} onAsk={undefined} />
                     </div>
 
-                    <div ref={sectionRef("s09")} id="s09">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s09"] = el;
+                      }}
+                      id="s09"
+                    >
                       <ValuationSection
                         model={viewModel}
                         onAsk={undefined}
@@ -4518,7 +4529,12 @@ export function ZipCompanyAnalysisWorkspace({
                       />
                     </div>
 
-                    <div ref={sectionRef("s15")} id="s15">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s15"] = el;
+                      }}
+                      id="s15"
+                    >
                       <DownloadsSection
                         symbol={symbol}
                         analysisId={analyseMutation.data?.analysis_id ?? undefined}
@@ -4528,19 +4544,39 @@ export function ZipCompanyAnalysisWorkspace({
                   </>
                 ) : (
                   <>
-                    <div ref={sectionRef("s01")} id="s01">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s01"] = el;
+                      }}
+                      id="s01"
+                    >
                       <InvestmentSummary model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s03")} id="s03">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s03"] = el;
+                      }}
+                      id="s03"
+                    >
                       <BuffettAssessmentTable model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s04")} id="s04">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s04"] = el;
+                      }}
+                      id="s04"
+                    >
                       <FinancialAnalysisSection model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s09")} id="s09">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s09"] = el;
+                      }}
+                      id="s09"
+                    >
                       <ValuationSection
                         model={viewModel}
                         onAsk={askAbout}
@@ -4558,46 +4594,96 @@ export function ZipCompanyAnalysisWorkspace({
                       />
                     </div>
 
-                    <div ref={sectionRef("s02")} id="s02">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s02"] = el;
+                      }}
+                      id="s02"
+                    >
                       <BusinessQualityScores model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s11")} id="s11">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s11"] = el;
+                      }}
+                      id="s11"
+                    >
                       <KeyRisksSection model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s06")} id="s06">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s06"] = el;
+                      }}
+                      id="s06"
+                    >
                       <ManagementDeepDive model={viewModel} />
                     </div>
 
-                    <div ref={sectionRef("s07")} id="s07">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s07"] = el;
+                      }}
+                      id="s07"
+                    >
                       <EarningsQualityDeepDive model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s08")} id="s08">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s08"] = el;
+                      }}
+                      id="s08"
+                    >
                       <GrowthQualityDeepDive model={viewModel} />
                     </div>
 
-                    <div ref={sectionRef("s10")} id="s10">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s10"] = el;
+                      }}
+                      id="s10"
+                    >
                       <MarginOfSafetyDeepDive model={viewModel} onAsk={askAbout} />
                     </div>
 
-                    <div ref={sectionRef("s12")} id="s12">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s12"] = el;
+                      }}
+                      id="s12"
+                    >
                       <StrengthsWeaknessesSection model={viewModel} />
                     </div>
 
-                    <div ref={sectionRef("s13")} id="s13">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s13"] = el;
+                      }}
+                      id="s13"
+                    >
                       <InvestmentContextSection model={viewModel} />
                     </div>
 
-                    <div ref={sectionRef("s14")} id="s14">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s14"] = el;
+                      }}
+                      id="s14"
+                    >
                       <EvidenceExplorerSection
                         model={viewModel}
                         analysisId={analyseMutation.data?.analysis_id ?? undefined}
                       />
                     </div>
 
-                    <div ref={sectionRef("s15")} id="s15">
+                    <div
+                      ref={(el) => {
+                        sectionRefs.current["s15"] = el;
+                      }}
+                      id="s15"
+                    >
                       <DownloadsSection
                         symbol={symbol}
                         analysisId={analyseMutation.data?.analysis_id ?? undefined}

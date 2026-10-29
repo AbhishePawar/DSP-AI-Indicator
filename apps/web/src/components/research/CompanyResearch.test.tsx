@@ -17,7 +17,7 @@ vi.mock("@/lib/portfolio/PortfolioProvider", () => ({
 }));
 
 vi.mock("@/components/portfolio/AddToPortfolioButton", () => ({
-  AddToPortfolioButton: (props: any) => (
+  AddToPortfolioButton: (props: { ticker: string }) => (
     <button type="button" aria-label="Add to portfolio" data-ticker={props.ticker}>
       Add to portfolio
     </button>

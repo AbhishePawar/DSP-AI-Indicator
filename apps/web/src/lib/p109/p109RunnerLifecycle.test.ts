@@ -1,3 +1,4 @@
+import type { ChildProcess, spawn, SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { describe, expect, it, vi } from "vitest";
 
@@ -16,7 +17,13 @@ import {
 } from "../../../e2e/browser/p109/runnerCore";
 
 function createMockProcess(exitCode: number | null = null) {
-  const proc = new EventEmitter() as any;
+  const proc = Object.assign(new EventEmitter(), {
+    exitCode,
+    killed: false,
+    stdout: new EventEmitter(),
+    stderr: new EventEmitter(),
+    kill: vi.fn((_sig?: string) => true),
+  });
   proc.exitCode = exitCode;
   proc.killed = false;
   proc.stdout = new EventEmitter();
@@ -24,8 +31,9 @@ function createMockProcess(exitCode: number | null = null) {
   proc.kill = vi.fn((sig?: string) => {
     proc.killed = true;
     proc.emit("close", 0);
+    return true;
   });
-  return proc;
+  return proc as unknown as ChildProcess;
 }
 
 describe("P1-09 runner lifecycle & health configuration", () => {
@@ -77,7 +85,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
     const result = await boundedHttpCheck(
       "http://127.0.0.1:3000",
       150,
-      hangingFetch as any,
+      hangingFetch as typeof fetch,
     );
     const elapsed = Date.now() - startTime;
 
@@ -106,7 +114,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
       {
         webDir:
           "C:\\Users\\abhis\\OneDrive\\Desktop\\DSP-AI-Indicator\\DSP-AI-Indicator-P109\\apps\\web",
-        spawnFn: spawnFn as any,
+        spawnFn: spawnFn as unknown as typeof spawn,
         checkUrlFn,
         inspectPortFn: mockInspector,
       },
@@ -141,7 +149,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
       { timeoutMs: 2000, intervalMs: 500 },
       {
         webDir: "/workspace/apps/web",
-        spawnFn: spawnFn as any,
+        spawnFn: spawnFn as unknown as typeof spawn,
         checkUrlFn,
         inspectPortFn: mockInspector,
       },
@@ -171,7 +179,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
       { timeoutMs: 2000, intervalMs: 500 },
       {
         webDir: "/workspace/apps/web",
-        spawnFn: spawnFn as any,
+        spawnFn: spawnFn as unknown as typeof spawn,
         checkUrlFn,
         inspectPortFn: mockInspector,
       },
@@ -247,7 +255,7 @@ it("Windows integration test: simulates a foreign worktree on port 3000 and isol
   const mockSpawnedChild = createMockProcess(null);
 
   let hasSpawned = false;
-  const spawnFn = vi.fn((cmd: string, args: string[], options: any) => {
+  const spawnFn = vi.fn((cmd: string, args: string[], options: SpawnOptions) => {
     hasSpawned = true;
     spawnedWithPort = options?.env?.PORT;
     return mockSpawnedChild;
@@ -269,7 +277,7 @@ it("Windows integration test: simulates a foreign worktree on port 3000 and isol
       webDir: expectedWorktreeDir,
       autoFallbackPort: 3001,
       inspectPortFn,
-      spawnFn: spawnFn as any,
+      spawnFn: spawnFn as unknown as typeof spawn,
       checkUrlFn,
     },
   );
@@ -286,10 +294,10 @@ it("Windows integration test: simulates a foreign worktree on port 3000 and isol
 
   // 3. Verify only the runner-spawned child is tracked
   expect(tracker.getManagedCount()).toBe(1);
-  expect(tracker.isManaged(mockSpawnedChild as any)).toBe(true);
+  expect(tracker.isManaged(mockSpawnedChild)).toBe(true);
 
   // 4. Verify the foreign process was never registered in the tracker and remains untouched
-  expect(tracker.isManaged({ pid: foreignPid } as any)).toBe(false);
+  expect(tracker.isManaged({ pid: foreignPid } as ChildProcess)).toBe(false);
 
   // 5. Cleanup only kills the spawned child, never the foreign PID
   tracker.cleanup();

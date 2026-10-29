@@ -106,7 +106,7 @@ describe("CompanyComparisonWorkspace render", () => {
         },
       ],
       tradeOffs: [],
-    } as any;
+    } as unknown as Parameters<typeof WinnerMatrixSection>[0]["model"];
 
     render(<WinnerMatrixSection model={dynamicModel} />);
 

@@ -137,7 +137,7 @@ describe("AuthProvider cookie-session restoration", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const { useAuth } = await import("./AuthProvider");
-    let authContext: any;
+    let authContext: ReturnType<typeof useAuth> | undefined;
     function Consumer() {
       authContext = useAuth();
       return <div>consumer</div>;
@@ -153,6 +153,7 @@ describe("AuthProvider cookie-session restoration", () => {
       expect(readCsrfToken()).toBe("csrf-restored");
     });
 
+    if (!authContext) throw new Error("Auth consumer did not mount");
     await authContext.logout();
 
     expect(fetchMock).toHaveBeenCalledWith(

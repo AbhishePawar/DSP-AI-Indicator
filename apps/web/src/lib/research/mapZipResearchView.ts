@@ -295,7 +295,19 @@ export function mapZipResearchView(
   const base = mapAnalyseResponse(response);
   const stages = base.stages;
 
-  const payload = (response.payload ?? {}) as Record<string, any>;
+  const payload = (response.payload ?? {}) as {
+    server_valuation?: {
+      current_market_price?: number | null;
+      intrinsic_value_per_share?: number | null;
+      margin_of_safety?: number | null;
+    };
+    source_evidence?: { current_market_price?: number | null };
+    revenue_data?: ZipFinancialPoint[];
+    profit_data?: ZipFinancialPoint[];
+    margin_data?: ZipFinancialPoint[];
+    cash_data?: ZipFinancialPoint[];
+    risk?: CompanyRiskPayload | null;
+  };
   const serverValuation = payload.server_valuation;
   const sourceEvidence = payload.source_evidence;
 

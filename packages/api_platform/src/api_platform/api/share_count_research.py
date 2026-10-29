@@ -272,6 +272,13 @@ def build_share_count_researcher() -> (
             else None
             for item in parsed
         ]
+        # A provider that returns a parsed but ungrounded/conflicting answer is
+        # not equivalent to an unavailable provider. Reject the whole fallback.
+        if any(
+            raw is not None and checked is None
+            for raw, checked in zip(parsed, grounded, strict=True)
+        ):
+            return None
         valid = [item for item in grounded if item is not None]
         if not valid:
             return None

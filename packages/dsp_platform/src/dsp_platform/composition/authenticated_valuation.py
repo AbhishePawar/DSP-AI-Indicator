@@ -116,12 +116,23 @@ def _normalise_research_company_name(value: str | None) -> str:
     raw = str(value or "").upper().replace("&", " AND ")
     tokens = raw.replace(".", " ").replace(",", " ").split()
     suffixes = {
-        "LIMITED", "LTD", "PRIVATE", "PVT", "COMPANY", "CO",
-        "INCORPORATED", "INC", "CORPORATION", "CORP",
+        "LIMITED",
+        "LTD",
+        "PRIVATE",
+        "PVT",
+        "COMPANY",
+        "CO",
+        "INCORPORATED",
+        "INC",
+        "CORPORATION",
+        "CORP",
     }
     while tokens and tokens[-1].strip().upper() in suffixes:
         tokens.pop()
-    return " ".join("".join(ch for ch in token if ch.isalnum()) for token in tokens).strip()
+    normalised_tokens = [
+        "".join(char for char in token if char.isalnum()) for token in tokens
+    ]
+    return " ".join(normalised_tokens).strip()
 
 
 def _resolve_researched_shares(

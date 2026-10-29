@@ -13,6 +13,7 @@ from dsp_platform.composition.authenticated_valuation import (
     DATA_UNAVAILABLE,
     AuthenticatedValuationBundle,
     AuthenticatedValuationError,
+    ShareCountResearchEvidence,
     load_authenticated_valuation_bundle,
     signals_from_assessment,
 )
@@ -48,6 +49,7 @@ __all__ = [
     "EXECUTION_ORDER",
     "AuthenticatedValuationBundle",
     "AuthenticatedValuationError",
+    "ShareCountResearchEvidence",
     "FinancialIntegrityError",
     "CompanyRiskView",
     "CompositionInputError",

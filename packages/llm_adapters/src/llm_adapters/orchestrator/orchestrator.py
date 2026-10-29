@@ -149,7 +149,8 @@ class ResearchOrchestrator:
             attempts.append((evaluation, self._memory))
 
         successful = [
-            item for item in attempts
+            item
+            for item in attempts
             if item[0].status is EvaluationStatus.SUCCESS
             and isinstance(item[1].validation, ValidationSuccess)
         ]
@@ -178,7 +179,9 @@ class ResearchOrchestrator:
             )
             return self._finalize(spec, routing, verdict, selected[0])
 
-        self._memory = attempts[0][1] if attempts else _AttemptMemory(outcomes=initial_outcomes)
+        self._memory = (
+            attempts[0][1] if attempts else _AttemptMemory(outcomes=initial_outcomes)
+        )
         verdict = GateVerdict(
             outcome=GateOutcome.FAILED_CLOSED,
             tier=ModelTier.PREMIUM,
@@ -215,9 +218,11 @@ class ResearchOrchestrator:
             key=lambda item: (
                 item[0].quality.evidence_correctness,
                 item[0].quality.factual_accuracy,
-                -item[1].validation.output.confidence
-                if isinstance(item[1].validation, ValidationSuccess)
-                else 0.0,
+                (
+                    -item[1].validation.output.confidence
+                    if isinstance(item[1].validation, ValidationSuccess)
+                    else 0.0
+                ),
             ),
             reverse=True,
         )

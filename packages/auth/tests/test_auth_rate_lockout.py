@@ -5,9 +5,11 @@ from __future__ import annotations
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
+from types import SimpleNamespace
 
 import pytest
 
+import auth.mfa_totp as mfa_totp
 from auth.exceptions import AuthenticationError, RefreshTokenReuseError, SessionError
 from auth.lockout import AuthLockoutStore
 from auth.mfa_totp import TotpAdapter, totp_at
@@ -273,7 +275,13 @@ def test_cross_instance_refresh_rotation_one_success() -> None:
 # -- TOTP last-used counter / recovery atomicity -----------------------------
 
 
-def test_totp_replay_and_concurrent_same_counter() -> None:
+def test_totp_replay_and_concurrent_same_counter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Pin wall-clock time to a TOTP step boundary so the generated next-step
+    # code cannot drift into a different verification window while threads start.
+    fixed_time = 1_800_000_000.0  # divisible by the 30-second TOTP step
+    monkeypatch.setattr(mfa_totp, "time", SimpleNamespace(time=lambda: fixed_time))
     persistence = _persistence()
     adapter = TotpAdapter(persistence)
     begin = adapter.begin_enroll("user-totp-race")
@@ -281,7 +289,7 @@ def test_totp_replay_and_concurrent_same_counter() -> None:
         "user-totp-race", {"code": totp_at(begin["secret"])}
     )
     assert confirmed["ok"] is True
-    later = totp_at(begin["secret"], for_time=__import__("time").time() + 31)
+    later = totp_at(begin["secret"], for_time=fixed_time + 31)
     barrier = threading.Barrier(2)
 
     def attempt() -> bool:

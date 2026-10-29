@@ -280,6 +280,10 @@ describe("P9.5 portfolio intelligence lib", () => {
 });
 
 describe("P9.5 workspace UI", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     cleanup();
     usePortfolioIntelPrefsStore.setState({

@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import type { ReactElement } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -70,10 +70,13 @@ vi.mock("@/lib/api/client", () => ({
   },
 }));
 
+const queryClients: QueryClient[] = [];
+
 function renderWithClient(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  queryClients.push(client);
   return render(
     <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
   );
@@ -87,6 +90,11 @@ describe("Research Workspace templates", () => {
 });
 
 describe("InstitutionalResearchWorkspace", () => {
+  afterEach(() => {
+    cleanup();
+    for (const client of queryClients.splice(0)) client.clear();
+  });
+
   beforeEach(() => {
     cleanup();
     researchWorkspaceDashboard.mockClear();
@@ -104,5 +112,6 @@ describe("InstitutionalResearchWorkspace", () => {
     });
     expect(screen.getByText("New note")).toBeTruthy();
     expect(screen.getByText("Folders")).toBeTruthy();
+    await screen.findByTestId("rw-dashboard-panel");
   });
 });

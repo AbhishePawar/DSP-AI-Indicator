@@ -34,14 +34,17 @@ test("tabs through every Company Workspace section without crashing", async ({
   expect(response).toBeTruthy();
   expect(response!.status()).toBeLessThan(500);
 
+  // The workspace shell is a stable route-level contract even before a
+  // company is selected. Navigation must not depend on a successful API call.
   const nav = page.getByRole("navigation", { name: "Analysis sections" });
   await expect(nav).toBeVisible();
+  const main = page.getByRole("region", { name: "Main analysis area" });
+  await expect(main).toBeVisible();
+  await expect(page.getByTestId("analysis-empty")).toBeVisible();
 
   const sectionButtons = nav.getByRole("button");
   const count = await sectionButtons.count();
   expect(count).toBeGreaterThanOrEqual(14);
-
-  const main = page.getByRole("region", { name: "Main analysis area" });
 
   for (let i = 0; i < count; i += 1) {
     const button = sectionButtons.nth(i);

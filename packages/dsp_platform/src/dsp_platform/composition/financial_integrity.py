@@ -7,6 +7,7 @@ Does not invent FX, corporate-action engines, or valuation methodologies.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable
 from dataclasses import replace
 
@@ -307,10 +308,16 @@ def assert_share_count_integrity(
     tolerance: float = 0.25,
 ) -> None:
     """Detect material quote vs NI/EPS share-count mismatch (CA / split proxy)."""
+    for label, value in (
+        ("quote", quote_shares),
+        ("NI/EPS-derived", derived_shares),
+    ):
+        if value is not None and (not math.isfinite(value) or value <= 0):
+            raise FinancialIntegrityError(
+                f"{DATA_UNAVAILABLE} (invalid {label} share count)"
+            )
     if quote_shares is None or derived_shares is None:
         return
-    if quote_shares <= 0 or derived_shares <= 0:
-        raise FinancialIntegrityError(f"{DATA_UNAVAILABLE} (invalid share count)")
     denom = max(quote_shares, derived_shares)
     if abs(quote_shares - derived_shares) / denom > tolerance:
         raise FinancialIntegrityError(

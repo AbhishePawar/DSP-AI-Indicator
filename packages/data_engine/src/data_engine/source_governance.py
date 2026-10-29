@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 SourceType = Literal["primary", "secondary"]
-PRIMARY_SOURCES = frozenset({"NSE", "BSE", "CAMS", "CDSL", "COMPANY_OFFICIAL_WEBSITE", "IBPF"})
+PRIMARY_SOURCES = frozenset(
+    {"NSE", "BSE", "CAMS", "CDSL", "COMPANY_OFFICIAL_WEBSITE", "IBPF"}
+)
 SECONDARY_SOURCES = frozenset({"SCREENER", "YAHOO_FINANCE"})
 APPROVED_SOURCES = PRIMARY_SOURCES | SECONDARY_SOURCES
 
@@ -36,9 +38,19 @@ def is_approved_source(source: str, *, purpose: str = "") -> bool:
     normalized = source.strip().upper()
     if normalized not in APPROVED_SOURCES:
         return False
-    if normalized in SECONDARY_SOURCES and purpose.strip().lower() not in {"cross_check", "sanity_check", "verification"}:
+    if normalized in SECONDARY_SOURCES and purpose.strip().lower() not in {
+        "cross_check",
+        "sanity_check",
+        "verification",
+    }:
         return False
     return True
 
 
-__all__ = ["APPROVED_SOURCES", "PRIMARY_SOURCES", "SECONDARY_SOURCES", "DataProvenance", "is_approved_source"]
+__all__ = [
+    "APPROVED_SOURCES",
+    "PRIMARY_SOURCES",
+    "SECONDARY_SOURCES",
+    "DataProvenance",
+    "is_approved_source",
+]

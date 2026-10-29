@@ -29,7 +29,7 @@ export async function openAnalysisWorkspace(
   });
   await expect(analysisNav(page)).toBeVisible({ timeout: 30_000 });
   await expect(analysisMain(page)).toBeVisible();
-  await expect(page.getByLabel(/Company search/i)).toBeVisible();
+  await expect(page.getByLabel(/Company ticker/i)).toBeVisible();
 }
 
 /** Section buttons concatenate label + shortcut; match label, not incidental order. */

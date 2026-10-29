@@ -101,6 +101,7 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
     assert shares == 50_000_000
     assert provenance["evidence_url"] == "https://example.com/annual-report.pdf"
     assert provenance["evidence_class"] == "public_research_unverified_for_g2"
+    assert provenance["unit"] == "shares"
 
 
 @pytest.mark.parametrize(
@@ -148,3 +149,24 @@ def test_researched_shares_fail_closed_when_adapter_not_configured() -> None:
 
     with pytest.raises(AuthenticatedValuationError, match="not configured"):
         _resolve_researched_shares("ABC", "ABC Ltd", "NSE", None)
+
+def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
+    from dsp_platform.composition.authenticated_valuation import _resolve_researched_shares
+
+    base = {
+        "ticker": "ABC",
+        "shares_outstanding": 50_000_000,
+        "source": "Issuer annual report",
+        "evidence_url": "https://example.com/annual-report.pdf",
+    }
+    invalid_evidence = (
+        ShareCountResearchEvidence(**base, as_of="2025-03-31", unit="lots"),
+        ShareCountResearchEvidence(**base, as_of=None),
+        ShareCountResearchEvidence(**base, as_of="not-a-date"),
+        ShareCountResearchEvidence(
+            **base, as_of=(date.today().replace(year=date.today().year + 1)).isoformat()
+        ),
+    )
+    for evidence in invalid_evidence:
+        with pytest.raises(AuthenticatedValuationError):
+            _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: evidence)

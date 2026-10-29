@@ -181,7 +181,7 @@ export async function assertBuffettVisible(
 ): Promise<void> {
   await openAnalysisSection(
     page,
-    /Buffett Indicator/i,
+    /Buffett Assessment/i,
     /Buffett Indicator Analysis/i,
   );
   const buffettMain = analysisMain(page);

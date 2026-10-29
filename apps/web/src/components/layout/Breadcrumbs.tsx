@@ -4,11 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbSeparator,
-} from "@/components/ds";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbSeparator } from "@/components/ds";
 import { breadcrumbsForPath, useUiStore } from "@/lib/shell";
 
 export function Breadcrumbs() {
@@ -24,7 +20,7 @@ export function Breadcrumbs() {
   }, [pathname, recordRecentPage]); // eslint-disable-line react-hooks/exhaustive-deps -- record on path change only
 
   return (
-    <Breadcrumb className="text-xs">
+    <Breadcrumb className="font-mono text-[11px] text-[var(--muted-foreground)]">
       {crumbs.map((crumb, i) => {
         const last = i === crumbs.length - 1;
         return (

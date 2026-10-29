@@ -25,6 +25,7 @@ vi.mock("@/lib/auth/AuthProvider", () => ({
     session: null,
     user: null,
     login: vi.fn(),
+    setSession: vi.fn(),
   }),
 }));
 
@@ -85,15 +86,9 @@ describe("Login form — public methods", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    expect(
-      screen.getByRole("button", { name: /username and password/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /mobile number and otp/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /username and otp/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /username and password/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /mobile number and otp/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /username and otp/i })).toBeTruthy();
     const google = screen.getByRole("button", { name: /continue with google/i });
     expect(google).toBeTruthy();
     expect(google).not.toBeDisabled();
@@ -106,7 +101,12 @@ describe("Login form — public methods", () => {
     loginMock.mockResolvedValue({
       ok: true,
       result: {
-        tokens: { access_token: "tok", refresh_token: "r", token_type: "bearer" },
+        tokens: {
+          access_token: "tok",
+          refresh_token: "r",
+          token_type: "bearer",
+        },
+        cookie_auth: true,
         user: {
           user_id: "u1",
           username: "ada",
@@ -223,5 +223,44 @@ describe("Login form — public methods", () => {
       "https://accounts.google.com/o/oauth2/v2/auth?x=1",
     );
     expect(requestOtpMock).not.toHaveBeenCalled();
+  });
+
+  it("navigates to / by default upon successful login when no next param is provided", async () => {
+    const { navigateAfterLogin } = await import("@/lib/auth/finishEnterpriseSession");
+    loginMock.mockResolvedValue({
+      ok: true,
+      result: {
+        tokens: {
+          access_token: "tok",
+          refresh_token: "r",
+          token_type: "bearer",
+        },
+        cookie_auth: true,
+        user: {
+          user_id: "u1",
+          username: "ada",
+          email: "ada@example.com",
+          display_name: "Ada Lovelace",
+          roles: ["read_only"],
+        },
+        session: { session_id: "s1" },
+      },
+    });
+    const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
+    render(
+      <ThemeProvider>
+        <LoginForm />
+      </ThemeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /username and password/i }));
+    fireEvent.change(document.getElementById("login-username")!, {
+      target: { value: "ada" },
+    });
+    fireEvent.change(document.getElementById("login-password")!, {
+      target: { value: "StrongPass1!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
+    await waitFor(() => expect(loginMock).toHaveBeenCalled());
+    await waitFor(() => expect(navigateAfterLogin).toHaveBeenCalledWith("/"));
   });
 });

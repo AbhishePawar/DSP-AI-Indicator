@@ -60,9 +60,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 let createObjectURLSpy: ReturnType<typeof vi.fn>;
@@ -97,9 +95,7 @@ describe("ExportSection — institutional DOCX/PPTX export", () => {
   it("disables Word/PowerPoint export until an analysis has been run", () => {
     const { view } = buildView();
     wrap(<ExportSection view={view} analyseRequest={null} analyseResponse={null} />);
-    expect(
-      screen.getByRole("button", { name: "Export Word (.docx)" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Export Word (.docx)" })).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Export PowerPoint (.pptx)" }),
     ).toBeDisabled();
@@ -117,7 +113,11 @@ describe("ExportSection — institutional DOCX/PPTX export", () => {
     researchExportMock.mockResolvedValue({
       ok: true,
       export: {
-        metadata: { filename: "aapl-research.docx", content_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+        metadata: {
+          filename: "aapl-research.docx",
+          content_type:
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        },
         content_base64: "UEs=",
       },
     });
@@ -174,8 +174,6 @@ describe("ExportSection — institutional DOCX/PPTX export", () => {
       />,
     );
     screen.getByRole("button", { name: "Export PowerPoint (.pptx)" }).click();
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Data unavailable.",
-    );
+    expect(await screen.findByRole("alert")).toHaveTextContent("Data unavailable.");
   });
 });

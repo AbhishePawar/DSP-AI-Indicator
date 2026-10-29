@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -22,6 +23,18 @@ from api_platform.api.mappers import (
     map_pipeline_payload,
     map_platform_result,
 )
+from api_platform.api.research_orchestration_service import (
+    _MAX_ORCHESTRATION_WORKERS as _MAX_ORCHESTRATION_WORKERS,  # re-exported for tests/ops
+)
+from api_platform.api.research_orchestration_service import (
+    _ORCHESTRATION_SEMAPHORE as _ORCHESTRATION_SEMAPHORE,
+)
+from api_platform.api.research_orchestration_service import (
+    execute_research_orchestration,
+)
+from api_platform.api.research_orchestration_service import (
+    parse_orchestration_timeout as parse_orchestration_timeout,
+)
 from api_platform.api.validation import validate_analyse_request
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.investment_provenance import (
@@ -32,6 +45,8 @@ from dsp_platform.investment_provenance import (
     new_analysis_id,
 )
 from llm_adapters import build_research_team_metadata
+
+_LOG = logging.getLogger("dsp.api.composition")
 
 router = APIRouter(tags=["composition"])
 
@@ -110,12 +125,37 @@ def analyse(
             company=body.company,
             exchange=body.exchange,
         )
+        orchestration_limitations: list[str] = []
+        orchestrator = getattr(state, "research_orchestrator", None)
+
+        report, lims = execute_research_orchestration(
+            orchestrator,
+            ticker=body.ticker,
+            company=body.company,
+            exchange=body.exchange,
+            correlation_id=correlation_id,
+        )
+        public_payload["research_report"] = report
+        if lims:
+            orchestration_limitations.extend(lims)
+
+        if orchestration_limitations:
+            if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                public_payload["limitations"].extend(orchestration_limitations)
+            else:
+                public_payload["limitations"] = list(orchestration_limitations)
+
     response = map_platform_result(
         platform_result,
         api_version=state.api_version,
         correlation_id=correlation_id,
         public_payload=public_payload,
+        mode=body.mode,
     )
+    if isinstance(public_payload, dict) and "limitations" in public_payload:
+        for lim in public_payload["limitations"]:
+            if lim not in response.limitations:
+                response.limitations.append(lim)
 
     if not platform_result.ok:
         failed = getattr(getattr(pipeline, "metadata", None), "failed_stage", None)
@@ -152,7 +192,7 @@ def analyse(
                 exchange=body.exchange,
                 allow_duplicate=True,
             )
-    except Exception:  # noqa: BLE001
+    except Exception:
         pass
 
     return response
@@ -396,5 +436,5 @@ def _optional_actor(request: Request) -> dict[str, Any] | None:
         if not uid:
             return None
         return {"user_id": uid, "user": user}
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None

@@ -40,7 +40,9 @@ function Pagination({
     const showRightEllipsis = right < safeCount - 1;
     const items: Array<number | "ellipsis"> = [1];
     if (showLeftEllipsis) items.push("ellipsis");
-    items.push(...range(left === 1 ? 2 : left, right === safeCount ? safeCount - 1 : right));
+    items.push(
+      ...range(left === 1 ? 2 : left, right === safeCount ? safeCount - 1 : right),
+    );
     if (showRightEllipsis) items.push("ellipsis");
     if (safeCount > 1) items.push(safeCount);
     return items;

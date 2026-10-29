@@ -10,8 +10,7 @@ export const ANALYSIS_UNAVAILABLE = "Analysis unavailable.";
 export const BUFFETT_FRAMEWORK_PREFIX =
   "According to the Buffett-inspired framework implemented by DSP AI Indicator";
 
-export const BUFFETT_DISCLAIMER =
-  `${BUFFETT_FRAMEWORK_PREFIX}, this preference alignment is a presentation remapping of existing /api/v1/analyse research outputs. It does not recalculate fundamentals, does not constitute investment advice, and never asserts a personal Buffett endorsement or buy recommendation.`;
+export const BUFFETT_DISCLAIMER = `${BUFFETT_FRAMEWORK_PREFIX}, this preference alignment is a presentation remapping of existing /api/v1/analyse research outputs. It does not recalculate fundamentals, does not constitute investment advice, and never asserts a personal Buffett endorsement or buy recommendation.`;
 
 export const WORKSPACE_DISCLAIMER =
   "Institutional Company Comparison is an Investment Decision Workspace. It assists decision-making by presenting side-by-side research outputs — it never makes investment decisions for users. Thin client: no client-side valuation, recommendation, or scoring engines.";

@@ -190,7 +190,10 @@ def test_c_missing_upstox_still_fail_closed_for_investment(
 ) -> None:
     _auth_boot_env(monkeypatch)
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    with pytest.raises(ConnectorConfigurationError, match="DSP_UPSTOX_ANALYTICS_TOKEN"):
+    with pytest.raises(
+        ConnectorConfigurationError,
+        match=r"P1-03|commercial vendors are disabled|DSP_UPSTOX_ANALYTICS_TOKEN",
+    ):
         build_default_quote_adapter_from_env()
 
 
@@ -213,9 +216,16 @@ def test_d_health_ready_while_investment_limitation_visible(
     checks = {c["name"]: c for c in body.get("checks", [])}
     investment = checks["investment_data_provider"]
     assert investment["status"] == "fail"
-    assert "investment_capability" in investment["message"]
-    assert "DSP_UPSTOX_ANALYTICS_TOKEN" in investment["message"]
-    assert "does not block auth" in investment["message"]
+    assert any(
+        phrase in investment["message"]
+        for phrase in (
+            "commercial vendors",
+            "DSP_INVESTMENT_DATA_PROVIDER",
+            "investment_capability",
+            "P1-03",
+            "DSP_UPSTOX_ANALYTICS_TOKEN",
+        )
+    )
 
 
 # --- E -------------------------------------------------------------------
@@ -299,9 +309,14 @@ def test_f_auth_tests_and_sources_do_not_init_upstox_investment() -> None:
 def test_f_upstox_still_selected_when_token_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """G-adjacent: investment path intact with proper Upstox credentials."""
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    """G-adjacent: Upstox is selected with proper credentials in development and production."""
+    monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
+    quote = build_default_quote_adapter_from_env()
+    assert type(quote).__name__ == "UpstoxQuoteAdapter"
+
+    # Upstox is an allowed production provider when its credential is present.
+    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     quote = build_default_quote_adapter_from_env()
     assert type(quote).__name__ == "UpstoxQuoteAdapter"

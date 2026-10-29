@@ -3,15 +3,9 @@ import { describe, expect, it } from "vitest";
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import { composeAnswer } from "@/lib/copilot/answerComposer";
 import { compareCompanyContexts } from "@/lib/copilot/comparison";
-import {
-  appendExchange,
-  createConversation,
-} from "@/lib/copilot/conversation";
+import { appendExchange, createConversation } from "@/lib/copilot/conversation";
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
-import {
-  intentFromSuggestedId,
-  resolveIntent,
-} from "@/lib/copilot/intentResolver";
+import { intentFromSuggestedId, resolveIntent } from "@/lib/copilot/intentResolver";
 import { composeCopilotAnswer } from "@/lib/copilot/placeholderAnswers";
 import { UNAVAILABLE_ANSWER } from "@/lib/copilot/questions";
 import { SAMPLE_ANALYSE_REQUEST } from "@/lib/intelligence/sampleRequest";
@@ -116,9 +110,9 @@ describe("intentResolver", () => {
   });
 
   it("reuses lastIntent for follow-ups", () => {
-    expect(
-      resolveIntent("tell me more", { lastIntent: "explain_moat" }),
-    ).toBe("explain_moat");
+    expect(resolveIntent("tell me more", { lastIntent: "explain_moat" })).toBe(
+      "explain_moat",
+    );
   });
 });
 

@@ -95,7 +95,8 @@ export function buildCompareRows(envelopeIds: string[]): CompareRow[] {
 
 export function listAdvisorResearchNotes(): AdvisorResearchNote[] {
   return [...demoAdvisorResearchNotes].sort(
-    (a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt),
+    (a, b) =>
+      Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt),
   );
 }
 
@@ -119,7 +120,10 @@ export function unifiedSearch(query: string): UnifiedSearchHit[] {
   const hits: UnifiedSearchHit[] = [];
 
   for (const e of demoResearchEnvelopes) {
-    if (e.companyLabel.toLowerCase().includes(q) || e.thesis.toLowerCase().includes(q)) {
+    if (
+      e.companyLabel.toLowerCase().includes(q) ||
+      e.thesis.toLowerCase().includes(q)
+    ) {
       hits.push({
         id: e.id,
         kind: "company",

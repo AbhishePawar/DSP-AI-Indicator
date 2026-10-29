@@ -5,11 +5,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import type { ExecutiveSummaryView } from "@/lib/analysis/types";
 import { SCREEN_QUESTIONS } from "@/lib/product";
 
-export function ExecutiveSummaryCard({
-  summary,
-}: {
-  summary: ExecutiveSummaryView;
-}) {
+export function ExecutiveSummaryCard({ summary }: { summary: ExecutiveSummaryView }) {
   return (
     <Card>
       <CardHeader

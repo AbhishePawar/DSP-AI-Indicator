@@ -41,11 +41,7 @@ type NotebookState = {
   entries: NotebookEntry[];
   savedSessions: SavedResearchSession[];
   bookmarks: { id: string; label: string; href: string; at: string }[];
-  addEntry: (
-    kind: NotebookEntryKind,
-    text: string,
-    symbol?: string | null,
-  ) => void;
+  addEntry: (kind: NotebookEntryKind, text: string, symbol?: string | null) => void;
   removeEntry: (id: string) => void;
   toggleBookmarkEntry: (id: string) => void;
   saveSession: (title: string, symbol: string | null, tab: string) => void;
@@ -93,8 +89,7 @@ export const useResearchNotebookStore = create<NotebookState>()(
       saveSession: (title, symbol, tab) =>
         set((s) => {
           const trimmed =
-            title.trim() ||
-            `${symbol ?? "Research"} · ${new Date().toLocaleString()}`;
+            title.trim() || `${symbol ?? "Research"} · ${new Date().toLocaleString()}`;
           return {
             savedSessions: [
               {

@@ -32,9 +32,7 @@ export function WelcomeWidget() {
 
   const name = user?.displayName || session?.displayName || "Analyst";
   const lastLogin =
-    meQuery.data?.ok && meQuery.data.result
-      ? meQuery.data.result.last_login
-      : null;
+    meQuery.data?.ok && meQuery.data.result ? meQuery.data.result.last_login : null;
   const envLabel =
     env.environment === "production"
       ? "PROD"

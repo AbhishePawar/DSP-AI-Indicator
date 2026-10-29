@@ -10,16 +10,15 @@ import { SyncStatusBadge } from "./SyncStatusBadge";
 
 export function PortfolioSync() {
   const { status: authStatus } = useAuth();
-  const { syncStatus, lastSyncedAt, lastError, syncNow, bundle } =
-    usePersistence();
+  const { syncStatus, lastSyncedAt, lastError, syncNow, bundle } = usePersistence();
 
   if (authStatus !== "authenticated") {
     return (
       <Card>
         <CardHeader title="Portfolio Sync" description="Sign in to persist" />
         <CardBody className="text-sm text-[var(--muted)]">
-          Portfolio data is in-memory until you sign in. Local cache syncs
-          automatically when authenticated.
+          Portfolio data is in-memory until you sign in. Local cache syncs automatically
+          when authenticated.
         </CardBody>
       </Card>
     );
@@ -42,8 +41,8 @@ export function PortfolioSync() {
           <p className="text-[var(--danger-fg)]">{lastError}</p>
         ) : (
           <p className="text-[var(--muted)]">
-            Holdings, allocations, and activity timeline persist for your
-            account in this browser.
+            Holdings, allocations, and activity timeline persist for your account in
+            this browser.
           </p>
         )}
         <Link href="/profile">

@@ -22,9 +22,7 @@ export function mapSectorContext(
   views: ResearchView[],
   catalogue: CatalogueSectorLookup[] = [],
 ): SectorContextCell[] {
-  const byTicker = new Map(
-    catalogue.map((c) => [c.ticker.trim().toUpperCase(), c]),
-  );
+  const byTicker = new Map(catalogue.map((c) => [c.ticker.trim().toUpperCase(), c]));
 
   return views.map((v) => {
     const cat = byTicker.get(v.ticker.toUpperCase());
@@ -38,8 +36,7 @@ export function mapSectorContext(
       sectorMedian: DATA_UNAVAILABLE,
       industryMedian: DATA_UNAVAILABLE,
       relativePosition: DATA_UNAVAILABLE,
-      note:
-        "Sector/industry labels may come from catalogue metadata for display. Authenticated sector/industry median and relative research fields are not present on frozen /api/v1/analyse — Data unavailable.",
+      note: "Sector/industry labels may come from catalogue metadata for display. Authenticated sector/industry median and relative research fields are not present on frozen /api/v1/analyse — Data unavailable.",
     };
   });
 }

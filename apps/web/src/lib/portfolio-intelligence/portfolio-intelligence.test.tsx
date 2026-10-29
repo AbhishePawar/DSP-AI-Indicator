@@ -147,9 +147,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("P9.5 portfolio intelligence lib", () => {
@@ -269,13 +267,9 @@ describe("P9.5 portfolio intelligence lib", () => {
       tags: [],
     });
     usePortfolioIntelPrefsStore.getState().addWatchlistSymbol("nvda");
-    expect(usePortfolioIntelPrefsStore.getState().watchlist[0]?.symbol).toBe(
-      "NVDA",
-    );
+    expect(usePortfolioIntelPrefsStore.getState().watchlist[0]?.symbol).toBe("NVDA");
     usePortfolioIntelPrefsStore.getState().setActiveSection("holdings");
-    expect(usePortfolioIntelPrefsStore.getState().activeSection).toBe(
-      "holdings",
-    );
+    expect(usePortfolioIntelPrefsStore.getState().activeSection).toBe("holdings");
   });
 });
 
@@ -302,9 +296,8 @@ describe("P9.5 workspace UI", () => {
   });
 
   it("renders workspace layout and executive summary", async () => {
-    const { PortfolioIntelligenceWorkspace } = await import(
-      "@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace"
-    );
+    const { PortfolioIntelligenceWorkspace } =
+      await import("@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace");
     wrap(<PortfolioIntelligenceWorkspace />);
     expect(screen.getByLabelText("Portfolio navigation")).toBeTruthy();
     expect(screen.getByLabelText("Main portfolio view")).toBeTruthy();
@@ -317,9 +310,8 @@ describe("P9.5 workspace UI", () => {
 
   it("renders holdings table with company links", async () => {
     usePortfolioIntelPrefsStore.setState({ activeSection: "holdings" });
-    const { HoldingsSection } = await import(
-      "@/components/portfolio-intelligence/Sections"
-    );
+    const { HoldingsSection } =
+      await import("@/components/portfolio-intelligence/Sections");
     wrap(
       <HoldingsSection
         holdings={[
@@ -343,5 +335,55 @@ describe("P9.5 workspace UI", () => {
 describe("P9.5 foundation version", () => {
   it("is foundation 2.0.0-rc.1", () => {
     expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+  });
+});
+
+describe("Stage 5 Portfolio UX regressions", () => {
+  it("renders Allocation (%) column and handles sorting and search", async () => {
+    const { HoldingsSection } =
+      await import("@/components/portfolio-intelligence/Sections");
+    const { render, screen, fireEvent, cleanup } =
+      await import("@testing-library/react");
+    cleanup();
+
+    render(
+      <HoldingsSection
+        holdings={[
+          {
+            company: "Tata Consultancy Services",
+            ticker: "TCS",
+            sector: "Technology",
+            allocationPercent: 42.5,
+            recommendation: "Buy",
+            researchAvailable: true,
+          },
+          {
+            company: "Infosys",
+            ticker: "INFY",
+            sector: "Technology",
+            allocationPercent: 57.5,
+            recommendation: "Hold",
+            researchAvailable: false,
+          },
+        ]}
+      />,
+    );
+
+    // 1. Allocation (%) rendered
+    expect(screen.getByText("42.5%")).toBeTruthy();
+    expect(screen.getByText("57.5%")).toBeTruthy();
+    const sortBtns = screen.getAllByRole("button", {
+      name: /Sort by Allocation \(%\)/i,
+    });
+    const sortBtn = sortBtns[0];
+    expect(sortBtn).toBeTruthy();
+
+    // 2. Sorting by allocation
+    fireEvent.click(sortBtn);
+
+    // 3. Search filter
+    const searchInput = screen.getByLabelText("Search holdings");
+    fireEvent.change(searchInput, { target: { value: "TCS" } });
+    expect(screen.getByText("TCS")).toBeTruthy();
   });
 });

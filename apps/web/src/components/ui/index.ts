@@ -18,3 +18,6 @@ export { Dropdown, DropdownItem } from "./Dropdown";
 export { Table, Tr, Td } from "./Table";
 export { Tabs } from "./Tabs";
 export { Tooltip } from "./Tooltip";
+
+export { SectionHeader } from "./SectionHeader";
+export { LoadingState } from "./LoadingState";

@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from data_engine import (
+    InMemoryShareCountPort,
+    ShareCount,
+    ShareCountPort,
+    resolve_verified_share_count,
+)
 from dsp_platform.research_assembly.assembler import assemble_canonical_research
 from dsp_platform.research_assembly.evidence import (
     EvidenceJudge,
@@ -17,11 +23,6 @@ from dsp_platform.research_assembly.models import (
     AiExecutionState,
     AssemblyOutcome,
     CanonicalResearchAssembly,
-)
-from dsp_platform.research_assembly.share_count import (
-    InMemoryShareCountPort,
-    ShareCount,
-    ShareCountPort,
 )
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "InMemoryShareCountPort",
     "ShareCount",
     "ShareCountPort",
+    "resolve_verified_share_count",
 ]

@@ -41,26 +41,37 @@ echo "[deploy] starting stack"
 docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d --remove-orphans
 
 echo "[deploy] waiting for API health"
+API_READY=false
 for _ in $(seq 1 60); do
   if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T api \
     curl -fsS "http://127.0.0.1:8000/health/ready" >/dev/null 2>&1; then
     echo "[deploy] API ready"
+    API_READY=true
     break
   fi
   sleep 2
 done
 
+if [[ "${API_READY}" != "true" ]]; then
+  echo "[deploy] FAILED: API did not become ready within 120s — not promoting" >&2
+  exit 1
+fi
+
 echo "[deploy] waiting for web health"
+WEB_READY=false
 for _ in $(seq 1 60); do
   if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T web \
     wget -qO- "http://127.0.0.1:3000/api/health" >/dev/null 2>&1; then
     echo "[deploy] Web ready"
+    WEB_READY=true
     break
   fi
   sleep 2
 done
-
-mv -f "${PREV_TAG_FILE}.next" "${PREV_TAG_FILE}"
+if [[ "${WEB_READY}" != "true" ]]; then
+  echo "[deploy] FAILED: web did not become ready within 120s — not promoting" >&2
+  exit 1
+fi
 
 DOMAIN="${DSP_PUBLIC_DOMAIN:-localhost}"
 echo "[deploy] smoke (internal)"
@@ -71,9 +82,14 @@ docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T api \
 
 if [[ "${DSP_SMOKE_REQUIRE_HTTPS:-true}" == "true" && "${DOMAIN}" != "localhost" ]]; then
   echo "[deploy] external HTTPS smoke → https://${DOMAIN}"
-  curl -fsS "https://${DOMAIN}/api/health" >/dev/null || \
-    echo "[deploy] WARN: external HTTPS smoke failed — check DNS/ACME" >&2
+  if ! curl -fsS "https://${DOMAIN}/api/health" >/dev/null; then
+    echo "[deploy] FAILED: external HTTPS smoke failed — check DNS/ACME (set DSP_SMOKE_REQUIRE_HTTPS=false only for non-public dry runs)" >&2
+    exit 1
+  fi
 fi
+
+# Record rollback tags only after every gate passed.
+mv -f "${PREV_TAG_FILE}.next" "${PREV_TAG_FILE}"
 
 echo "[deploy] OK — production stack is up"
 echo "[deploy] Domain: ${DOMAIN}"

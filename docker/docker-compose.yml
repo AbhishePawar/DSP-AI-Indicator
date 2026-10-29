@@ -27,8 +27,8 @@ services:
 
   web:
     build:
-      context: ..
-      dockerfile: docker/frontend/Dockerfile
+      context: ../apps/web
+      dockerfile: ../../docker/frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
     ports:

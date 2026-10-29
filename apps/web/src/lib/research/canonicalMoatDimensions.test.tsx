@@ -20,10 +20,7 @@ import {
 } from "@/lib/research/canonicalMoatDimensions";
 
 const MAPPER_SOURCE = readFileSync(
-  path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "canonicalMoatDimensions.ts",
-  ),
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "canonicalMoatDimensions.ts"),
   "utf8",
 );
 
@@ -117,16 +114,12 @@ describe("canonical Economic Moat dimensions contract", () => {
   });
 
   it("renders DSP-supplied 76 → 7.6/10 without recalculating", () => {
-    const mapped = mapCanonicalMoatDimensions([
-      assessed("brand", "7.6/10", 76),
-    ]);
+    const mapped = mapCanonicalMoatDimensions([assessed("brand", "7.6/10", 76)]);
     expect(mapped.dimensions[0]?.displayRating).toBe("7.6/10");
   });
 
   it("renders DSP-supplied 80 → 8.0/10 without recalculating", () => {
-    const mapped = mapCanonicalMoatDimensions([
-      assessed("brand", "8.0/10", 80),
-    ]);
+    const mapped = mapCanonicalMoatDimensions([assessed("brand", "8.0/10", 80)]);
     expect(mapped.dimensions[0]?.displayRating).toBe("8.0/10");
   });
 
@@ -135,8 +128,7 @@ describe("canonical Economic Moat dimensions contract", () => {
       assessed("switching_costs", "7.5/10", 75),
     ]);
     expect(
-      mapped.dimensions.find((d) => d.identifier === "switching_costs")
-        ?.displayRating,
+      mapped.dimensions.find((d) => d.identifier === "switching_costs")?.displayRating,
     ).toBe("7.5/10");
   });
 
@@ -149,9 +141,7 @@ describe("canonical Economic Moat dimensions contract", () => {
         engine_status: "assessed",
       }),
     ]);
-    expect(mapped.dimensions[0]?.displayRating).toBe(
-      MOAT_RATING_UNAVAILABLE_DISPLAY,
-    );
+    expect(mapped.dimensions[0]?.displayRating).toBe(MOAT_RATING_UNAVAILABLE_DISPLAY);
     expect(mapped.dimensions[0]?.displayRating).not.toBe("7.6/10");
     expect(mapped.dimensions[0]?.displayRating).not.toBe("0/10");
   });
@@ -177,8 +167,7 @@ describe("canonical Economic Moat dimensions contract", () => {
       }),
     ]);
     expect(
-      mapped.dimensions.find((d) => d.identifier === "network_effects")
-        ?.displayRating,
+      mapped.dimensions.find((d) => d.identifier === "network_effects")?.displayRating,
     ).toBe("N/A");
   });
 
@@ -191,15 +180,12 @@ describe("canonical Economic Moat dimensions contract", () => {
       }),
     ]);
     expect(
-      mapped.dimensions.find((d) => d.identifier === "efficient_scale")
-        ?.displayRating,
+      mapped.dimensions.find((d) => d.identifier === "efficient_scale")?.displayRating,
     ).toBe("N/A");
   });
 
   it("can render assessed zero as 0.0/10 when DSP supplies that value", () => {
-    const mapped = mapCanonicalMoatDimensions([
-      assessed("brand", "0.0/10", 0),
-    ]);
+    const mapped = mapCanonicalMoatDimensions([assessed("brand", "0.0/10", 0)]);
     expect(mapped.dimensions[0]?.displayRating).toBe("0.0/10");
   });
 
@@ -227,9 +213,7 @@ describe("canonical Economic Moat dimensions contract", () => {
       economic_moat: { score: 80, rating: "wide" },
     });
     expect(mapped.dimensions).toHaveLength(6);
-    expect(
-      mapped.dimensions.every((d) => d.displayRating === "N/A"),
-    ).toBe(true);
+    expect(mapped.dimensions.every((d) => d.displayRating === "N/A")).toBe(true);
   });
 
   it("does not recreate the authoritative X/10 calculation", () => {
@@ -249,15 +233,9 @@ describe("canonical Economic Moat dimensions contract", () => {
   });
 
   it("keeps overall economic moat out of the dimension rows", () => {
-    const mapped = mapCanonicalMoatDimensions([
-      assessed("brand", "8.0/10", 80),
-    ]);
-    expect(mapped.dimensions.map((d) => d.identifier)).not.toContain(
-      "overall",
-    );
-    expect(mapped.dimensions.map((d) => d.name)).not.toContain(
-      "Overall Economic Moat",
-    );
+    const mapped = mapCanonicalMoatDimensions([assessed("brand", "8.0/10", 80)]);
+    expect(mapped.dimensions.map((d) => d.identifier)).not.toContain("overall");
+    expect(mapped.dimensions.map((d) => d.name)).not.toContain("Overall Economic Moat");
   });
 
   it("does not copy private fields into the public UI view", () => {
@@ -278,9 +256,7 @@ describe("canonical Economic Moat dimensions contract", () => {
     expect(privateFieldsPresentIn(mapped.dimensions)).toEqual([]);
     expect(JSON.stringify(mapped.dimensions)).not.toContain("openai");
     expect(JSON.stringify(mapped.dimensions)).not.toContain("gpt-forbidden");
-    expect(JSON.stringify(mapped.dimensions)).not.toContain(
-      "private methodology",
-    );
+    expect(JSON.stringify(mapped.dimensions)).not.toContain("private methodology");
   });
 
   it("renders the six dimensions and overall moat as separate UI regions", () => {

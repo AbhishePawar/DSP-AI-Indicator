@@ -12,8 +12,7 @@
 }
 
 .auth-reveal {
-  animation: auth-fade-up var(--motion-slow, 280ms) var(--ease-standard, ease-out)
-    both;
+  animation: auth-fade-up var(--motion-slow, 280ms) var(--ease-standard, ease-out) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

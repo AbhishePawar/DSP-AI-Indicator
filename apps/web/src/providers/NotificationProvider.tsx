@@ -97,10 +97,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   return (
     <NotificationContext.Provider value={value}>
       {children}
-      <ToastViewport
-        notifications={notifications}
-        onDismiss={dismiss}
-      />
+      <ToastViewport notifications={notifications} onDismiss={dismiss} />
     </NotificationContext.Provider>
   );
 }

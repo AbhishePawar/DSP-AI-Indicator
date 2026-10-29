@@ -89,10 +89,7 @@ export function researchViewToCsv(view: ResearchView): string {
     ["explainabilityVersion", view.explainability.version],
     ["explainabilityModules", String(view.explainability.modules.length)],
     ["valuationTransparencyVersion", view.valuationTransparency.version],
-    [
-      "valuationTransparencyMethods",
-      String(view.valuationTransparency.methods.length),
-    ],
+    ["valuationTransparencyMethods", String(view.valuationTransparency.methods.length)],
     [
       "valuationTransparencyVerdict",
       view.valuationTransparency.executive.valuationVerdict,
@@ -103,11 +100,7 @@ export function researchViewToCsv(view: ResearchView): string {
   return rows.map((r) => r.map(csvEscape).join(",")).join("\n");
 }
 
-export function downloadText(
-  filename: string,
-  content: string,
-  mime: string,
-): void {
+export function downloadText(filename: string, content: string, mime: string): void {
   if (typeof window === "undefined") return;
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -119,11 +112,7 @@ export function downloadText(
 }
 
 /** Downloads base64-encoded bytes from `POST /research/export` (docx/pptx/pdf/xlsx). */
-export function downloadBase64(
-  filename: string,
-  base64: string,
-  mime: string,
-): void {
+export function downloadBase64(filename: string, base64: string, mime: string): void {
   if (typeof window === "undefined") return;
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
@@ -214,11 +203,11 @@ export function researchViewToHtml(view: ResearchView): string {
 </table>
 <h3>Methods</h3>
 <table><tr><th>Method</th><th>Status</th><th>Intrinsic Value</th><th>Confidence</th></tr>${view.valuationTransparency.methods
-  .map(
-    (m) =>
-      `<tr><td>${m.methodName}</td><td>${m.status}</td><td>${m.intrinsicValue}</td><td>${m.confidence}</td></tr>`,
-  )
-  .join("")}</table>
+    .map(
+      (m) =>
+        `<tr><td>${m.methodName}</td><td>${m.status}</td><td>${m.intrinsicValue}</td><td>${m.confidence}</td></tr>`,
+    )
+    .join("")}</table>
 <h2>Explainability Framework</h2>
 <p class="note">Presentation-only expansion of institutional module ratings. No recalculation.</p>
 ${view.explainability.modules

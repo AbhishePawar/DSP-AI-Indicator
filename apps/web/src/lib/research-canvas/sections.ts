@@ -115,9 +115,7 @@ export const CANVAS_TABS: readonly CanvasTabMeta[] = [
     label: "Comparison",
     description: "Company Comparison decision workspace",
     href: (s) =>
-      s
-        ? `/analysis/compare?symbols=${encodeURIComponent(s)}`
-        : "/analysis/compare",
+      s ? `/analysis/compare?symbols=${encodeURIComponent(s)}` : "/analysis/compare",
     shortcut: "C",
     requiresFlag: "companyComparison",
   },

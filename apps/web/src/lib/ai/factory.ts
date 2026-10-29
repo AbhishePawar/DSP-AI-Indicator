@@ -1,4 +1,8 @@
-import { createBackendProvider, createDeterministicProvider, createMockProvider } from "./providers";
+import {
+  createBackendProvider,
+  createDeterministicProvider,
+  createMockProvider,
+} from "./providers";
 import type { ProviderRegistry } from "./registry";
 import type { AIProvider, AIProviderId } from "./types";
 

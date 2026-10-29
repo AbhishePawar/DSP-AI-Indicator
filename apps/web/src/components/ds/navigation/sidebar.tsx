@@ -79,14 +79,7 @@ export type SidebarItemButtonProps = SidebarItemShared &
 export type SidebarItemProps = SidebarItemLinkProps | SidebarItemButtonProps;
 
 export function SidebarItem(props: SidebarItemProps) {
-  const {
-    label,
-    icon,
-    active = false,
-    collapsed = false,
-    className,
-    ...rest
-  } = props;
+  const { label, icon, active = false, collapsed = false, className, ...rest } = props;
 
   const classes = cn(
     "inline-flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] px-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
@@ -100,7 +93,10 @@ export function SidebarItem(props: SidebarItemProps) {
   const content = (
     <>
       {icon ? (
-        <span className="inline-flex size-5 shrink-0 items-center justify-center" aria-hidden>
+        <span
+          className="inline-flex size-5 shrink-0 items-center justify-center"
+          aria-hidden
+        >
           {icon}
         </span>
       ) : null}

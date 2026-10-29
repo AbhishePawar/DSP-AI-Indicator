@@ -26,10 +26,7 @@ import { useUiStore } from "@/lib/shell";
 import { dashboardSurfaceTrust } from "@/lib/trust/surfaceTrust";
 import { cn } from "@/lib/utils";
 import { DashboardCustomizePanel } from "./DashboardCustomizePanel";
-import {
-  DashboardWidgetShell,
-  WidgetLoading,
-} from "./DashboardWidgetShell";
+import { DashboardWidgetShell, WidgetLoading } from "./DashboardWidgetShell";
 import { QuickActionsWidget } from "./widgets/QuickActionsWidget";
 import { WelcomeWidget } from "./widgets/WelcomeWidget";
 import {
@@ -154,10 +151,7 @@ const LazyResearchCommandCenter = lazy(() =>
   })),
 );
 
-function withSuspense(
-  Comp: ComponentType,
-  title: string,
-): ReactNode {
+function withSuspense(Comp: ComponentType, title: string): ReactNode {
   return (
     <Suspense
       fallback={
@@ -180,10 +174,7 @@ function renderWidget(id: DashboardWidgetId): ReactNode {
     case "quick_actions":
       return <QuickActionsWidget />;
     case "research_command_center":
-      return withSuspense(
-        LazyResearchCommandCenter,
-        "Research Command Center",
-      );
+      return withSuspense(LazyResearchCommandCenter, "Research Command Center");
     case "market_overview":
       return withSuspense(MarketOverviewWidget, "Market Overview");
     case "valuation_summary":
@@ -266,9 +257,7 @@ export function InstitutionalDashboard() {
 
   const visibleIds = useMemo(
     () =>
-      widgetOrder.filter(
-        (id) => !hiddenWidgets.includes(id) && id !== "global_search",
-      ),
+      widgetOrder.filter((id) => !hiddenWidgets.includes(id) && id !== "global_search"),
     [widgetOrder, hiddenWidgets],
   );
 
@@ -279,11 +268,7 @@ export function InstitutionalDashboard() {
         description="Authoritative authenticated landing — research orientation from certified /api/v1 probes and local history. Missing data stays unavailable."
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setCommandOpen(true)}
-            >
+            <Button size="sm" variant="secondary" onClick={() => setCommandOpen(true)}>
               Command palette
             </Button>
             <Button
@@ -300,9 +285,9 @@ export function InstitutionalDashboard() {
       />
 
       <Alert variant="info" title="Research Mode">
-        This dashboard helps you decide what to investigate next. It does not
-        issue buy/sell instructions. Shell navigation (top bar, sidebar, status
-        footer) remains available around this workspace.
+        This dashboard helps you decide what to investigate next. It does not issue
+        buy/sell instructions. Shell navigation (top bar, sidebar, status footer)
+        remains available around this workspace.
       </Alert>
 
       <SurfaceTrustChrome
@@ -369,8 +354,8 @@ export function InstitutionalDashboard() {
 
       <footer className="border-t border-[var(--border)] pt-4 text-xs text-[var(--muted)]">
         Executive Dashboard · Design System tokens · Thin client over{" "}
-        <code className="font-[family-name:var(--font-mono)]">/api/v1</code> ·
-        Customize layout anytime ·{" "}
+        <code className="font-[family-name:var(--font-mono)]">/api/v1</code> · Customize
+        layout anytime ·{" "}
         <button
           type="button"
           className="text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"

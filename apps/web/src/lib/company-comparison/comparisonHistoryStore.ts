@@ -15,9 +15,7 @@ const MAX_HISTORY = 80;
 type HistoryState = {
   entries: ComparisonHistoryEntry[];
   /** Append-only. Returns the frozen entry id. */
-  appendHistory: (
-    entry: Omit<ComparisonHistoryEntry, "id" | "immutable">,
-  ) => string;
+  appendHistory: (entry: Omit<ComparisonHistoryEntry, "id" | "immutable">) => string;
   /** Filter helpers (read-only views). */
   search: (query: string) => ComparisonHistoryEntry[];
   filterBySymbol: (symbol: string) => ComparisonHistoryEntry[];

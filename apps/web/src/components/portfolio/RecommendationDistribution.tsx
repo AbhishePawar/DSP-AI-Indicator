@@ -3,13 +3,7 @@
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { RecommendationDistribution } from "@/lib/portfolio/analytics";
 
-const ORDER = [
-  "Strong Buy",
-  "Buy",
-  "Hold",
-  "Sell",
-  "Strong Sell",
-] as const;
+const ORDER = ["Strong Buy", "Buy", "Hold", "Sell", "Strong Sell"] as const;
 
 export function RecommendationDistribution({
   distribution,

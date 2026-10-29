@@ -60,8 +60,33 @@ Dev seed (only if no Super Admin / Administrator exists):
 
 - Email: `admin@dspai.local`
 - Username: `admin`
-- Password: `Admin@123` (override `DSP_SEED_ADMIN_PASSWORD`)
-- Role: `super_admin`
+- Password source: `DSP_SEED_ADMIN_PASSWORD` (no checked-in default)
+- Role: `administrator`
+
+Production first-admin bootstrap is an explicit one-time operation: set
+`DSP_FORCE_ADMIN_SEED=1` and provide `DSP_SEED_ADMIN_PASSWORD` through the
+deployment secret manager, then restart the API once. Production refuses to
+seed if the canonical password is absent; it never uses the development
+default or the legacy Playwright-only `DSP_P109_PASSWORD`. Remove
+`DSP_FORCE_ADMIN_SEED` after the first administrator is created. This seed
+does not reset an existing administrator's password.
+
+Password recovery:
+- Email recovery uses `DSP_FRONTEND_URL` and the configured email delivery
+  adapter; verify the reset email reaches the account before relying on it.
+- Username/mobile recovery requires an already-verified mobile number and a
+  configured production SMS provider. Development OTP hints must never be
+  enabled in production.
+- Both flows return generic account-existence messaging and password resets
+  revoke active sessions.
+
+For the P1-09 browser journey, `apps/web/playwright.config.ts` explicitly loads `apps/web/.env.local`. The reusable validator in `apps/web/e2e/browser/p109/env.ts` resolves credentials in this order:
+
+1. `DSP_SEED_ADMIN_PASSWORD` — canonical source
+2. `DSP_P109_PASSWORD` — legacy fallback only
+3. Missing configuration error before the browser journey starts
+
+The actual fixture credential must remain outside tracked source code, documentation, screenshots, logs, and commits. Configure the same canonical environment variable for the backend seed process and the Playwright process.
 
 ## Security controls
 
@@ -74,7 +99,7 @@ Dev seed (only if no Super Admin / Administrator exists):
 - Account lockout (`DSP_AUTH_LOCKOUT_THRESHOLD`, `DSP_AUTH_LOCKOUT_SECONDS`)
 - Session expiry + Remember Me TTL
 - Login audit logs + device management + **expiring** trusted devices (`DSP_AUTH_TRUSTED_DEVICE_DAYS`, default 30 — "remember this device" always lapses, never trusted forever)
-- MFA implemented (TOTP enrollment/verify/enable/disable, encrypted-at-rest secrets, recovery codes with status + regeneration, enrollment/verify rate limiting, forced re-authentication on disable/regenerate) and WebAuthn/Passkey implemented (registration + authentication, discoverable credentials) — both gated by `DSP_AUTH_MFA=true`; login contracts stay additive-stable (`mfa_required` + `mfa_token` + `methods` only appear when a factor is actually enrolled)
+- MFA implemented (TOTP enrollment/verify/enable/disable, encrypted-at-rest secrets, recovery codes with status + regeneration, forced re-authentication on disable/regenerate) and WebAuthn/Passkey implemented (registration + authentication, discoverable credentials) — both gated by `DSP_AUTH_MFA=true`; login contracts stay additive-stable (`mfa_required` + `mfa_token` + `methods` only appear when a factor is actually enrolled)
 
 ## Key API routes
 
@@ -121,7 +146,7 @@ the full design, sequence diagrams, and security model.
 
 ## Passkey (WebAuthn) — primary, passwordless sign-in
 
-The same `WebAuthnAdapter`/credential store used for MFA step-up above also powers a fully passwordless, primary sign-in path under `/auth/passkey/*` (`GET /auth/enterprise/providers` → `passkey.available`). `login/begin` requests a *discoverable* ("usernameless") credential challenge — no identifier required, the browser's own account picker supplies it — and `login/complete` verifies the assertion and issues a full session (HttpOnly cookies + JWT) exactly like password/OAuth/OTP login. A credential registered via either `/auth/mfa/webauthn/register*` or `/auth/passkey/register/*` works for both entry points. See [ENTERPRISE_AUTH_PLATFORM.md §3c](security/ENTERPRISE_AUTH_PLATFORM.md) for ceremony sequence diagrams, the full security model (challenge/origin/RP-ID/signature/counter validation), recovery strategy (device migration), and browser/deployment requirements.
+The same `WebAuthnAdapter`/credential store used for MFA step-up above also powers a fully passwordless, primary sign-in path under `/auth/passkey/*` (`GET /auth/enterprise/providers` → `passkey.available`). `login/begin` requests a *discoverable* ("usernameless") credential challenge — no identifier required, the browser's own account picker supplies it — and `login/complete` verifies the assertion and issues a full session (HttpOnly cookies + JWT) exactly like password/OAuth/OTP login. A credential registered via either `/auth/mfa/webauthn/register*` or `/auth/passkey/register/*` works for both entry points. See [ENTERPRISE_AUTH_PLATFORM.md §3c](security/ENTERPRISE_AUTH_PLATFORM.md) for ceremony sequence diagrams, the full security model (challenge/origin/RP-ID/signature/counter validation), recovery strategy (device migration), browser/deployment requirements.
 
 ## Non-goals
 

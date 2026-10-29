@@ -31,9 +31,7 @@ function formatStage(stage: StageFieldSummary): string | null {
     stage.label ? `Label: ${stage.label}` : null,
     stage.decision ? `Decision: ${stage.decision}` : null,
     stage.score != null ? `Score: ${formatScore(stage.score)}` : null,
-    stage.confidence != null
-      ? `Confidence: ${formatPct(stage.confidence)}`
-      : null,
+    stage.confidence != null ? `Confidence: ${formatPct(stage.confidence)}` : null,
     stage.status ? `Status: ${stage.status}` : null,
   ].filter(Boolean);
   return parts.length ? parts.join(" · ") : null;
@@ -169,11 +167,7 @@ export function composeAnswer(
     case "summarise_strengths": {
       const list = joinBullets(primary.strengths);
       if (!list) return unavailable(intent);
-      return answer(
-        `Strengths reported for ${ticker}:\n${list}`,
-        ["Overview"],
-        intent,
-      );
+      return answer(`Strengths reported for ${ticker}:\n${list}`, ["Overview"], intent);
     }
     case "summarise_weaknesses": {
       const list = joinBullets([...primary.weaknesses, ...primary.risks]);

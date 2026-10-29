@@ -35,13 +35,7 @@ function display(value: string | null | undefined): string {
   return has(value) ? (value as string) : "Data unavailable";
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="border-b border-[var(--border)] px-4 py-4 last:border-b-0">
       <h3 className="mb-2 text-sm font-semibold text-[var(--ink)]">{title}</h3>
@@ -100,9 +94,20 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
 
   return (
     <article className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+      <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-xs text-[var(--muted)] flex items-center justify-between gap-2">
+        <span className="font-semibold uppercase tracking-wider">
+          Research Evidence &amp; AI Boundary
+        </span>
+        <span className="rounded bg-[var(--surface)] px-2 py-0.5 text-[11px] font-medium border border-[var(--border)]">
+          {view.sourceAttribution.authenticated
+            ? "Authenticated source data"
+            : "Source attribution unavailable"}
+        </span>
+      </div>
       <Section title="Executive Summary">
         <p className="text-sm leading-6 text-[var(--ink)]">
-          {display(view.company)} ({display(view.ticker)}) — {display(view.recommendation)}
+          {display(view.company)} ({display(view.ticker)}) —{" "}
+          {display(view.recommendation)}
           {has(view.recommendationConfidence)
             ? ` · Confidence ${Math.round((view.recommendationConfidence as number) * 100)}%`
             : ""}
@@ -170,9 +175,12 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
           <button
             type="button"
             onClick={() => setBuffettExpanded((prev) => !prev)}
-            className="mt-3 text-xs font-medium text-[var(--accent-strong)] hover:underline"
+            aria-expanded={buffettExpanded}
+            className="mt-3 inline-flex min-h-[44px] items-center text-xs font-medium text-[var(--accent-strong)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            {buffettExpanded ? "Hide full Buffett analysis" : "View full Buffett analysis"}
+            {buffettExpanded
+              ? "Hide full Buffett analysis"
+              : "View full Buffett analysis"}
           </button>
           {buffettExpanded ? (
             <div className="mt-3">
@@ -207,6 +215,64 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
           />
         </Section>
       ) : null}
+
+      <Section title="Data Provenance">
+        <p className="mb-3 text-xs leading-5 text-[var(--muted)]">
+          Source labels and retrieval timestamps are supplied by the server. Missing
+          attribution is shown as unavailable rather than inferred.
+        </p>
+        <FieldGrid
+          fields={[
+            {
+              label: "Fundamental source",
+              value: view.sourceAttribution.statementProvider,
+            },
+            {
+              label: "Fundamental source type",
+              value: view.sourceAttribution.statementSourceType,
+            },
+            {
+              label: "Fundamentals retrieved",
+              value: view.sourceAttribution.statementRetrievedAt,
+            },
+            {
+              label: "Market-data source",
+              value: view.sourceAttribution.quoteProvider,
+            },
+            {
+              label: "Market-data source type",
+              value: view.sourceAttribution.quoteSourceType,
+            },
+            {
+              label: "Market data retrieved",
+              value: view.sourceAttribution.quoteRetrievedAt,
+            },
+            {
+              label: "Shares outstanding",
+              value:
+                view.sourceAttribution.sharesOutstanding == null
+                  ? null
+                  : view.sourceAttribution.sharesOutstanding.toLocaleString(),
+            },
+            {
+              label: "Share-count source",
+              value: view.sourceAttribution.sharesSource,
+            },
+            {
+              label: "Share-count as of",
+              value: view.sourceAttribution.sharesAsOf,
+            },
+            {
+              label: "Share count verified",
+              value: view.sourceAttribution.sharesVerified ? "Yes" : "No / unavailable",
+            },
+            {
+              label: "Source verification",
+              value: view.sourceAttribution.status,
+            },
+          ]}
+        />
+      </Section>
 
       {limitations.length ? (
         <Section title="Methodology &amp; Caveats">

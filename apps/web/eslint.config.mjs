@@ -7,6 +7,9 @@ export default defineConfig([
   ...nextTypescript,
   // Existing external-store/session hydration predates React Compiler. Keep its
   // migration diagnostics visible without treating them as compiler adoption.
-  { files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"], rules: { "react-hooks/set-state-in-effect": "warn" } },
+  {
+    files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
+    rules: { "react-hooks/set-state-in-effect": "warn" },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "next-env.d.ts"]),
 ]);

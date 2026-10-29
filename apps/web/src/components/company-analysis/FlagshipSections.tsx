@@ -57,21 +57,12 @@ export function ManagementSection({ view }: { view: ResearchView }) {
           <FieldRow label="Management Quality" value={m.label} />
           <FieldRow
             label="Corporate Governance"
-            value={firstStageMetric(m, [
-              "Corporate Governance",
-              "Governance",
-            ])}
+            value={firstStageMetric(m, ["Corporate Governance", "Governance"])}
           />
-          <FieldRow
-            label="Integrity"
-            value={stageMetricValue(m, "Integrity")}
-          />
+          <FieldRow label="Integrity" value={stageMetricValue(m, "Integrity")} />
           <FieldRow
             label="Execution Capability"
-            value={firstStageMetric(m, [
-              "Execution Capability",
-              "Execution",
-            ])}
+            value={firstStageMetric(m, ["Execution Capability", "Execution"])}
           />
           <FieldRow
             label="Shareholder Orientation"
@@ -82,10 +73,7 @@ export function ManagementSection({ view }: { view: ResearchView }) {
           />
           <FieldRow
             label="Leadership Quality"
-            value={firstStageMetric(m, [
-              "Leadership Quality",
-              "Leadership",
-            ])}
+            value={firstStageMetric(m, ["Leadership Quality", "Leadership"])}
           />
           <FieldRow label="Confidence" value={m.confidence} />
           <FieldRow label="Stage status" value={m.status} />
@@ -115,10 +103,7 @@ export function MoatSection({ view }: { view: ResearchView }) {
           />
           <FieldRow
             label="Network Effects"
-            value={firstStageMetric(moat, [
-              "Network Effects",
-              "Network Effect",
-            ])}
+            value={firstStageMetric(moat, ["Network Effects", "Network Effect"])}
           />
           <FieldRow
             label="Switching Costs"
@@ -126,24 +111,15 @@ export function MoatSection({ view }: { view: ResearchView }) {
           />
           <FieldRow
             label="Distribution Advantage"
-            value={firstStageMetric(moat, [
-              "Distribution Advantage",
-              "Distribution",
-            ])}
+            value={firstStageMetric(moat, ["Distribution Advantage", "Distribution"])}
           />
           <FieldRow
             label="Cost-Based Moat"
-            value={firstStageMetric(moat, [
-              "Cost-Based Moat",
-              "Cost Advantage",
-            ])}
+            value={firstStageMetric(moat, ["Cost-Based Moat", "Cost Advantage"])}
           />
           <FieldRow
             label="Moat Durability"
-            value={firstStageMetric(moat, [
-              "Moat Durability",
-              "Durability",
-            ])}
+            value={firstStageMetric(moat, ["Moat Durability", "Durability"])}
           />
           <FieldRow label="Score" value={moat.score} />
           <FieldRow label="Confidence" value={moat.confidence} />
@@ -170,12 +146,7 @@ function RiskCategoryRow({
   category: RiskCategoryPayload | undefined;
 }) {
   if (!category || !category.available) {
-    return (
-      <FieldRow
-        label={label}
-        value={category?.message ?? "Data unavailable."}
-      />
-    );
+    return <FieldRow label={label} value={category?.message ?? "Data unavailable."} />;
   }
   const detail = category.source_stage
     ? `${riskLevelLabel(category.level)} (from ${category.source_stage})`
@@ -194,8 +165,7 @@ export function RiskSection({ view }: { view: ResearchView }) {
         action={
           risk ? (
             <span className="text-xs text-[var(--muted)]">
-              {risk.categories_available}/{risk.categories_total} categories
-              covered
+              {risk.categories_available}/{risk.categories_total} categories covered
             </span>
           ) : undefined
         }
@@ -246,19 +216,10 @@ export function FinancialSection({ view }: { view: ResearchView }) {
         description="Values from the financial stage only — line-item history requires filings APIs not wired here. No cross-stage substitutes."
       >
         <dl>
-          <FieldRow
-            label="Revenue"
-            value={stageMetricValue(fin, "Revenue")}
-          />
+          <FieldRow label="Revenue" value={stageMetricValue(fin, "Revenue")} />
           <FieldRow label="Profit" value={stageMetricValue(fin, "Profit")} />
-          <FieldRow
-            label="Cash Flow"
-            value={stageMetricValue(fin, "Cash Flow")}
-          />
-          <FieldRow
-            label="Margins"
-            value={stageMetricValue(fin, "Margins")}
-          />
+          <FieldRow label="Cash Flow" value={stageMetricValue(fin, "Cash Flow")} />
+          <FieldRow label="Margins" value={stageMetricValue(fin, "Margins")} />
           <FieldRow label="Debt" value={stageMetricValue(fin, "Debt")} />
           <FieldRow label="ROE" value={stageMetricValue(fin, "ROE")} />
           <FieldRow label="ROCE" value={stageMetricValue(fin, "ROCE")} />
@@ -269,8 +230,8 @@ export function FinancialSection({ view }: { view: ResearchView }) {
       </SectionCard>
       <StageSectionCard title="Financial stage" section={fin} />
       <p className="text-xs text-[var(--muted)]">
-        Growth and Earnings Quality are separate stages — not Financial
-        Performance substitutes.
+        Growth and Earnings Quality are separate stages — not Financial Performance
+        substitutes.
       </p>
       <SectionCard title="Historical trends">
         <WorkspaceEmpty description="Data unavailable. No multi-period financial series is exposed on AnalyseResponse for charting in this workspace." />
@@ -289,10 +250,7 @@ export function ExplainabilitySection({ view }: { view: ResearchView }) {
   ];
   return (
     <div className="space-y-4">
-      <SectionCard
-        title="Reasoning path"
-        description={view.explainability.disclaimer}
-      >
+      <SectionCard title="Reasoning path" description={view.explainability.disclaimer}>
         <dl>
           <FieldRow label="Recommendation" value={view.recommendation} />
           <FieldRow
@@ -303,10 +261,7 @@ export function ExplainabilitySection({ view }: { view: ResearchView }) {
             label="One-line summary"
             value={first?.oneLineSummary ?? "Data unavailable."}
           />
-          <FieldRow
-            label="Framework version"
-            value={view.explainability.version}
-          />
+          <FieldRow label="Framework version" value={view.explainability.version} />
         </dl>
       </SectionCard>
       <SectionCard
@@ -393,8 +348,8 @@ export function EvidenceSection({ view }: { view: ResearchView }) {
         }
       >
         <p className="text-sm text-[var(--muted)]">
-          Open Institutional Reports for the publishing trust ladder. This panel
-          stays honest about missing document payloads.
+          Open Institutional Reports for the publishing trust ladder. This panel stays
+          honest about missing document payloads.
         </p>
       </SectionCard>
     </div>

@@ -41,7 +41,13 @@ function RoleDashboardInner() {
 
 export default function EnterpriseRoleDashboardPage() {
   return (
-    <Suspense fallback={<div className="p-6"><WidgetLoading label="Loading dashboard" /></div>}>
+    <Suspense
+      fallback={
+        <div className="p-6">
+          <WidgetLoading label="Loading dashboard" />
+        </div>
+      }
+    >
       <RoleDashboardInner />
     </Suspense>
   );

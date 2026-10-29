@@ -62,13 +62,16 @@ def get_authenticated_market_quote(
     symbol: str,
     *,
     exchange: str | None = None,
-    currency: str = "USD",
+    currency: str | None = None,
 ) -> dict[str, Any] | None:
     """Fetch authenticated quote as a public dict, or ``None`` if unavailable."""
+    eff_currency = currency
+    if not eff_currency:
+        eff_currency = "INR" if exchange and str(exchange).strip().upper() in ("NSE", "BSE") else "USD"
     instrument = Instrument(
         symbol=symbol.strip().upper(),
         asset_class=AssetClass.EQUITY,
-        currency=currency,
+        currency=eff_currency,
         exchange=exchange,
     )
     quote = _service().get_quote(instrument)

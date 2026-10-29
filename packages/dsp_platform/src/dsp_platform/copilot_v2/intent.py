@@ -22,6 +22,7 @@ COPILOT_MODES: tuple[str, ...] = (
     "memo",
     "scenarios",
     "buffett",
+    "research",
 )
 
 _SYMBOL_STOP = {
@@ -126,6 +127,18 @@ def classify_intent(message: str, *, mode: str | None = None) -> str:
         (
             "buffett",
             ("explain like buffett", "like buffett", "plain language"),
+        ),
+        (
+            "research",
+            (
+                "ai research",
+                "deep research",
+                "research report",
+                "conduct research",
+                "independent research",
+                "research analysis",
+                "research ",
+            ),
         ),
         (
             "company",

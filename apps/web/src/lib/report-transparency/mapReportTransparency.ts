@@ -11,10 +11,7 @@ import {
 import { formatPct } from "@/lib/intelligence/mapResponse";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import { buildReportId } from "./reportId";
-import type {
-  DataFreshnessLabel,
-  ReportTransparencyView,
-} from "./types";
+import type { DataFreshnessLabel, ReportTransparencyView } from "./types";
 
 /** Presentation framework versions (not backend packages). */
 export const BUFFETT_FRAMEWORK_VERSION = "1.0.0" as const;
@@ -49,13 +46,17 @@ export function mapDataFreshness(
 }
 
 export function mapReportTransparency(
-  view: Omit<ResearchView, "businessEducation" | "transparency" | "explainability" | "valuationTransparency">,
+  view: Omit<
+    ResearchView,
+    "businessEducation" | "transparency" | "explainability" | "valuationTransparency"
+  >,
   options?: { marketStatus?: string | null },
 ): ReportTransparencyView {
   const frontend = env.frontendVersion || FRONTEND_FOUNDATION_VERSION;
-  const backend = display(view.platformVersion) !== "Unavailable"
-    ? display(view.platformVersion)
-    : BACKEND_PLATFORM_TARGET.replace("dsp_platform@", "") || "Unavailable";
+  const backend =
+    display(view.platformVersion) !== "Unavailable"
+      ? display(view.platformVersion)
+      : BACKEND_PLATFORM_TARGET.replace("dsp_platform@", "") || "Unavailable";
 
   const recommendationEngineVersion =
     view.packageVersions?.investment_recommendation ??

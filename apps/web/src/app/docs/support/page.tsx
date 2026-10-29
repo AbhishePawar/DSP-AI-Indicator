@@ -76,25 +76,25 @@ export default function SupportPage() {
       </h2>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[var(--muted)]">
         <li>
-          <strong className="text-[var(--fg)]">S1 Critical</strong> — service
-          down / security breach · acknowledge ≤1h · continuous work (Enterprise SLA)
+          <strong className="text-[var(--fg)]">S1 Critical</strong> — service down /
+          security breach · acknowledge ≤1h · continuous work (Enterprise SLA)
         </li>
         <li>
-          <strong className="text-[var(--fg)]">S2 High</strong> — major feature
-          impaired · acknowledge ≤4 business hours
+          <strong className="text-[var(--fg)]">S2 High</strong> — major feature impaired
+          · acknowledge ≤4 business hours
         </li>
         <li>
-          <strong className="text-[var(--fg)]">S3 Medium</strong> — partial
-          degradation · acknowledge ≤1 business day
+          <strong className="text-[var(--fg)]">S3 Medium</strong> — partial degradation
+          · acknowledge ≤1 business day
         </li>
         <li>
-          <strong className="text-[var(--fg)]">S4 Low</strong> — questions /
-          cosmetic · acknowledge ≤2 business days
+          <strong className="text-[var(--fg)]">S4 Low</strong> — questions / cosmetic ·
+          acknowledge ≤2 business days
         </li>
       </ul>
       <p className="mt-4 text-sm text-[var(--muted)]">
-        Escalate via in-app Feedback (bug report) then email support. Security
-        issues: contact security@ directly — do not include secrets in tickets.
+        Escalate via in-app Feedback (bug report) then email support. Security issues:
+        contact security@ directly — do not include secrets in tickets.
       </p>
     </div>
   );

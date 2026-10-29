@@ -38,9 +38,17 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: appRoot,
   // P7.3 — tree-shake heavy UI kits without changing product behaviour
   async rewrites() {
-    const configuredBackend = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.BACKEND || "").trim();
+    const configuredBackend = (
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      process.env.BACKEND ||
+      ""
+    ).trim();
     if (!configuredBackend || configuredBackend.startsWith("/")) return [];
-    const backendBase = `${/^https?:\/\//i.test(configuredBackend) ? "" : "https://"}${configuredBackend}`.replace(/\/$/, "");
+    const backendBase =
+      `${/^https?:\/\//i.test(configuredBackend) ? "" : "https://"}${configuredBackend}`.replace(
+        /\/$/,
+        "",
+      );
     return [{ source: "/api/v1/:path*", destination: `${backendBase}/:path*` }];
   },
   experimental: {

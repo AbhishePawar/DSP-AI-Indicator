@@ -247,7 +247,8 @@ export function buildLaunchDashboard(): LaunchDashboardView {
     rationale = "One or more quality gates failed — do not promote traffic.";
   } else if (knownIssues.some((k) => k.severity === "high")) {
     recommendation = "SOAK ONLY";
-    rationale = "Gates pass but high known issues remain — complete soak before broad traffic.";
+    rationale =
+      "Gates pass but high known issues remain — complete soak before broad traffic.";
   }
 
   return {
@@ -255,7 +256,8 @@ export function buildLaunchDashboard(): LaunchDashboardView {
     currentVersion: PUBLIC_VERSION,
     releaseTime: RELEASE_TIME_ISO,
     buildId: `web-${PUBLIC_VERSION}-${RELEASE_TIME_ISO.slice(0, 10).replace(/-/g, "")}`,
-    environment: typeof window !== "undefined" ? window.location.host || "browser" : "ssr",
+    environment:
+      typeof window !== "undefined" ? window.location.host || "browser" : "ssr",
     knownIssues,
     serviceHealth: [
       {

@@ -9,10 +9,7 @@ import {
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
-import {
-  DashboardWidgetShell,
-  WidgetUnavailable,
-} from "../DashboardWidgetShell";
+import { DashboardWidgetShell, WidgetUnavailable } from "../DashboardWidgetShell";
 
 export function RecentlyViewedCompaniesWidget() {
   const [entries, setEntries] = useState<RecentAnalysisEntry[]>([]);

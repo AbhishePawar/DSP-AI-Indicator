@@ -19,11 +19,14 @@ from dsp_platform import (
 )
 
 try:
-    from llm_adapters import CopilotCompleteService, build_default_registry
-    from llm_adapters.model_tiers import ModelTier, TierConfig
-    from llm_adapters.orchestrator import (
+    from llm_adapters import (
         AdapterBackedAIProvider,
+        CopilotCompleteService,
+        DSPPlatformToolAdapter,
+        ModelTier,
         ResearchOrchestrator,
+        TierConfig,
+        build_default_registry,
     )
 except ImportError:  # pragma: no cover - optional during partial installs
     CopilotCompleteService = None  # type: ignore[misc, assignment]
@@ -32,6 +35,7 @@ except ImportError:  # pragma: no cover - optional during partial installs
     TierConfig = None  # type: ignore[misc, assignment]
     AdapterBackedAIProvider = None  # type: ignore[misc, assignment]
     ResearchOrchestrator = None  # type: ignore[misc, assignment]
+    DSPPlatformToolAdapter = None  # type: ignore[misc, assignment]
 
 __all__ = [
     "ApiState",
@@ -200,6 +204,7 @@ class ApiState:
     copilot_service: Any = field(default=None)
     research_orchestrator: Any = field(default=None)
     language_model: Any | None = None
+    provider_registry: Any | None = None
     # EPIC-011A — optional production infra (duck-typed)
     infrastructure: Any | None = None
     production: Any | None = None
@@ -233,8 +238,13 @@ def build_research_orchestrator(platform: DSPPlatform) -> Any | None:
     openai = registry.get("openai")
     if gemini is None or openai is None:
         return None
+    backend = (
+        platform
+        if hasattr(platform, "get_valuation")
+        else (DSPPlatformToolAdapter(platform) if DSPPlatformToolAdapter is not None else platform)
+    )
     return ResearchOrchestrator(
-        backend=platform,
+        backend=backend,
         providers={
             ModelTier.COST_EFFICIENT: AdapterBackedAIProvider(gemini),
             ModelTier.PREMIUM: AdapterBackedAIProvider(openai),

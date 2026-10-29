@@ -39,8 +39,7 @@ const toneClass: Record<ToastTone, string> = {
     "border-[color-mix(in_srgb,var(--accent)_35%,var(--border))] bg-[var(--accent-soft)] text-[var(--fg)]",
   warning:
     "border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-fg)]",
-  error:
-    "border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
+  error: "border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
 };
 
 let toastSeq = 0;
@@ -116,12 +115,7 @@ export function ToastViewport({ className }: { className?: string }) {
                 <p className="text-sm font-medium leading-tight">{item.title}</p>
               ) : null}
               {item.description ? (
-                <p
-                  className={cn(
-                    "text-sm opacity-90",
-                    item.title ? "mt-1" : null,
-                  )}
-                >
+                <p className={cn("text-sm opacity-90", item.title ? "mt-1" : null)}>
                   {item.description}
                 </p>
               ) : null}

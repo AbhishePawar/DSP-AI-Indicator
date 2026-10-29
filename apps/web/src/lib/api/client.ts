@@ -1,6 +1,6 @@
 /** HTTP client for `/api/v1` only — no DSP Platform imports. */
 
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 import type {
   AnalyseRequest,
   AnalyseResponse,
@@ -226,9 +226,7 @@ type AuthFailureHandler = (status: 401 | 403) => void;
 let authFailureHandler: AuthFailureHandler | null = null;
 
 /** Wire AuthProvider session expiry / forbidden handling into the API client. */
-export function setApiAuthFailureHandler(
-  handler: AuthFailureHandler | null,
-): void {
+export function setApiAuthFailureHandler(handler: AuthFailureHandler | null): void {
   authFailureHandler = handler;
 }
 
@@ -252,7 +250,7 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = buildApiUrl(path);
 
   let response: Response;
   try {
@@ -305,10 +303,7 @@ async function request<T>(
 
   if (!response.ok) {
     const body = (data as ApiErrorBody | null) ?? null;
-    if (
-      (response.status === 401 || response.status === 403) &&
-      authFailureHandler
-    ) {
+    if ((response.status === 401 || response.status === 403) && authFailureHandler) {
       try {
         authFailureHandler(response.status);
       } catch {
@@ -388,11 +383,7 @@ export const api = {
         expires_in?: number;
         session_id?: string;
       }>
-    >(
-      "/auth/refresh",
-      { method: "POST", body: JSON.stringify(body) },
-      options,
-    ),
+    >("/auth/refresh", { method: "POST", body: JSON.stringify(body) }, options),
 
   analyzeCompany: (
     body: {
@@ -418,6 +409,31 @@ export const api = {
       options,
     ),
 
+  copilotQuery: (
+    body: import("@/lib/api/copilotTypes").CopilotQueryRequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotCompleteResponseBody>(
+      "/copilot/complete",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          mode: body.mode ?? "buffett",
+          question_id: "freeform",
+          freeform: body.prompt || body.query || "",
+          request: body.request ?? (body.symbol ? { ticker: body.symbol } : null),
+          response: body.response ?? null,
+          market_context: {
+            symbol: body.symbol ?? null,
+            analysis_id: body.analysis_id ?? null,
+            section_context: body.section_context ?? null,
+            query: body.query || body.prompt || "",
+            ...(body.market_context || {}),
+          },
+        }),
+        ...options,
+      },
+    ),
   copilotComplete: (
     body: import("@/lib/api/copilotTypes").CopilotCompleteRequestBody,
     options?: RequestOptions,
@@ -432,19 +448,59 @@ export const api = {
     body: import("@/lib/api/copilotTypes").CopilotCompleteRequestBody,
     options?: RequestOptions,
   ) => {
+    const token = options?.token;
+    const cookieMode =
+      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
+      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
+
     const headers = new Headers();
     headers.set("Accept", "text/event-stream");
     headers.set("Content-Type", "application/json");
-    if (options?.token) {
-      headers.set("Authorization", `Bearer ${options.token}`);
+
+    if (!cookieMode && token && token !== "__cookie__") {
+      headers.set("Authorization", `Bearer ${token}`);
     }
-    const url = `${env.apiBaseUrl}/copilot/stream`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: options?.signal,
-    });
+
+    if (cookieMode && typeof window !== "undefined") {
+      try {
+        const { csrfHeaders } = await import("@/lib/auth/cookieSession");
+        const csrf = csrfHeaders();
+        for (const [k, v] of Object.entries(csrf)) {
+          if (!headers.has(k)) headers.set(k, v);
+        }
+      } catch {
+        // CSRF token storage unavailable
+      }
+    }
+
+    const url = buildApiUrl("/copilot/stream");
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+        signal: options?.signal,
+        credentials: cookieMode ? "include" : undefined,
+      });
+    } catch (err) {
+      const aborted =
+        options?.signal?.aborted ||
+        (err instanceof DOMException && err.name === "AbortError");
+      throw new ApiClientError(
+        aborted ? "Request timed out or was cancelled" : "API unavailable",
+        aborted ? 408 : 0,
+        {
+          ok: false,
+          error: aborted ? "TIMEOUT" : "NETWORK_ERROR",
+          detail: aborted
+            ? "Request timed out or was cancelled"
+            : "Unable to reach the API service",
+          api_version: "v1",
+          status_code: aborted ? 408 : 0,
+        },
+      );
+    }
     if (!response.ok || !response.body) {
       throw new ApiClientError(`HTTP ${response.status}`, response.status);
     }
@@ -462,7 +518,9 @@ export const api = {
         if (!line.startsWith("data: ")) continue;
         try {
           chunks.push(
-            JSON.parse(line.slice(6)) as import("@/lib/api/copilotTypes").CopilotStreamChunkBody,
+            JSON.parse(
+              line.slice(6),
+            ) as import("@/lib/api/copilotTypes").CopilotStreamChunkBody,
           );
         } catch {
           // ignore malformed chunks
@@ -563,7 +621,11 @@ export const api = {
         context: Record<string, unknown>;
         turns: Array<Record<string, unknown>>;
       };
-    }>(`/copilot/history/${encodeURIComponent(conversationId)}`, { method: "GET" }, options),
+    }>(
+      `/copilot/history/${encodeURIComponent(conversationId)}`,
+      { method: "GET" },
+      options,
+    ),
 
   copilotHistoryDelete: (conversationId: string, options?: RequestOptions) =>
     request<{ ok: boolean; deleted?: boolean; message?: string | null }>(
@@ -581,11 +643,9 @@ export const api = {
     if (options?.exchange) {
       params.set("exchange", options.exchange);
     }
-    return request<import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload>(
-      `/market/quote?${params.toString()}`,
-      { method: "GET" },
-      options,
-    );
+    return request<
+      import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload
+    >(`/market/quote?${params.toString()}`, { method: "GET" }, options);
   },
 
   marketHealth: (options?: RequestOptions) =>
@@ -760,7 +820,11 @@ export const api = {
     const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
     if (options?.exchange) params.set("exchange", options.exchange);
     if (options?.limit != null) params.set("limit", String(options.limit));
-    return request<NewsPayload>(`/news?${params.toString()}`, { method: "GET" }, options);
+    return request<NewsPayload>(
+      `/news?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
   },
 
   newsHealth: (options?: RequestOptions) =>
@@ -787,7 +851,11 @@ export const api = {
     if (options?.start_date) params.set("start_date", options.start_date);
     if (options?.end_date) params.set("end_date", options.end_date);
     if (options?.limit != null) params.set("limit", String(options.limit));
-    return request<FilingsPayload>(`/filings?${params.toString()}`, { method: "GET" }, options);
+    return request<FilingsPayload>(
+      `/filings?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
   },
 
   filingsHealth: (options?: RequestOptions) =>
@@ -979,10 +1047,7 @@ export const api = {
       options,
     ),
 
-  controlCenterRegistry: (
-    moduleId?: string,
-    options?: RequestOptions,
-  ) =>
+  controlCenterRegistry: (moduleId?: string, options?: RequestOptions) =>
     request<SaasEnvelope>(
       moduleId
         ? `/admin/configuration/registry?module_id=${encodeURIComponent(moduleId)}`
@@ -1016,20 +1081,14 @@ export const api = {
     );
   },
 
-  controlCenterRollback: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  controlCenterRollback: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/admin/rollback",
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),
 
-  controlCenterBranding: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  controlCenterBranding: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/admin/branding",
       { method: "POST", body: JSON.stringify(body) },
@@ -1046,20 +1105,14 @@ export const api = {
       options,
     ),
 
-  controlCenterValuation: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  controlCenterValuation: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/admin/valuation/config",
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),
 
-  controlCenterAi: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  controlCenterAi: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/admin/ai/config",
       { method: "POST", body: JSON.stringify(body) },
@@ -1079,10 +1132,7 @@ export const api = {
       options,
     ),
 
-  controlCenterSecurity: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  controlCenterSecurity: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/admin/security/config",
       { method: "POST", body: JSON.stringify(body) },
@@ -1115,10 +1165,7 @@ export const api = {
   saasListOrganizations: (options?: RequestOptions) =>
     request<SaasEnvelope>("/saas/organizations", { method: "GET" }, options),
 
-  saasCreateOrganization: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  saasCreateOrganization: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/saas/organization",
       { method: "POST", body: JSON.stringify(body) },
@@ -1172,10 +1219,7 @@ export const api = {
       options,
     ),
 
-  saasCreateSubscription: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  saasCreateSubscription: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/saas/subscription",
       { method: "POST", body: JSON.stringify(body) },
@@ -1189,10 +1233,7 @@ export const api = {
       options,
     ),
 
-  saasAssignLicense: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  saasAssignLicense: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/saas/license",
       { method: "POST", body: JSON.stringify(body) },
@@ -1206,10 +1247,7 @@ export const api = {
       options,
     ),
 
-  saasCreateApiKey: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  saasCreateApiKey: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/saas/api-key",
       { method: "POST", body: JSON.stringify(body) },
@@ -1223,10 +1261,7 @@ export const api = {
       options,
     ),
 
-  saasRecordUsage: (
-    body: Record<string, unknown>,
-    options?: RequestOptions,
-  ) =>
+  saasRecordUsage: (body: Record<string, unknown>, options?: RequestOptions) =>
     request<SaasEnvelope>(
       "/saas/usage",
       { method: "POST", body: JSON.stringify(body) },
@@ -1389,10 +1424,7 @@ export const api = {
       options,
     ),
 
-  researchWorkspaceDeleteFolder: (
-    folderId: string,
-    options?: RequestOptions,
-  ) =>
+  researchWorkspaceDeleteFolder: (folderId: string, options?: RequestOptions) =>
     request<ResearchWorkspaceEnvelope>(
       `/research-workspace/folder/${encodeURIComponent(folderId)}`,
       { method: "DELETE" },
@@ -1422,10 +1454,7 @@ export const api = {
       options,
     ),
 
-  researchWorkspaceDeleteBookmark: (
-    bookmarkId: string,
-    options?: RequestOptions,
-  ) =>
+  researchWorkspaceDeleteBookmark: (bookmarkId: string, options?: RequestOptions) =>
     request<ResearchWorkspaceEnvelope>(
       `/research-workspace/bookmark/${encodeURIComponent(bookmarkId)}`,
       { method: "DELETE" },
@@ -1723,11 +1752,7 @@ export const api = {
       message?: string | null;
       error?: string;
       error_code?: string;
-    }>(
-      "/research/object",
-      { method: "POST", body: JSON.stringify(body) },
-      options,
-    ),
+    }>("/research/object", { method: "POST", body: JSON.stringify(body) }, options),
 
   /** Generate an Institutional Research Report from a Research Object (EPIC-R002). */
   researchReport: (
@@ -1747,11 +1772,7 @@ export const api = {
       message?: string | null;
       error?: string;
       error_code?: string;
-    }>(
-      "/research/report",
-      { method: "POST", body: JSON.stringify(body) },
-      options,
-    ),
+    }>("/research/report", { method: "POST", body: JSON.stringify(body) }, options),
 
   /** Export an Institutional Research Report to json/csv/xlsx/pdf/docx/pptx (EPIC-R003). */
   researchExport: (
@@ -1779,11 +1800,7 @@ export const api = {
       message?: string | null;
       error?: string;
       error_code?: string;
-    }>(
-      "/research/export",
-      { method: "POST", body: JSON.stringify(body) },
-      options,
-    ),
+    }>("/research/export", { method: "POST", body: JSON.stringify(body) }, options),
 
   /**
    * Peer comparison over pre-computed Decision Pack reports (EPIC — Peers tab).
@@ -1824,4 +1841,50 @@ export const api = {
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),
+  /**
+   * Terminate session on backend and clear local session / research caches.
+   * Sends CSRF token and credentials in cookie mode.
+   */
+  logout: async (options?: RequestOptions): Promise<{ ok: boolean }> => {
+    let result = { ok: false };
+    try {
+      result = await request<{ ok: boolean }>(
+        "/auth/logout",
+        { method: "POST" },
+        options,
+      );
+    } catch {
+      // Continue client cleanup even if network or server logout fails
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const { clearStoredSession } = await import("@/lib/auth/sessionStore");
+        clearStoredSession();
+      } catch {}
+      try {
+        const { useAuthStore } = await import("@/lib/auth/authStore");
+        useAuthStore.getState().reset();
+      } catch {}
+      try {
+        const { clearResearchSession } = await import("@/lib/research/sessionStore");
+        clearResearchSession();
+      } catch {}
+      try {
+        const { clearResearchArchive } = await import("@/lib/copilot/sessionArchive");
+        clearResearchArchive();
+      } catch {}
+      try {
+        const { clearRecentAnalyses } = await import("@/lib/analysis/recentAnalyses");
+        clearRecentAnalyses();
+      } catch {}
+      try {
+        const { clearMarketCache } = await import("@/lib/market/cache");
+        clearMarketCache();
+      } catch {}
+      try {
+        window.sessionStorage.removeItem("dsp.oauth.pending");
+      } catch {}
+    }
+    return result;
+  },
 };

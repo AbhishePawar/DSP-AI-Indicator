@@ -4,16 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Badge, Button, Input } from "@/components/ds";
-import {
-  ADMIN_SECTIONS,
-  useAdminConsolePrefsStore,
-} from "@/lib/admin-console";
+import { ADMIN_SECTIONS, useAdminConsolePrefsStore } from "@/lib/admin-console";
 
-export function AdminRightPanel({
-  resourceKey,
-}: {
-  resourceKey: string;
-}) {
+export function AdminRightPanel({ resourceKey }: { resourceKey: string }) {
   const notes = useAdminConsolePrefsStore((s) => s.notes);
   const tags = useAdminConsolePrefsStore((s) => s.tags);
   const addNote = useAdminConsolePrefsStore((s) => s.addNote);

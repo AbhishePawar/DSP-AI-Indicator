@@ -111,6 +111,17 @@ def build_period_from_mapping(
         if unit_raw is not None and str(unit_raw).strip()
         else None
     )
+    shares_outstanding = _sf(
+        payload, "shares_outstanding", "issued_shares", "total_shares_outstanding"
+    )
+    if not shares_outstanding.available:
+        shares_outstanding = _sf(
+            balance_m, "shares_outstanding", "issued_shares", "total_shares_outstanding"
+        )
+    if not shares_outstanding.available:
+        shares_outstanding = _sf(
+            income_m, "shares_outstanding", "issued_shares", "total_shares_outstanding"
+        )
 
     return AuthenticatedStatementPeriod(
         period_type=period_type,
@@ -155,6 +166,7 @@ def build_period_from_mapping(
         eps_growth=_sf(ratios_m, "eps_growth"),
         statement_basis=statement_basis,
         unit_scale=unit_scale,
+        shares_outstanding=shares_outstanding,
     )
 
 
@@ -414,7 +426,10 @@ class ConfiguredHttpStatementAdapter(FinancialStatementPort):
 
     def resolve_company(self, instrument: Instrument) -> CompanyIdentity | None:
         symbol = instrument.symbol.strip().upper()
-        params = urlencode({"symbol": symbol})
+        query_dict = {"symbol": symbol}
+        if instrument.exchange:
+            query_dict["exchange"] = instrument.exchange.strip().upper()
+        params = urlencode(query_dict)
         payload = self._request(f"/resolve?{params}")
         if payload is None:
             return None
@@ -497,12 +512,17 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
         memory_adapter_allowed,
         require_authenticated_http_adapter,
     )
-    from data_engine.investment_data_provider import resolve_investment_data_provider
 
-    resolve_investment_data_provider()
-
+    memory_adapter_allowed("DSP_FINANCIAL_STATEMENT_MEMORY", connector="financial_statement")
     api_key = os.environ.get("DSP_FINANCIAL_STATEMENT_API_KEY", "").strip()
     base_url = os.environ.get("DSP_FINANCIAL_STATEMENT_BASE_URL", "").strip()
+    require_authenticated_http_adapter(
+        connector="financial_statement",
+        api_key=api_key,
+        base_url=base_url,
+        api_key_env="DSP_FINANCIAL_STATEMENT_API_KEY",
+        base_url_env="DSP_FINANCIAL_STATEMENT_BASE_URL",
+    )
     if api_key and base_url:
         return ConfiguredHttpStatementAdapter(base_url=base_url, api_key=api_key)
     if memory_adapter_allowed(
@@ -511,11 +531,4 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
         return InMemoryAuthenticatedStatementAdapter(
             api_key=api_key or "dev-memory-key"
         )
-    require_authenticated_http_adapter(
-        connector="financial_statement",
-        api_key=api_key,
-        base_url=base_url,
-        api_key_env="DSP_FINANCIAL_STATEMENT_API_KEY",
-        base_url_env="DSP_FINANCIAL_STATEMENT_BASE_URL",
-    )
     return NullAuthenticatedStatementAdapter()

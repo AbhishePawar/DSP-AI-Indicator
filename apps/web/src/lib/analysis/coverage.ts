@@ -13,7 +13,10 @@ function fieldAvailable(field: DisplayField<unknown>): boolean {
   return field.presence === "available" && field.value != null && field.value !== "";
 }
 
-function countFields(fields: DisplayField<unknown>[]): { available: number; total: number } {
+function countFields(fields: DisplayField<unknown>[]): {
+  available: number;
+  total: number;
+} {
   return {
     available: fields.filter(fieldAvailable).length,
     total: fields.length,
@@ -133,13 +136,9 @@ export function buildFreshness(
 ): ResearchFreshnessView {
   return {
     researchDate:
-      view.snapshot.researchDate.value ??
-      view.conclusion.evidence.lastUpdated ??
-      null,
+      view.snapshot.researchDate.value ?? view.conclusion.evidence.lastUpdated ?? null,
     lastUpdated:
-      view.snapshot.lastUpdated.value ??
-      view.conclusion.evidence.lastUpdated ??
-      null,
+      view.snapshot.lastUpdated.value ?? view.conclusion.evidence.lastUpdated ?? null,
     dataCurrency: view.apiOk
       ? "Envelope received — many line items may still be Unavailable"
       : "No successful envelope yet",

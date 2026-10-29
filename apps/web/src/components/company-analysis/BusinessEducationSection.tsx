@@ -36,9 +36,8 @@ export function BusinessEducationSection({
           />
         </dl>
         <p className="mb-4 text-xs text-[var(--muted)]">
-          This layer cannot modify intrinsic value, margin of safety, Buffett
-          score, or recommendations. Use Quantitative Research sections for
-          those outputs.
+          This layer cannot modify intrinsic value, margin of safety, Buffett score, or
+          recommendations. Use Quantitative Research sections for those outputs.
         </p>
 
         <Accordion
@@ -102,7 +101,10 @@ export function BusinessEducationSection({
                   ) : null}
                   <div className="space-y-1">
                     {sec.claims.map((c, idx) => (
-                      <p key={`${sec.id}-${idx}`} className="text-xs text-[var(--muted)]">
+                      <p
+                        key={`${sec.id}-${idx}`}
+                        className="text-xs text-[var(--muted)]"
+                      >
                         [{c.kind}] {c.text}
                         {c.source ? ` · ${c.source}` : ""}
                       </p>

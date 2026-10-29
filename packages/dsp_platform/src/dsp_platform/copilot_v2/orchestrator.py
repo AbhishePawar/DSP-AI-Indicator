@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -14,6 +15,20 @@ from dsp_platform.copilot_v2.intent import (
     source_ref,
 )
 from dsp_platform.copilot_v2.memory import get_copilot_memory_store
+from persistence.research_session import (
+    compute_session_id,
+    get_research_session_service,
+)
+
+_IDEMPOTENCY_LOCKS_GUARD = threading.Lock()
+_IDEMPOTENCY_LOCKS: dict[tuple[str, str, str], threading.Lock] = {}
+
+def _get_idempotency_lock(user_id: str, session_id: str, key: str) -> threading.Lock:
+    lock_key = (user_id, session_id, key)
+    with _IDEMPOTENCY_LOCKS_GUARD:
+        if lock_key not in _IDEMPOTENCY_LOCKS:
+            _IDEMPOTENCY_LOCKS[lock_key] = threading.Lock()
+        return _IDEMPOTENCY_LOCKS[lock_key]
 
 UNAVAILABLE_MESSAGE = "Data unavailable."
 COPILOT_V2_SCHEMA_VERSION = "2.0.0"
@@ -65,6 +80,9 @@ def run_copilot_v2(
     symbol: str | None = None,
     symbols: list[str] | None = None,
     portfolio_id: str | None = None,
+    analysis_id: str | None = None,
+    user_id: str | None = None,
+    idempotency_key: str | None = None,
     analyse_response: Mapping[str, Any] | None = None,
     secondary_analyse_response: Mapping[str, Any] | None = None,
     research_object: Mapping[str, Any] | None = None,
@@ -76,14 +94,54 @@ def run_copilot_v2(
     document_kind: str | None = None,
     workspace: str | None = None,
     buffett_mode: bool = False,
+    research_orchestrator: Any | None = None,
+    language_model: Any | None = None,
+    provider_registry: Any | None = None,
+    require_ai: bool = False,
 ) -> dict[str, Any]:
     """Answer using existing engine outputs only — never invent figures."""
     store = get_copilot_memory_store()
-    cid = store.ensure(conversation_id)
     created_at = datetime.now(tz=UTC).isoformat()
     intent = classify_intent(message, mode=mode)
     if buffett_mode or intent == "buffett":
         intent = "buffett" if not mode else intent
+
+    clean_user = str(user_id or "").strip()
+    clean_symbol = str(symbol or "").strip().upper()
+    clean_analysis = str(analysis_id or "").strip()
+    durable = bool(clean_user and clean_symbol and clean_analysis)
+
+    session_service = get_research_session_service() if durable else None
+    session_id: str | None = None
+    if durable and session_service:
+        session_id = compute_session_id(clean_user, clean_symbol, clean_analysis)
+        session_service.get_or_create_session(
+            user_id=clean_user,
+            symbol=clean_symbol,
+            analysis_id=clean_analysis,
+        )
+        cid = session_id
+        store.ensure(cid)
+
+        # Hydrate memory store from durable research turns
+        durable_turns = session_service.get_turns(session_id, user_id=clean_user)
+        with store._lock:
+            hydrated: list[dict[str, Any]] = []
+            for dt in durable_turns:
+                meta = dt.get("metadata") or {}
+                hydrated.append({
+                    "turn_id": dt.get("turn_id"),
+                    "role": dt.get("role"),
+                    "message": dt.get("content"),
+                    "created_at": dt.get("created_at"),
+                    "intent": meta.get("intent", "chat"),
+                    "unavailable": meta.get("unavailable", False),
+                    "sources": meta.get("sources", []),
+                    "idempotency_key": meta.get("idempotency_key"),
+                })
+            store._turns[cid] = hydrated
+    else:
+        cid = store.ensure(conversation_id)
 
     hinted = list(symbols or [])
     if symbol:
@@ -110,68 +168,397 @@ def run_copilot_v2(
 
     ctx = store.update_context(cid, context_patch)
 
-    answer, sources, unavailable, engine_payload = _dispatch(
-        platform,
-        intent=intent,
-        message=message,
-        symbols=resolved_symbols,
-        portfolio_id=portfolio_id or ctx.get("current_portfolio_id"),
-        analyse_response=analyse_response,
-        secondary_analyse_response=secondary_analyse_response,
-        research_object=research_object,
-        report=report,
-        portfolio=portfolio,
-        portfolio_intelligence=portfolio_intelligence,
-        committee_result=committee_result,
-        comparison_result=comparison_result,
-        document_kind=document_kind,
-        buffett_mode=buffett_mode or intent == "buffett",
-    )
+    clean_idem = str(idempotency_key or "").strip() or None
+    lock = _get_idempotency_lock(clean_user or "anon", cid, clean_idem) if (durable and clean_idem) else None
 
-    response_id = str(uuid.uuid4())
-    turn = {
-        "turn_id": str(uuid.uuid4()),
-        "response_id": response_id,
-        "created_at": created_at,
-        "role": "user",
-        "message": message,
-        "intent": intent,
-    }
-    store.append(cid, turn)
-    store.append(
-        cid,
-        {
-            "turn_id": str(uuid.uuid4()),
-            "response_id": response_id,
-            "created_at": created_at,
-            "role": "assistant",
-            "message": answer,
+    if lock:
+        lock.acquire()
+    try:
+        existing_failure_turn = None
+        retry_mode = False
+        if durable and session_service and session_id and clean_idem:
+            turns = session_service.get_turns(session_id, user_id=clean_user)
+            # Successful assistant turn bound to this key: replay it verbatim.
+            for t in reversed(turns):
+                if t.get("role") == "assistant":
+                    meta = t.get("metadata") or {}
+                    if (
+                        meta.get("idempotency_key") == clean_idem
+                        and not meta.get("failure_event", False)
+                        and not meta.get("unavailable", False)
+                    ):
+                        return {
+                            "response_id": str(uuid.uuid4()),
+                            "conversation_id": cid,
+                            "created_at": t.get("created_at") or created_at,
+                            "intent": meta.get("intent") or intent,
+                            "answer": t.get("content") or "",
+                            "unavailable": False,
+                            "sources": meta.get("sources") or [],
+                            "context": ctx,
+                            "engine_payload": None,
+                            "suggested_questions": _suggested_for(intent, resolved_symbols),
+                            "provenance": {
+                                "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                                "service_version": COPILOT_V2_SERVICE_VERSION,
+                                "orchestration_only": True,
+                                "calculations_performed": False,
+                                "engines_called": bool(meta.get("sources")),
+                                "replayed_from_idempotency": True,
+                            },
+                            "message": None,
+                        }
+            # Prior failed attempt for this key (user turn followed by a failure event):
+            # allow a retry to regenerate; the failure event must never replay as success.
+            for idx, t in enumerate(turns):
+                if t.get("role") == "user" and (t.get("metadata") or {}).get("idempotency_key") == clean_idem:
+                    if idx + 1 < len(turns):
+                        nxt = turns[idx + 1]
+                        nxt_meta = nxt.get("metadata") or {}
+                        if nxt.get("role") == "assistant" and (
+                            nxt_meta.get("failure_event") or nxt_meta.get("unavailable")
+                        ):
+                            existing_failure_turn = nxt
+                            retry_mode = True
+                    break
+        # 8. Persist user turn BEFORE generation (skip on retry: already recorded)
+        user_turn_id = str(uuid.uuid4())
+        user_meta: dict[str, Any] = {"intent": intent}
+        if clean_idem:
+            user_meta["idempotency_key"] = clean_idem
+
+        if not retry_mode:
+            if durable and session_service and session_id:
+                session_service.append_turn(
+                    session_id=session_id,
+                    user_id=clean_user,
+                    role="user",
+                    content=message,
+                    symbol=clean_symbol,
+                    analysis_id=clean_analysis,
+                    turn_id=user_turn_id,
+                    metadata=user_meta,
+                )
+
+            store.append(
+                cid,
+                {
+                    "turn_id": user_turn_id,
+                    "response_id": str(uuid.uuid4()),
+                    "created_at": created_at,
+                    "role": "user",
+                    "message": message,
+                    "intent": intent,
+                    "idempotency_key": clean_idem,
+                },
+            )
+
+        # 9. Execute generation
+        is_ai_mandatory = require_ai or durable
+        answer, sources, unavailable, engine_payload = _dispatch(
+            platform,
+            intent=intent,
+            message=message,
+            symbols=resolved_symbols,
+            portfolio_id=portfolio_id or ctx.get("current_portfolio_id"),
+            analyse_response=analyse_response,
+            secondary_analyse_response=secondary_analyse_response,
+            research_object=research_object,
+            report=report,
+            portfolio=portfolio,
+            portfolio_intelligence=portfolio_intelligence,
+            committee_result=committee_result,
+            comparison_result=comparison_result,
+            document_kind=document_kind,
+            buffett_mode=buffett_mode or intent == "buffett",
+            research_orchestrator=research_orchestrator,
+            language_model=language_model,
+            provider_registry=provider_registry,
+            require_ai=is_ai_mandatory,
+        )
+
+        response_id = str(uuid.uuid4())
+        asst_turn_id = str(uuid.uuid4())
+        asst_meta: dict[str, Any] = {
             "intent": intent,
             "unavailable": unavailable,
             "sources": sources,
-        },
+        }
+        if unavailable:
+            asst_meta["failure_event"] = True
+        if clean_idem and not unavailable:
+            asst_meta["idempotency_key"] = clean_idem
+
+        # If previous attempt was failure and this attempt also failed, replay failure without duplicate turn
+        if existing_failure_turn is not None and unavailable:
+            return {
+                "response_id": str(uuid.uuid4()),
+                "conversation_id": cid,
+                "created_at": existing_failure_turn.get("created_at") or created_at,
+                "intent": intent,
+                "answer": answer,
+                "unavailable": True,
+                "sources": sources,
+                "context": ctx,
+                "engine_payload": None,
+                "suggested_questions": _suggested_for(intent, resolved_symbols),
+                "provenance": {
+                    "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                    "service_version": COPILOT_V2_SERVICE_VERSION,
+                    "orchestration_only": True,
+                    "calculations_performed": False,
+                    "engines_called": bool(sources),
+                    "replayed_from_idempotency": True,
+                },
+                "message": UNAVAILABLE_MESSAGE,
+            }
+
+        # 9. Persist assistant turn ONLY after successful generation (or initial failure event)
+        if durable and session_service and session_id:
+            session_service.append_turn(
+                session_id=session_id,
+                user_id=clean_user,
+                role="assistant",
+                content=answer,
+                symbol=clean_symbol,
+                analysis_id=clean_analysis,
+                turn_id=asst_turn_id,
+                metadata=asst_meta,
+            )
+
+        store.append(
+            cid,
+            {
+                "turn_id": asst_turn_id,
+                "response_id": response_id,
+                "created_at": created_at,
+                "role": "assistant",
+                "message": answer,
+                "intent": intent,
+                "unavailable": unavailable,
+                "sources": sources,
+                "idempotency_key": None if unavailable else clean_idem,
+                "failure_event": unavailable,
+            },
+        )
+
+        return {
+            "response_id": response_id,
+            "conversation_id": cid,
+            "created_at": created_at,
+            "intent": intent,
+            "answer": answer,
+            "unavailable": unavailable,
+            "sources": sources,
+            "context": ctx,
+            "engine_payload": engine_payload,
+            "suggested_questions": _suggested_for(intent, resolved_symbols),
+            "provenance": {
+                "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                "service_version": COPILOT_V2_SERVICE_VERSION,
+                "orchestration_only": True,
+                "calculations_performed": False,
+                "engines_called": bool(sources),
+            },
+            "message": UNAVAILABLE_MESSAGE if unavailable else None,
+        }
+    finally:
+        if lock:
+            lock.release()
+
+def _generate_ai_copilot_response(
+    *,
+    message: str,
+    intent: str,
+    symbols: list[str],
+    evidence_text: str,
+    evidence_sources: list[dict[str, Any]],
+    evidence_payload: dict[str, Any] | None,
+    buffett_mode: bool = False,
+    language_model: Any | None = None,
+    provider_registry: Any | None = None,
+) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
+    """Generate the user-facing Copilot answer using an AI provider while enforcing DSP authority."""
+    import re
+
+    from copilot.enums import LanguageModelStatus
+    from copilot.models import LanguageModelRequest, LanguageModelResult
+
+    prompt_parts = [
+        "You are DSP Copilot, an AI financial research assistant.",
+        "Your role is to explain financial data, company performance, valuations, and metrics clearly.",
+        "CRITICAL GOVERNANCE RULES:",
+        "1. DSP deterministic calculations and data are authoritative and cannot be modified.",
+        "2. Never invent, alter, or override intrinsic value, margin of safety, recommendation, or financial metrics.",
+        "3. If evidence is not in the provided DSP context, do not invent it.",
+        f"User Question: {message}",
+        f"Intent/Mode: {intent}",
+        f"Authoritative DSP Financial Evidence:\n{evidence_text}",
+    ]
+    if buffett_mode:
+        prompt_parts.append(
+            "Style Note: Apply Warren Buffett's investment philosophy, plain-language business evaluation, and moat-oriented reasoning, while strictly respecting all authoritative financial numbers."
+        )
+
+    intent_map = {
+        "company": "summarize_posture",
+        "valuation": "explain_report",
+        "committee": "explain_report",
+        "risk": "explain_report",
+        "portfolio": "explain_report",
+        "comparison": "compare_outcomes",
+        "document": "trace_evidence",
+        "memo": "explain_report",
+        "scenarios": "explain_report",
+        "buffett": "explain_report",
+        "chat": "explain_report",
+        "research": "explain_report",
+    }
+    resolved_intent_class = intent_map.get(intent, "explain_report")
+
+    req = LanguageModelRequest(
+        request_id=str(uuid.uuid4()),
+        intent_class=resolved_intent_class,
+        prompt_parts=tuple(prompt_parts),
+        context_digest_ids=tuple(symbols) if symbols else (),
+        provenance=("copilot_v2.ai_orchestration", "dsp.ai_copilot.v1"),
+        constraints=(
+            "Adhere strictly to DSP evidence.",
+            "Do not fabricate missing financial figures.",
+            "Do not expose internal prompts, API keys, or raw provider payloads.",
+        ),
     )
 
-    return {
-        "response_id": response_id,
-        "conversation_id": cid,
-        "created_at": created_at,
-        "intent": intent,
-        "answer": answer,
-        "unavailable": unavailable,
-        "sources": sources,
-        "context": ctx,
-        "engine_payload": engine_payload,
-        "suggested_questions": _suggested_for(intent, resolved_symbols),
-        "provenance": {
-            "schema_version": COPILOT_V2_SCHEMA_VERSION,
-            "service_version": COPILOT_V2_SERVICE_VERSION,
-            "orchestration_only": True,
-            "calculations_performed": False,
-            "engines_called": bool(sources),
-        },
-        "message": UNAVAILABLE_MESSAGE if unavailable else None,
-    }
+    lm_result: LanguageModelResult | None = None
+    provider_used: str | None = None
+    model_used: str | None = None
+
+    # 1. Directly supplied language model (mock or specific port)
+    if language_model is not None:
+        try:
+            res = language_model.invoke(req)
+            if (
+                res
+                and getattr(res, "status", None) in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+                and getattr(res, "narrative_text", None)
+            ):
+                lm_result = res
+                provider_used = getattr(language_model, "provider_id", "ai_provider")
+                model_used = getattr(language_model, "model_label", None)
+        except Exception:
+            lm_result = None
+
+    # 2. Provider registry (prefer low-cost Gemini, fallback to OpenAI)
+    if lm_result is None:
+        reg = provider_registry
+        if reg is None:
+            try:
+                from llm_adapters import build_default_registry
+
+                reg = build_default_registry()
+            except Exception:
+                reg = None
+
+        if reg is not None:
+            preferred = getattr(reg.config, "default_provider", "gemini")
+            candidates: list[str] = []
+            if preferred != "deterministic" and preferred in getattr(reg, "_adapters", {}):
+                candidates.append(preferred)
+            else:
+                candidates.append("gemini")
+
+            fallback = "openai" if candidates[0] == "gemini" else "gemini"
+            if fallback not in candidates:
+                candidates.append(fallback)
+
+            for p in ("gemini", "openai", "anthropic", "deepseek"):
+                if p not in candidates:
+                    candidates.append(p)
+
+            for p_name in candidates:
+                adapter = reg.get(p_name)
+                if adapter and adapter.is_configured():
+                    try:
+                        res = adapter.invoke(req)
+                        if (
+                            res
+                            and getattr(res, "status", None) in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+                            and getattr(res, "narrative_text", None)
+                        ):
+                            lm_result = res
+                            provider_used = p_name
+                            model_used = getattr(adapter, "model_label", None)
+                            break
+                    except Exception:
+                        pass
+
+                # Direct fallback if gateway provider failed
+                direct_adapter = reg.direct_fallback(p_name)
+                if direct_adapter and direct_adapter is not adapter and direct_adapter.is_configured():
+                    try:
+                        res = direct_adapter.invoke(req)
+                        if (
+                            res
+                            and getattr(res, "status", None) in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+                            and getattr(res, "narrative_text", None)
+                        ):
+                            lm_result = res
+                            provider_used = p_name
+                            model_used = getattr(direct_adapter, "model_label", None)
+                            break
+                    except Exception:
+                        pass
+
+    # 3. Fail closed if no AI provider succeeded
+    if lm_result is None or not getattr(lm_result, "narrative_text", None):
+        return (
+            "AI Copilot is temporarily unavailable. Please try again.",
+            [*evidence_sources, source_ref("ai_provider", "unavailable")],
+            True,
+            None,
+        )
+
+    narrative = lm_result.narrative_text.strip()
+
+    # 4. DSP Authority Reconciliation: deterministic values must override AI text
+    valuation_map = _from_mapping(evidence_payload, "analyse_response", "valuation") or _from_mapping(evidence_payload, "valuation") or {}
+    summary_map = _from_mapping(evidence_payload, "analyse_response", "recommendation_summary") or _from_mapping(evidence_payload, "recommendation_summary") or {}
+
+    dsp_decision = _fmt(
+        _from_mapping(summary_map, "label")
+        or _from_mapping(summary_map, "decision")
+        or _from_mapping(summary_map, "recommendation")
+    )
+    dsp_mos = _fmt(
+        _from_mapping(summary_map, "margin_of_safety")
+        or _from_mapping(valuation_map, "margin_of_safety")
+    )
+    dsp_iv = _fmt(
+        _from_mapping(valuation_map, "intrinsic_value")
+        or _from_mapping(summary_map, "intrinsic_value")
+    )
+
+    if dsp_decision:
+        for conflicting_rec in ("Strong Buy", "Buy", "Hold", "Sell", "Strong Sell"):
+            if conflicting_rec.lower() != dsp_decision.lower():
+                pattern = re.compile(rf"\b{re.escape(conflicting_rec)}\b", re.IGNORECASE)
+                narrative = pattern.sub(dsp_decision, narrative)
+
+    auth_lines = []
+    if dsp_decision:
+        auth_lines.append(f"**Authoritative Recommendation:** {dsp_decision}")
+    if dsp_iv:
+        auth_lines.append(f"**Valuation:** {dsp_iv}")
+    if dsp_mos:
+        auth_lines.append(f"**Margin of Safety:** {dsp_mos}")
+
+    if auth_lines:
+        auth_block = "\n".join(auth_lines)
+        if dsp_decision and f"**Authoritative Recommendation:** {dsp_decision}" not in narrative or dsp_iv and f"**Valuation:** {dsp_iv}" not in narrative:
+            narrative = f"{narrative}\n\n{auth_block}"
+
+    sources = [*evidence_sources, source_ref("ai_provider", f"{provider_used or 'gemini'}:{model_used or 'default'}")]
+    return (narrative, sources, False, evidence_payload)
 
 
 def _dispatch(
@@ -191,7 +578,22 @@ def _dispatch(
     comparison_result: Mapping[str, Any] | None,
     document_kind: str | None,
     buffett_mode: bool,
+    research_orchestrator: Any | None = None,
+    language_model: Any | None = None,
+    provider_registry: Any | None = None,
+    require_ai: bool = False,
 ) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
+    if intent == "research":
+        return _handle_research(
+            platform,
+            message=message,
+            symbols=symbols,
+            analyse_response=analyse_response,
+            research_object=research_object,
+            report=report,
+            research_orchestrator=research_orchestrator,
+        )
+
     handlers = {
         "company": _handle_company,
         "valuation": _handle_valuation,
@@ -220,10 +622,30 @@ def _dispatch(
         committee_result=committee_result,
         comparison_result=comparison_result,
         document_kind=document_kind,
+        research_orchestrator=research_orchestrator,
     )
     if buffett_mode and intent != "buffett":
         answer = _buffett_wrap(answer, unavailable=unavailable)
         sources = [*sources, source_ref("explain_like_buffett", "plain_language_wrap")]
+
+    if require_ai:
+        if (unavailable and payload is None) or answer.strip() == UNAVAILABLE_MESSAGE or not answer.strip():
+            return answer, sources, True, payload
+        combined_payload = dict(payload) if isinstance(payload, dict) else {}
+        if analyse_response and isinstance(analyse_response, (dict, Mapping)):
+            combined_payload["analyse_response"] = dict(analyse_response)
+        return _generate_ai_copilot_response(
+            message=message,
+            intent=intent,
+            symbols=symbols,
+            evidence_text=answer,
+            evidence_sources=sources,
+            evidence_payload=combined_payload,
+            buffett_mode=buffett_mode,
+            language_model=language_model,
+            provider_registry=provider_registry,
+        )
+
     return answer, sources, unavailable, payload
 
 
@@ -872,6 +1294,7 @@ def _handle_buffett(
     platform: Any,
     *,
     message: str,
+    symbols: list[str] | None = None,
     analyse_response: Mapping[str, Any] | None,
     research_object: Mapping[str, Any] | None,
     **kwargs: Any,
@@ -883,6 +1306,15 @@ def _handle_buffett(
         research_object=research_object,
         **kwargs,
     )
+    if (unavailable or payload is None) and symbols:
+        answer, sources, unavailable, payload = _handle_company(
+            platform,
+            message=message,
+            symbols=symbols,
+            analyse_response=analyse_response,
+            research_object=research_object,
+            report=kwargs.get("report"),
+        )
     return (
         _buffett_wrap(answer, unavailable=unavailable),
         [
@@ -892,6 +1324,120 @@ def _handle_buffett(
         unavailable,
         payload,
     )
+
+
+def _handle_research(
+    platform: Any,
+    *,
+    message: str,
+    symbols: list[str],
+    analyse_response: Mapping[str, Any] | None,
+    research_object: Mapping[str, Any] | None,
+    report: Mapping[str, Any] | None,
+    research_orchestrator: Any | None = None,
+    **kwargs: Any,
+) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
+    orch = research_orchestrator or getattr(platform, "research_orchestrator", None)
+    clean_sym = symbols[0] if symbols else None
+
+    if orch is None or not clean_sym:
+        return (
+            f"AI research unavailable; data unavailable. {UNAVAILABLE_MESSAGE}",
+            [source_ref("research_orchestrator", "unconfigured")],
+            True,
+            None,
+        )
+
+    from llm_adapters import OrchestratorStatus, UserResearchRequest
+
+    req = UserResearchRequest(
+        symbol=clean_sym,
+        question=message,
+    )
+    try:
+        res = orch.run(req)
+    except Exception:
+        return (
+            f"AI research unavailable; data unavailable. {UNAVAILABLE_MESSAGE}",
+            [source_ref("research_orchestrator", "failed_closed")],
+            True,
+            None,
+        )
+
+    if res.status != OrchestratorStatus.ACCEPTED or res.public is None:
+        return (
+            f"AI research unavailable; data unavailable. {UNAVAILABLE_MESSAGE}",
+            [source_ref("research_orchestrator", "failed_closed")],
+            True,
+            None,
+        )
+
+    pub = res.public
+
+    # Reconcile against DSP deterministic outputs (DSP always authoritative)
+    valuation_map = _from_mapping(analyse_response, "valuation") or {}
+    summary_map = _from_mapping(analyse_response, "recommendation_summary") or {}
+
+    dsp_decision = _fmt(
+        _from_mapping(summary_map, "label")
+        or _from_mapping(summary_map, "decision")
+        or _from_mapping(summary_map, "recommendation")
+    )
+    dsp_mos = _fmt(
+        _from_mapping(summary_map, "margin_of_safety")
+        or _from_mapping(valuation_map, "margin_of_safety")
+    )
+    dsp_iv = _fmt(
+        _from_mapping(valuation_map, "intrinsic_value")
+        or _from_mapping(summary_map, "intrinsic_value")
+    )
+
+    rec = dsp_decision if dsp_decision else pub.recommendation
+    val = dsp_iv if dsp_iv else pub.valuation
+    mos = dsp_mos if dsp_mos else None
+
+    analysis_text = (pub.analysis or "Analysis complete.").strip()
+    if dsp_decision and pub.recommendation and pub.recommendation != dsp_decision:
+        analysis_text = analysis_text.replace(pub.recommendation, dsp_decision)
+    if dsp_iv and pub.valuation and pub.valuation != dsp_iv:
+        analysis_text = analysis_text.replace(pub.valuation, dsp_iv)
+
+    lines = [
+        f"## AI Research Analysis for {clean_sym}",
+        analysis_text,
+        "",
+        f"**Authoritative Recommendation:** {rec}",
+    ]
+    if val:
+        lines.append(f"**Valuation:** {val}")
+    if mos:
+        lines.append(f"**Margin of Safety:** {mos}")
+    if pub.risks:
+        lines.extend(["", "### Key Risks"])
+        for r in pub.risks:
+            lines.append(f"- {r}")
+    if pub.limitations:
+        lines.extend(["", "### Limitations"])
+        for lim in pub.limitations:
+            lines.append(f"- {lim}")
+
+    sources = [
+        source_ref("research_orchestrator", "dual_verification"),
+    ]
+    if pub.evidence_citations:
+        for cite in pub.evidence_citations:
+            sources.append(source_ref("dsp_evidence", str(cite)))
+
+    payload = {
+        "research_summary": {
+            "recommendation": rec,
+            "valuation": val,
+            "margin_of_safety": mos,
+            "confidence": pub.confidence,
+            "evidence_citations": list(pub.evidence_citations),
+        }
+    }
+    return "\n".join(lines), sources, False, payload
 
 
 def _handle_chat(

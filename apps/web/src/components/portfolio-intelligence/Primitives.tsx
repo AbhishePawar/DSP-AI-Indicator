@@ -22,10 +22,7 @@ export function FieldRow({
   value: string | number | null | undefined;
 }) {
   const display =
-    value === null ||
-    value === undefined ||
-    value === "" ||
-    value === "Unavailable"
+    value === null || value === undefined || value === "" || value === "Unavailable"
       ? "Data unavailable."
       : String(value);
   return (
@@ -87,14 +84,6 @@ export function WorkspaceSkeleton() {
   );
 }
 
-export function StatusBadge({
-  ok,
-  label,
-}: {
-  ok: boolean;
-  label: string;
-}) {
-  return (
-    <Badge variant={ok ? "accent" : "outline"}>{label}</Badge>
-  );
+export function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
+  return <Badge variant={ok ? "accent" : "outline"}>{label}</Badge>;
 }

@@ -66,8 +66,7 @@ function matchesText(company: CompanyEntry, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return (
-    company.name.toLowerCase().includes(q) ||
-    company.ticker.toLowerCase().includes(q)
+    company.name.toLowerCase().includes(q) || company.ticker.toLowerCase().includes(q)
   );
 }
 
@@ -85,10 +84,7 @@ export function applyScreeningFilters(
     if (!matchesText(company, filters.query)) return false;
     if (minRoe !== null && company.screening.roe < minRoe / 100) return false;
     if (minRoce !== null && company.screening.roce < minRoce / 100) return false;
-    if (
-      maxDebtToEquity !== null &&
-      company.screening.debtToEquity > maxDebtToEquity
-    ) {
+    if (maxDebtToEquity !== null && company.screening.debtToEquity > maxDebtToEquity) {
       return false;
     }
     if (
@@ -103,26 +99,17 @@ export function applyScreeningFilters(
     ) {
       return false;
     }
-    if (
-      filters.marketCap !== "all" &&
-      company.marketCapBucket !== filters.marketCap
-    ) {
+    if (filters.marketCap !== "all" && company.marketCapBucket !== filters.marketCap) {
       return false;
     }
     if (filters.sector !== "all" && company.sector !== filters.sector) return false;
     if (filters.exchange !== "all" && company.exchange !== filters.exchange) {
       return false;
     }
-    if (
-      filters.researchAvailable === "yes" &&
-      company.researchAvailable !== true
-    ) {
+    if (filters.researchAvailable === "yes" && company.researchAvailable !== true) {
       return false;
     }
-    if (
-      filters.researchAvailable === "no" &&
-      company.researchAvailable !== false
-    ) {
+    if (filters.researchAvailable === "no" && company.researchAvailable !== false) {
       return false;
     }
     if (filters.dividend === "yes" && !company.screening.dividend) return false;

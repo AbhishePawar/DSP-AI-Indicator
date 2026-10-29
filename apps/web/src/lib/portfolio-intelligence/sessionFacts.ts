@@ -12,14 +12,19 @@ export type CountSegment = {
   shareOfHoldings: string;
 };
 
-function segmentsFromCounts(counts: Map<string, number>, total: number): CountSegment[] {
+function segmentsFromCounts(
+  counts: Map<string, number>,
+  total: number,
+): CountSegment[] {
   return [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .map(([name, count]) => ({
       name,
       count,
       shareOfHoldings:
-        total > 0 ? `${((count / total) * 100).toFixed(1)}% of holdings` : "Data unavailable.",
+        total > 0
+          ? `${((count / total) * 100).toFixed(1)}% of holdings`
+          : "Data unavailable.",
     }));
 }
 
@@ -42,7 +47,8 @@ export function sessionAllocationBySector(holdings: PortfolioHolding[]): {
   note: string;
 } {
   const hasAny = holdings.some(
-    (h) => typeof h.allocationPercent === "number" && Number.isFinite(h.allocationPercent),
+    (h) =>
+      typeof h.allocationPercent === "number" && Number.isFinite(h.allocationPercent),
   );
   if (!hasAny || holdings.length === 0) {
     return {
@@ -88,9 +94,7 @@ export function attentionItems(holdings: PortfolioHolding[]): string[] {
         .join(", ")}${pending.length > 5 ? "…" : ""}`,
     );
   }
-  const unknownSector = holdings.filter(
-    (h) => !h.sector || h.sector === "Unknown",
-  );
+  const unknownSector = holdings.filter((h) => !h.sector || h.sector === "Unknown");
   if (unknownSector.length) {
     items.push(`${unknownSector.length} holding(s) missing sector classification.`);
   }

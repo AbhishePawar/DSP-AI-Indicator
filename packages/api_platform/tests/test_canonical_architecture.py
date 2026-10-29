@@ -42,7 +42,8 @@ class TestCanonicalArchitecture:
             _WEB / "components" / "dashboard" / "SearchFirstDashboard.tsx"
         ).read_text(encoding="utf-8")
         assert "/analysis?symbol=" in dashboard
-        assert "intent=dsp_indicator" in dashboard
+        assert 'useState("dsp_indicator")' in dashboard
+        assert "encodeURIComponent(intent)" in dashboard
 
     def test_http_composition_delegates_to_platform(self) -> None:
         source = _COMPOSITION.read_text(encoding="utf-8")
@@ -61,7 +62,10 @@ class TestCanonicalArchitecture:
             "deepseek",
             "llm_adapters.orchestrator",
         }
-        assert imports.isdisjoint(forbidden)
+        for mod in imports:
+            for f in forbidden:
+                assert not (mod == f or mod.startswith(f"{f}.")), f"Forbidden import: {mod}"
+
 
     def test_canonical_frontend_analysis_client_is_single_api_contract(self) -> None:
         client = (_WEB / "lib" / "api" / "client.ts").read_text(encoding="utf-8")

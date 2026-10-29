@@ -116,9 +116,7 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
         : "Unable to load company research.";
     if (analyseMutation.error) {
       logger.recordClientError(
-        analyseMutation.error instanceof Error
-          ? analyseMutation.error
-          : message,
+        analyseMutation.error instanceof Error ? analyseMutation.error : message,
         "research",
       );
     }
@@ -149,25 +147,30 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
       ) : null}
       <div className="flex flex-wrap gap-2">
         <Link href="/research">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="min-h-[44px]">
             ← Research Home
           </Button>
         </Link>
         <Link href="/intelligence">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="min-h-[44px]">
             Intelligence Workspace
           </Button>
         </Link>
         <Button
           variant="secondary"
           size="sm"
+          className="min-h-[44px]"
           onClick={() => analyseMutation.mutate(true)}
           disabled={analyseMutation.isPending}
         >
           Refresh Analysis
         </Button>
       </div>
-      <CompanyResearchLayout view={view} />
+      <CompanyResearchLayout
+        view={view}
+        request={analyseMutation.data?.request}
+        response={analyseMutation.data?.response}
+      />
     </div>
   );
 }

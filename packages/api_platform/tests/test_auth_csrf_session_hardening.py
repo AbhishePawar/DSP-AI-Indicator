@@ -1,0 +1,321 @@
+"""Focused regression tests for CSRF middleware hardening and session probe."""
+
+from __future__ import annotations
+
+import os
+
+from fastapi.testclient import TestClient
+
+from api_platform.api.app import create_app
+from api_platform.api.csrf_middleware import _AUTH_EXEMPT
+from security_platform import Role, SecurityBundle, SecuritySettings
+from security_platform.security.cookies import ACCESS_COOKIE, CSRF_COOKIE, CSRF_HEADER
+
+
+def test_csrf_auth_exempt_includes_oauth_begin_not_callback() -> None:
+    assert "/auth/enterprise/oauth/begin" in _AUTH_EXEMPT
+    assert "/api/v1/auth/enterprise/oauth/begin" in _AUTH_EXEMPT
+    assert "/auth/enterprise/oauth/callback" not in _AUTH_EXEMPT
+    assert "/api/v1/auth/enterprise/oauth/callback" not in _AUTH_EXEMPT
+    assert "/auth/login" in _AUTH_EXEMPT
+    assert "/api/v1/auth/login" in _AUTH_EXEMPT
+
+
+def test_session_probe_anonymous_returns_200_unauthenticated() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        res1 = client.get("/auth/session")
+        assert res1.status_code == 200
+        data1 = res1.json()
+        assert data1["ok"] is True
+        assert data1["payload"]["authenticated"] is False
+        assert "password" not in str(data1).lower()
+        assert "secret" not in str(data1).lower()
+
+        res2 = client.get("/api/v1/auth/session")
+        assert res2.status_code == 200
+        data2 = res2.json()
+        assert data2["ok"] is True
+        assert data2["payload"]["authenticated"] is False
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_session_probe_with_valid_cookie_session_reports_authenticated() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        bundle.identity.provision(
+            username="validuser",
+            role=Role.RESEARCHER,
+            password="StrongPass12",
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        login = client.post(
+            "/api/v1/auth/login",
+            json={"username": "validuser", "password": "StrongPass12"},
+        )
+        assert login.status_code == 200
+        assert ACCESS_COOKIE in login.cookies
+
+        res = client.get(
+            "/api/v1/auth/session",
+            cookies={
+                ACCESS_COOKIE: login.cookies[ACCESS_COOKIE],
+                CSRF_COOKIE: login.cookies[CSRF_COOKIE],
+            },
+        )
+        assert res.status_code == 200
+        body = res.json()
+        assert body["payload"]["authenticated"] is True
+        assert body["payload"]["cookie_auth"] is True
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_session_probe_with_stale_or_invalid_cookie_reports_unauthenticated() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        res = client.get(
+            "/api/v1/auth/session",
+            cookies={
+                ACCESS_COOKIE: "invalid-expired-junk-token",
+            },
+        )
+        assert res.status_code == 200
+        body = res.json()
+        assert body["payload"]["authenticated"] is False
+        assert body["payload"]["session_id"] is None
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_csrf_middleware_allows_oauth_begin_even_with_stale_access_cookie() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=False)
+        client = TestClient(app)
+
+        # Calling oauth begin with a stale access cookie and no CSRF token must NOT return 403 CSRFError.
+        # It will reach the route handler (which returns 200 with unavailable message if Google is unconfigured).
+        res = client.post(
+            "/api/v1/auth/enterprise/oauth/begin",
+            json={"provider": "GOOGLE", "redirect_uri": "https://example.com/oauth/callback"},
+            cookies={ACCESS_COOKIE: "stale-access-cookie"},
+        )
+        assert res.status_code != 403
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_csrf_middleware_still_rejects_mutating_requests_with_access_cookie_missing_csrf() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        bundle.identity.provision(
+            username="csrfuser",
+            role=Role.RESEARCHER,
+            password="StrongPass12",
+        )
+        app = create_app(security=bundle, enable_security=False)
+        client = TestClient(app)
+
+        login = client.post(
+            "/api/v1/auth/login",
+            json={"username": "csrfuser", "password": "StrongPass12"},
+        )
+        assert login.status_code == 200
+
+        # Mutating request (logout) with valid access cookie and no CSRF header => 403
+        bad = client.post(
+            "/api/v1/auth/logout",
+            cookies={
+                ACCESS_COOKIE: login.cookies[ACCESS_COOKIE],
+                CSRF_COOKIE: login.cookies[CSRF_COOKIE],
+            },
+        )
+        assert bad.status_code == 403
+
+        # With valid CSRF header => 200
+        good = client.post(
+            "/api/v1/auth/logout",
+            cookies={
+                ACCESS_COOKIE: login.cookies[ACCESS_COOKIE],
+                CSRF_COOKIE: login.cookies[CSRF_COOKIE],
+            },
+            headers={CSRF_HEADER: login.cookies[CSRF_COOKIE]},
+        )
+        assert good.status_code == 200
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_session_probe_accepts_oauth_auth_token_and_agrees_with_rbac_me() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        # Issue token using the real auth JwtService contract (iss = dsp-auth, no aud)
+        from auth.enterprise_platform import get_enterprise_auth_platform
+
+        ent = get_enterprise_auth_platform()
+        user = ent.auth.users.create(
+            username="oauthuser",
+            email="oauthuser@example.com",
+            password="StrongPassword123!",
+            display_name="OAuth User",
+            roles=["read_only"],
+        )
+        session = ent._issue_session(user, provider="GOOGLE")
+        oauth_token = session["tokens"]["access_token"]
+        payload = ent.auth.jwt.decode(oauth_token)
+        assert payload["iss"] == "dsp-auth"
+        assert "aud" not in payload
+
+        # B. Anonymous: HTTP 200 and authenticated == False
+        anon_res = client.get("/auth/session")
+        assert anon_res.status_code == 200
+        assert anon_res.json()["payload"]["authenticated"] is False
+
+        # 1-4. Session probe with valid OAuth token cookie returns HTTP 200 and authenticated == True
+        sess_res = client.get(
+            "/auth/session",
+            cookies={ACCESS_COOKIE: oauth_token},
+        )
+        assert sess_res.status_code == 200
+        assert sess_res.json()["payload"]["authenticated"] is True
+
+        # C. Same valid OAuth cookie: /auth/rbac/me succeeds (proves both endpoints agree)
+        me_res = client.get(
+            "/auth/rbac/me",
+            cookies={ACCESS_COOKIE: oauth_token},
+        )
+        assert me_res.status_code == 200
+        assert me_res.json()["result"]["username"] == "oauthuser"
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_session_probe_rejects_expired_or_invalid_oauth_token() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        from auth.enterprise_platform import get_enterprise_auth_platform
+
+        ent = get_enterprise_auth_platform()
+
+        # A. Expired OAuth-style token using JwtService
+        expired_token = ent.auth.jwt.issue(
+            subject="expired-user",
+            expires_in=-3600,
+        )
+        exp_res = client.get(
+            "/auth/session",
+            cookies={ACCESS_COOKIE: expired_token},
+        )
+        assert exp_res.status_code == 200
+        assert exp_res.json()["payload"]["authenticated"] is False
+
+        # Invalid signature token
+        invalid_token = expired_token[:-8] + "deadbeef"
+        inv_res = client.get(
+            "/auth/session",
+            cookies={ACCESS_COOKIE: invalid_token},
+        )
+        assert inv_res.status_code == 200
+        assert inv_res.json()["payload"]["authenticated"] is False
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v

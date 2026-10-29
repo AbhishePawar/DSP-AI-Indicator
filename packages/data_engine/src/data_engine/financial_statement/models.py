@@ -154,6 +154,8 @@ class AuthenticatedStatementPeriod:
     # unit_scale: actual|thousands|millions|billions|lakh|crore|...
     statement_basis: str | None = None
     unit_scale: str | None = None
+    # Current shares outstanding is distinct from weighted-average EPS shares.
+    shares_outstanding: StatementField = field(default_factory=StatementField.missing)
 
     def to_public_dict(self) -> dict[str, Any]:
         def _f(q: StatementField) -> float | None:
@@ -171,6 +173,7 @@ class AuthenticatedStatementPeriod:
             "restated": self.restated,
             "statement_basis": self.statement_basis,
             "unit_scale": self.unit_scale,
+            "shares_outstanding": _f(self.shares_outstanding),
             "income_statement": {
                 "revenue": _f(self.revenue),
                 "cost_of_revenue": _f(self.cost_of_revenue),

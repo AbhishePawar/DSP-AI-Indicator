@@ -26,6 +26,7 @@ from data_engine.market_quote.service import (
     RateLimiter,
     RetryPolicy,
 )
+from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.market_quote.validation import validate_authenticated_quote
 
 __all__ = [
@@ -40,12 +41,14 @@ __all__ = [
     "MarketQuoteService",
     "MarketQuoteServiceMetrics",
     "NullAuthenticatedQuoteAdapter",
+    "UpstoxQuoteAdapter",
     "QuoteField",
     "QuoteProviderHealth",
     "RateLimiter",
     "RetryPolicy",
     "build_default_quote_adapter_from_env",
     "build_quote_from_mapping",
+    "UpstoxQuoteAdapter",
     "utc_now",
     "validate_authenticated_quote",
 ]

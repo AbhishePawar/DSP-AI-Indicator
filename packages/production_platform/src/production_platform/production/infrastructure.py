@@ -175,6 +175,18 @@ class InfrastructureBundle:
             return cls.create_offline(configuration=cfg)
 
         cfg = load_configuration_from_environ(environ)
+        if (
+            cfg.environment is Environment.PRODUCTION
+            and cfg.object_storage.provider == "local"
+            and (
+                not cfg.object_storage.local_root
+                or not cfg.object_storage.local_root.strip()
+            )
+        ):
+            raise ConfigurationError(
+                "DSP_OBJECT_STORAGE_LOCAL_ROOT is required when "
+                "DSP_OBJECT_STORAGE_PROVIDER=local"
+            )
         secrets: SecretsPort = (
             EnvSecretsPort(environ=environ) if environ is not None else EnvSecretsPort()
         )
@@ -239,8 +251,36 @@ class InfrastructureBundle:
 
         storage: StoragePort = InMemoryStoragePort()
         provider = cfg.object_storage.provider
-        if provider == "local" and cfg.object_storage.local_root:
-            storage = LocalFilesystemStoragePort(cfg.object_storage.local_root)
+        if provider == "local":
+            local_root = cfg.object_storage.local_root
+            if not local_root or not local_root.strip():
+                if cfg.environment is Environment.PRODUCTION:
+                    raise ConfigurationError(
+                        "DSP_OBJECT_STORAGE_LOCAL_ROOT is required when "
+                        "DSP_OBJECT_STORAGE_PROVIDER=local"
+                    )
+                notes.append(
+                    "Local object storage root missing; using InMemoryStoragePort"
+                )
+            else:
+                import uuid
+
+                try:
+                    local_storage = LocalFilesystemStoragePort(local_root)
+                    probe_key = f".dsp-storage-write-check-{uuid.uuid4().hex}"
+                    local_storage.put(probe_key, b"ok")
+                    local_storage.delete(probe_key)
+                    storage = local_storage
+                except OSError as exc:
+                    if cfg.environment is Environment.PRODUCTION:
+                        raise ProviderError(
+                            "Configured local object storage is not writable"
+                        ) from exc
+                    storage = InMemoryStoragePort()
+                    notes.append(
+                        f"Local object storage unavailable ({exc}); "
+                        "using InMemoryStoragePort"
+                    )
         elif provider in {"s3", "minio"}:
             from production_platform.adapters.object_storage import try_build_s3_storage
 
@@ -252,6 +292,10 @@ class InfrastructureBundle:
             if s3 is not None:
                 storage = s3
             else:
+                if cfg.environment is Environment.PRODUCTION:
+                    raise ProviderError(
+                        f"Required object storage provider={provider} is unavailable"
+                    )
                 notes.append(
                     f"Object storage provider={provider} unavailable; using InMemoryStoragePort"
                 )

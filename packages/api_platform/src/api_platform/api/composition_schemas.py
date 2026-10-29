@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -73,6 +73,7 @@ class AnalyseRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ticker: str = Field(min_length=1, max_length=32)
+    mode: Literal["simple", "buffett"] = "buffett"
     exchange: str | None = Field(default=None, max_length=32)
     company: str = Field(default="", max_length=256)
 # Optional: production ticker/exchange path loads authenticated
@@ -102,6 +103,7 @@ class AnalyseResponse(BaseModel):
     analysis_id: str | None = None
     audit_reference: str | None = None
     provenance_persisted: bool = False
+    mode: str = "buffett"
 
 
 class ValidateResponse(BaseModel):

@@ -60,8 +60,8 @@ export function ResearchDisclaimerGate({
         <DialogHeader>
           <DialogTitle>Investment research disclaimer</DialogTitle>
           <DialogDescription id="research-disclaimer-desc">
-            Before generating a research report, confirm you understand how DSP
-            outputs may be used.
+            Before generating a research report, confirm you understand how DSP outputs
+            may be used.
           </DialogDescription>
         </DialogHeader>
 
@@ -80,10 +80,7 @@ export function ResearchDisclaimerGate({
             Investment Research Disclaimer
           </Link>
           {" · "}
-          <Link
-            className="text-[var(--accent)] underline"
-            href={LEGAL_ROUTES.risk}
-          >
+          <Link className="text-[var(--accent)] underline" href={LEGAL_ROUTES.risk}>
             Risk Disclosure
           </Link>
         </p>
@@ -97,8 +94,8 @@ export function ResearchDisclaimerGate({
             className="mt-0.5"
           />
           <span>
-            I have read and understand that DSP reports are for research and
-            education, not personalised investment advice.
+            I have read and understand that DSP reports are for research and education,
+            not personalised investment advice.
           </span>
         </label>
 

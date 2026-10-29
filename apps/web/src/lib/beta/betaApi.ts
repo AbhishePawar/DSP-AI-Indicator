@@ -2,7 +2,9 @@
  * P5.1 — Closed beta client helpers (thin /api/v1 beta + admin/beta).
  */
 
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
+import { cookieAuthPreferred, cookieFetchInit } from "@/lib/auth/cookieSession";
+import { COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
 
 export type BetaStatusResult = {
   programme: {
@@ -43,13 +45,23 @@ async function betaFetch<T>(
   init?: RequestInit & { token?: string | null },
 ): Promise<T> {
   const { token, ...rest } = init || {};
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    ...(rest.headers as Record<string, string> | undefined),
-  };
-  if (rest.body) headers["Content-Type"] = "application/json";
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${env.apiBaseUrl}${path}`, { ...rest, headers });
+  const headers = new Headers(rest.headers);
+  if (!headers.has("Accept")) headers.set("Accept", "application/json");
+  if (rest.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const cookieMode = cookieAuthPreferred();
+  if (!cookieMode && token && token !== COOKIE_TOKEN_PLACEHOLDER) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const url = buildApiUrl(path);
+  const fetchInit = cookieMode
+    ? cookieFetchInit({ ...rest, headers })
+    : { ...rest, headers };
+
+  const res = await fetch(url, fetchInit);
   const json = (await res.json()) as { ok?: boolean; result?: T; message?: string };
   if (!res.ok || json.ok === false) {
     throw new Error(json.message || `Beta API unavailable (${res.status})`);
@@ -66,10 +78,7 @@ export const betaApi = {
     return betaFetch<BetaStatusResult>(`/beta/status${q ? `?${q}` : ""}`);
   },
 
-  submitFeedback: (
-    body: Record<string, unknown>,
-    token?: string | null,
-  ) =>
+  submitFeedback: (body: Record<string, unknown>, token?: string | null) =>
     betaFetch<Record<string, unknown>>("/beta/feedback", {
       method: "POST",
       body: JSON.stringify(body),
@@ -113,11 +122,7 @@ export const betaApi = {
       token,
     }),
 
-  patchInvite: (
-    id: string,
-    status: string,
-    token?: string | null,
-  ) =>
+  patchInvite: (id: string, status: string, token?: string | null) =>
     betaFetch<Record<string, unknown>>(`/admin/beta/invites/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
@@ -130,11 +135,7 @@ export const betaApi = {
       token,
     }),
 
-  patchIssue: (
-    id: string,
-    body: Record<string, unknown>,
-    token?: string | null,
-  ) =>
+  patchIssue: (id: string, body: Record<string, unknown>, token?: string | null) =>
     betaFetch<Record<string, unknown>>(`/admin/beta/issues/${id}`, {
       method: "PATCH",
       body: JSON.stringify(body),

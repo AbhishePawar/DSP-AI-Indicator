@@ -99,9 +99,7 @@ export function CopilotProvider({
         setMemory((m) => ({
           ...m,
           selectedSectionId: id,
-          expandedSections: Array.from(new Set([...m.expandedSections, id])).slice(
-            -12,
-          ),
+          expandedSections: Array.from(new Set([...m.expandedSections, id])).slice(-12),
           companyLabel:
             view.snapshot.ticker.value ??
             view.snapshot.companyName.value ??
@@ -118,8 +116,7 @@ export function CopilotProvider({
     (args: AskArgs) => {
       setOpen(true);
       const text =
-        args.text ??
-        (args.action ? `Action: ${args.action}` : "Explain this research");
+        args.text ?? (args.action ? `Action: ${args.action}` : "Explain this research");
       const action = resolveCopilotAction(args.action ?? "free_text", text);
 
       setMemory((m) => {
@@ -207,9 +204,7 @@ export function CopilotProvider({
     ],
   );
 
-  return (
-    <CopilotContext.Provider value={value}>{children}</CopilotContext.Provider>
-  );
+  return <CopilotContext.Provider value={value}>{children}</CopilotContext.Provider>;
 }
 
 export function useCopilot(): CopilotContextValue {

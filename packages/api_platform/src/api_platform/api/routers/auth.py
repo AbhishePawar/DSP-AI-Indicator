@@ -230,23 +230,187 @@ def refresh(body: RefreshRequest, request: Request) -> JSONResponse:
 
 @router.post("/auth/logout")
 def logout(request: Request) -> JSONResponse:
-    """Invalidate cookie session (EPIC-016)."""
+    """Invalidate session and auth cookies (EPIC-016)."""
     from security_platform import (
-        REFRESH_COOKIE,
+        ACCESS_COOKIE,
+        SESSION_COOKIE,
         clear_auth_cookies,
         cookie_auth_enabled,
+        read_access_token,
+        read_refresh_token,
     )
 
+    cookie_access = request.cookies.get(ACCESS_COOKIE)
+    auth_header = request.headers.get("authorization") or request.headers.get(
+        "Authorization"
+    )
+    header_token = None
+    if auth_header and auth_header.strip().lower().startswith("bearer "):
+        header_token = auth_header.strip()[7:].strip() or None
+
+    # Reject contradictory credentials between cookie and Authorization header
+    if cookie_access and header_token and cookie_access != header_token:
+        response = JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "capability": "auth.logout",
+                "error": "ConflictingCredentialsError",
+                "message": "Conflicting credentials in cookie and Authorization header",
+                "payload": {"logged_out": False, "cookie_auth": cookie_auth_enabled()},
+                "api_version": getattr(request.app.state.api, "api_version", "v1"),
+            },
+        )
+        clear_auth_cookies(response)
+        return response
+
+    access_token = read_access_token(request)
+    refresh_token = read_refresh_token(request)
+    cookie_session_id = request.cookies.get(SESSION_COOKIE)
+    session_id: str | None = None
+
+    # Derive validated session_id from authoritative credentials (never trust raw cookie alone)
+    if access_token:
+        try:
+            from auth import get_auth_service
+
+            auth_svc = get_auth_service()
+            if auth_svc is not None:
+                decoded = auth_svc.jwt.decode(access_token)
+                sid = decoded.get("sid")
+                if sid and cookie_session_id and cookie_session_id != sid:
+                    response = JSONResponse(
+                        status_code=400,
+                        content={
+                            "ok": False,
+                            "capability": "auth.logout",
+                            "error": "ConflictingCredentialsError",
+                            "message": "Conflicting session credentials between cookie and token",
+                            "payload": {
+                                "logged_out": False,
+                                "cookie_auth": cookie_auth_enabled(),
+                            },
+                            "api_version": getattr(
+                                request.app.state.api, "api_version", "v1"
+                            ),
+                        },
+                    )
+                    clear_auth_cookies(response)
+                    return response
+                if sid:
+                    session_id = sid
+        except Exception:
+            pass
+
     security = getattr(request.app.state, "security", None)
+    if not session_id and access_token and security is not None:
+        try:
+            claims = security.jwt.verify(access_token)
+            if hasattr(claims, "extra") and isinstance(claims.extra, dict):
+                sid = claims.extra.get("sid")
+                if sid and cookie_session_id and cookie_session_id != sid:
+                    response = JSONResponse(
+                        status_code=400,
+                        content={
+                            "ok": False,
+                            "capability": "auth.logout",
+                            "error": "ConflictingCredentialsError",
+                            "message": "Conflicting session credentials between cookie and token",
+                            "payload": {
+                                "logged_out": False,
+                                "cookie_auth": cookie_auth_enabled(),
+                            },
+                            "api_version": getattr(
+                                request.app.state.api, "api_version", "v1"
+                            ),
+                        },
+                    )
+                    clear_auth_cookies(response)
+                    return response
+                if sid:
+                    session_id = sid
+        except Exception:
+            pass
+
+    if not session_id and refresh_token and security is not None:
+        try:
+            tokens_svc = getattr(getattr(security, "identity", None), "tokens", None)
+            if tokens_svc is not None and hasattr(tokens_svc, "get_refresh_record"):
+                rec = tokens_svc.get_refresh_record(refresh_token)
+                if rec is not None and rec.session_id:
+                    if cookie_session_id and cookie_session_id != rec.session_id:
+                        response = JSONResponse(
+                            status_code=400,
+                            content={
+                                "ok": False,
+                                "capability": "auth.logout",
+                                "error": "ConflictingCredentialsError",
+                                "message": "Conflicting session credentials between cookie and refresh token",
+                                "payload": {
+                                    "logged_out": False,
+                                    "cookie_auth": cookie_auth_enabled(),
+                                },
+                                "api_version": getattr(
+                                    request.app.state.api, "api_version", "v1"
+                                ),
+                            },
+                        )
+                        clear_auth_cookies(response)
+                        return response
+                    session_id = rec.session_id
+        except Exception:
+            pass
+
+    revocation_failed = False
+
+    # 1. Authoritative AuthService session revocation for dsp-auth
+    if session_id:
+        try:
+            from auth import get_auth_service
+
+            auth_svc = get_auth_service()
+            if auth_svc is not None and hasattr(auth_svc, "sessions"):
+                sess = auth_svc.sessions.get(session_id)
+                if sess is not None and not getattr(sess, "revoked", False):
+                    api_state = getattr(request.app.state, "api", None)
+                    platform = (
+                        getattr(api_state, "platform", None)
+                        if api_state is not None
+                        else None
+                    )
+                    if platform is not None and hasattr(platform, "auth_logout"):
+                        platform.auth_logout(session_id=session_id)
+                    else:
+                        auth_svc.logout(session_id=session_id)
+        except Exception:
+            revocation_failed = True
+
+    # 2. Security Platform revocation for dsp-security
     if security is not None:
         identity = getattr(security, "identity", None)
         if identity is not None:
-            refresh_token = request.cookies.get(REFRESH_COOKIE)
-            if refresh_token:
-                try:
-                    identity.logout(refresh_token=refresh_token)
-                except Exception:  # noqa: BLE001
-                    pass
+            try:
+                identity.logout(
+                    refresh_token=refresh_token,
+                    session_id=session_id,
+                )
+            except Exception:
+                revocation_failed = True
+
+    if revocation_failed:
+        response = JSONResponse(
+            status_code=500,
+            content={
+                "ok": False,
+                "capability": "auth.logout",
+                "error": "RevocationError",
+                "message": "Failed to revoke session",
+                "payload": {"logged_out": False, "cookie_auth": cookie_auth_enabled()},
+                "api_version": getattr(request.app.state.api, "api_version", "v1"),
+            },
+        )
+        clear_auth_cookies(response)
+        return response
 
     response = JSONResponse(
         content={
@@ -264,13 +428,59 @@ def logout(request: Request) -> JSONResponse:
 def session_probe(request: Request) -> JSONResponse:
     """Return non-secret session metadata for cookie-mode SPA bootstrap."""
     from security_platform import (
-        ACCESS_COOKIE,
         CSRF_COOKIE,
         SESSION_COOKIE,
         cookie_auth_enabled,
+        read_access_token,
     )
 
-    has_access = bool(request.cookies.get(ACCESS_COOKIE))
+    has_access = False
+    session_id: str | None = None
+    access_token = read_access_token(request)
+    if access_token:
+        # Prefer the authoritative platform auth boundary (used by /auth/rbac/me)
+        api_state = getattr(request.app.state, "api", None)
+        platform = (
+            getattr(api_state, "platform", None) if api_state is not None else None
+        )
+        if platform is not None and hasattr(platform, "auth_current_user"):
+            try:
+                platform.auth_current_user(access_token)
+                has_access = True
+            except Exception:
+                has_access = False
+        else:
+            try:
+                from auth.enterprise_platform import get_enterprise_auth_platform
+
+                get_enterprise_auth_platform().auth.current_user(access_token)
+                has_access = True
+            except Exception:
+                has_access = False
+
+        if has_access:
+            session_id = request.cookies.get(SESSION_COOKIE)
+            if not session_id:
+                try:
+                    from auth import get_auth_service
+
+                    decoded = get_auth_service().jwt.decode(access_token)
+                    session_id = decoded.get("sid")
+                except Exception:
+                    pass
+
+        if not has_access:
+            bundle = getattr(request.app.state, "security", None)
+            if bundle is not None:
+                try:
+                    principal = bundle.authentication.authenticate_jwt(access_token)
+                    has_access = True
+                    session_id = (
+                        request.cookies.get(SESSION_COOKIE) or principal.session_id
+                    )
+                except Exception:
+                    has_access = False
+
     return JSONResponse(
         content={
             "ok": True,
@@ -278,7 +488,7 @@ def session_probe(request: Request) -> JSONResponse:
             "payload": {
                 "cookie_auth": cookie_auth_enabled(),
                 "authenticated": has_access,
-                "session_id": request.cookies.get(SESSION_COOKIE),
+                "session_id": session_id if has_access else None,
                 "csrf_token": request.cookies.get(CSRF_COOKIE),
             },
             "api_version": getattr(request.app.state.api, "api_version", "v1"),

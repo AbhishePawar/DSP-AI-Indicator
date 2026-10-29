@@ -3,8 +3,9 @@
  * Consumes /api/v1/enterprise/* only. No client-side enterprise logic or secrets.
  */
 
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 import { ApiClientError, type ApiErrorBody } from "@/lib/api/types";
+import { csrfHeaders } from "@/lib/auth/cookieSession";
 import type {
   CustomerPortal,
   EnterpriseEnvelope,
@@ -17,7 +18,7 @@ export type EnterpriseRequestOptions = {
   signal?: AbortSignal;
 };
 
-async function enterpriseRequest<T>(
+export async function enterpriseRequest<T>(
   path: string,
   init: RequestInit = {},
   options: EnterpriseRequestOptions = {},
@@ -30,7 +31,24 @@ async function enterpriseRequest<T>(
   // Never send X-User-Id — identity is cookie/Bearer only (P0-05).
   void options.userId;
 
-  const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const method = (init.method || "GET").toUpperCase();
+  const isMutating = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+  const cookieMode =
+    process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
+    process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
+
+  if (cookieMode && isMutating && typeof window !== "undefined") {
+    try {
+      const csrf = csrfHeaders();
+      for (const [k, v] of Object.entries(csrf)) {
+        if (!headers.has(k)) headers.set(k, v);
+      }
+    } catch {
+      // CSRF token storage unavailable
+    }
+  }
+
+  const url = buildApiUrl(path);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -84,7 +102,7 @@ async function enterpriseRequest<T>(
 export async function fetchEnterpriseSchema(
   options?: EnterpriseRequestOptions,
 ): Promise<Record<string, unknown>> {
-  return enterpriseRequest("/api/v1/enterprise/schema", {}, options);
+  return enterpriseRequest("/enterprise/schema", {}, options);
 }
 
 export async function listOrganizations(
@@ -94,7 +112,7 @@ export async function listOrganizations(
   // userId ignored — server resolves actor from session (P0-05).
   void userId;
   const result = await enterpriseRequest<Organization[]>(
-    "/api/v1/enterprise/organizations",
+    "/enterprise/organizations",
     {},
     options,
   );
@@ -110,7 +128,7 @@ export async function fetchCustomerPortal(
   options?: EnterpriseRequestOptions,
 ): Promise<CustomerPortal> {
   return enterpriseRequest(
-    `/api/v1/enterprise/organizations/${encodeURIComponent(orgId)}/portal`,
+    `/enterprise/organizations/${encodeURIComponent(orgId)}/portal`,
     {},
     { ...options, userId },
   );
@@ -119,11 +137,11 @@ export async function fetchCustomerPortal(
 export async function fetchOpsDashboard(
   options?: EnterpriseRequestOptions,
 ): Promise<OpsDashboard> {
-  return enterpriseRequest("/api/v1/enterprise/ops/dashboard", {}, options);
+  return enterpriseRequest("/enterprise/ops/dashboard", {}, options);
 }
 
 export async function fetchAdminOverview(
   options?: EnterpriseRequestOptions,
 ): Promise<Record<string, unknown>> {
-  return enterpriseRequest("/api/v1/enterprise/admin/overview", {}, options);
+  return enterpriseRequest("/enterprise/admin/overview", {}, options);
 }

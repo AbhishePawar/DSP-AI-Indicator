@@ -6,6 +6,7 @@ Mocked providers and DSP tools only. No paid API calls.
 from __future__ import annotations
 
 import json
+import threading
 from typing import Any
 
 from llm_adapters.model_tiers import ModelTier
@@ -310,6 +311,7 @@ def _orchestrator(
     cheap: ScriptedProvider | None = None,
     premium: ScriptedProvider | None = None,
     loop_limits: Any = None,
+    dual_verification: bool = False,
 ) -> ResearchOrchestrator:
     cheap = cheap or ScriptedProvider("deepseek", "deepseek-chat", script or ["json"])
     premium = premium or ScriptedProvider(
@@ -324,8 +326,21 @@ def _orchestrator(
             ModelTier.COST_EFFICIENT: cheap,
             ModelTier.PREMIUM: premium,
         },
+        dual_verification=dual_verification,
         **kwargs,
     )
+
+
+class BarrierProvider(ScriptedProvider):
+    def __init__(
+        self, provider_id: str, model_label: str, barrier: threading.Barrier
+    ):
+        super().__init__(provider_id, model_label, ["json"])
+        self._barrier = barrier
+
+    def complete(self, **kwargs: Any) -> AICompletion:
+        self._barrier.wait(timeout=2)
+        return super().complete(**kwargs)
 
 
 def _request(*signals: ComplexitySignal) -> UserResearchRequest:
@@ -628,3 +643,95 @@ def test_unavailable_recommendation_does_not_invent_buy() -> None:
     result = _orchestrator(backend=StubBackend(empty_rec=True)).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
     assert result.public.recommendation == "Unable to complete."
+
+
+def test_concurrent_orchestrator_runs_maintain_isolated_memory() -> None:
+    import concurrent.futures
+    orc = _orchestrator()
+
+    def run_with_ticker(ticker: str):
+        req = UserResearchRequest(
+            symbol=ticker,
+            question=f"Is {ticker} a compounder?",
+            request_id=f"req-{ticker}",
+        )
+        res = orc.run(req)
+        return req.symbol, res.status
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(run_with_ticker, t) for t in ["AAPL", "MSFT", "GOOGL", "NVDA"]]
+        results = [f.result() for f in futures]
+
+    assert len(results) == 4
+    for ticker, status in results:
+        assert status is OrchestratorStatus.ACCEPTED
+
+
+def test_async_task_orchestrator_runs_maintain_isolated_memory() -> None:
+    import asyncio
+    orc = _orchestrator()
+
+    async def run_async(ticker: str):
+        req = UserResearchRequest(
+            symbol=ticker,
+            question=f"Is {ticker} a compounder?",
+            request_id=f"req-async-{ticker}",
+        )
+        return await asyncio.to_thread(orc.run, req)
+
+    async def main():
+        return await asyncio.gather(
+            run_async("TCS"),
+            run_async("INFY"),
+            run_async("RELIANCE"),
+        )
+
+    results = asyncio.run(main())
+    assert len(results) == 3
+    for res in results:
+        assert res.status is OrchestratorStatus.ACCEPTED
+
+
+def test_orchestrator_cancellation_event_halts_loop() -> None:
+    import threading
+    cancel_event = threading.Event()
+    cancel_event.set()
+    orc = _orchestrator()
+    req = UserResearchRequest(
+        symbol="TATAMOTORS",
+        question="Is Tata Motors a good buy?",
+        request_id="req-cancel-test",
+    )
+    outcome = orc.run(req, cancellation_event=cancel_event)
+    assert outcome.status is OrchestratorStatus.FAILED_CLOSED
+
+
+def test_orchestrator_timeout_bounds_loop() -> None:
+    orc = _orchestrator()
+    req = UserResearchRequest(
+        symbol="TATAMOTORS",
+        question="Is Tata Motors a good buy?",
+        request_id="req-timeout-test",
+    )
+    # Passing 0.0s forces immediate timeout in loop
+    outcome = orc.run(req, timeout_seconds=0.0)
+    assert outcome.status is OrchestratorStatus.FAILED_CLOSED
+
+
+def test_dual_verification_runs_both_providers_concurrently() -> None:
+    barrier = threading.Barrier(2)
+    gemini = BarrierProvider("gemini", "gemini-test", barrier)
+    openai = BarrierProvider("openai", "openai-test", barrier)
+    orchestrator = _orchestrator(
+        cheap=gemini,
+        premium=openai,
+        dual_verification=True,
+    )
+
+    result = orchestrator.run(_request())
+
+    assert result.status is OrchestratorStatus.ACCEPTED
+    assert gemini.calls == 1
+    assert openai.calls == 1
+    assert result.public.recommendation == "Buy"
+    assert result.public.valuation in {"180.0", "180"}

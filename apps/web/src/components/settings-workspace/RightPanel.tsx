@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button, Input } from "@/components/ds";
-import {
-  SETTINGS_SECTIONS,
-  useSettingsPrefsStore,
-} from "@/lib/settings";
+import { SETTINGS_SECTIONS, useSettingsPrefsStore } from "@/lib/settings";
 
 export function SettingsRightPanel() {
   const notes = useSettingsPrefsStore((s) => s.notes);
@@ -74,10 +71,7 @@ export function SettingsRightPanel() {
             </Link>
           </li>
           <li>
-            <Link
-              className="text-[var(--accent)] hover:underline"
-              href="/diagnostics"
-            >
+            <Link className="text-[var(--accent)] hover:underline" href="/diagnostics">
               Diagnostics
             </Link>
           </li>

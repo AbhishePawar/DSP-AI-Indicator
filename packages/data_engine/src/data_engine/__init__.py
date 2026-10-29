@@ -8,13 +8,6 @@ layer. Concrete adapters: Yahoo Finance (OHLCV + fundamentals) and FRED
 from __future__ import annotations
 
 from data_engine.adapters import BaseAdapter
-from data_engine.source_governance import (
-    APPROVED_SOURCES,
-    PRIMARY_SOURCES,
-    SECONDARY_SOURCES,
-    DataProvenance,
-    is_approved_source,
-)
 from data_engine.adapters.fred import (
     CANONICAL_INDICATOR_CODES,
     FRED_METADATA,
@@ -308,6 +301,21 @@ from data_engine.services import (
     FundamentalsDataService,
     MarketDataService,
 )
+from data_engine.share_count import (
+    InMemoryShareCountPort,
+    ShareCount,
+    ShareCountPort,
+    resolve_verified_share_count,
+)
+from data_engine.source_governance import (
+    APPROVED_SOURCES,
+    MARKET_DATA_PURPOSES,
+    MARKET_DATA_SOURCES,
+    PRIMARY_SOURCES,
+    SECONDARY_SOURCES,
+    DataProvenance,
+    is_approved_source,
+)
 from data_engine.transcripts import (
     AuthenticatedTranscripts,
     EarningsCallTranscript,
@@ -323,8 +331,21 @@ from data_engine.transcripts import (
     build_transcripts_bundle_from_mapping,
     validate_authenticated_transcripts,
 )
+from data_engine.upstox.instrument_resolver import register_asset_resolver
 
 __all__ = [
+    "register_asset_resolver",
+    "InMemoryShareCountPort",
+    "ShareCount",
+    "ShareCountPort",
+    "resolve_verified_share_count",
+    "MARKET_DATA_PURPOSES",
+    "MARKET_DATA_SOURCES",
+    "APPROVED_SOURCES",
+    "PRIMARY_SOURCES",
+    "SECONDARY_SOURCES",
+    "DataProvenance",
+    "is_approved_source",
     "ACTION_TYPES",
     "AlphaVantageNewsAdapter",
     "AlternativeDataNormalizer",

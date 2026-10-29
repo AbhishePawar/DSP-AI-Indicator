@@ -28,19 +28,13 @@ export function DashboardSectionCard({
   if (!section || section.available !== true) {
     return (
       <DashboardWidgetShell title={title} description={section?.source}>
-        <WidgetUnavailable
-          description={section?.message || "Data unavailable."}
-        />
+        <WidgetUnavailable description={section?.message || "Data unavailable."} />
       </DashboardWidgetShell>
     );
   }
 
   return (
-    <DashboardWidgetShell
-      title={title}
-      description={section.source}
-      action={action}
-    >
+    <DashboardWidgetShell title={title} description={section.source} action={action}>
       <pre
         className="max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs text-[var(--foreground)]"
         data-testid={`dashboard-section-${sectionKey}`}

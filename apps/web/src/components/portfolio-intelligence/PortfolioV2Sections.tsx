@@ -11,11 +11,7 @@ import { Button } from "@/components/ds";
 import { featureFlags } from "@/lib/featureFlags";
 import type { PortfolioIntelligenceView } from "@/lib/portfolio-intelligence";
 import type { PortfolioActivity, PortfolioHolding } from "@/lib/portfolio/model";
-import {
-  FieldRow,
-  SectionCard,
-  WorkspaceEmpty,
-} from "./Primitives";
+import { FieldRow, SectionCard, WorkspaceEmpty } from "./Primitives";
 
 export function ScenariosSection({
   intel,
@@ -108,19 +104,15 @@ export function PortfolioTimelineSection({
       <SectionCard title="Coverage events">
         <p className="text-sm text-[var(--muted)]">
           {holdings.filter((h) => h.researchAvailable).length} holding(s) marked
-          research-available in session · remainder Data unavailable until
-          linked via /portfolio/intelligence.
+          research-available in session · remainder Data unavailable until linked via
+          /portfolio/intelligence.
         </p>
       </SectionCard>
     </div>
   );
 }
 
-export function IntegrationsSection({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
+export function IntegrationsSection({ holdings }: { holdings: PortfolioHolding[] }) {
   const first = holdings[0]?.ticker;
   return (
     <div className="space-y-4">
@@ -130,11 +122,7 @@ export function IntegrationsSection({
       >
         <div className="flex flex-wrap gap-2">
           <Link
-            href={
-              first
-                ? `/analysis?symbol=${encodeURIComponent(first)}`
-                : "/analysis"
-            }
+            href={first ? `/analysis?symbol=${encodeURIComponent(first)}` : "/analysis"}
           >
             <Button size="sm" variant="secondary">
               Company Research
@@ -204,9 +192,9 @@ export function IntegrationsSection({
       </SectionCard>
       <SectionCard title="Rebalancing honesty">
         <p className="text-sm text-[var(--muted)]">
-          Rebalancing suggestions remain trade-off / evidence / confidence review
-          only. This workspace never recommends transactions or personalized
-          investment advice.
+          Rebalancing suggestions remain trade-off / evidence / confidence review only.
+          This workspace never recommends transactions or personalized investment
+          advice.
         </p>
       </SectionCard>
     </div>
@@ -252,10 +240,7 @@ export function OverviewV2Extras({
           label="Industry allocation"
           value="Data unavailable. Industry not on session holding model."
         />
-        <FieldRow
-          label="Market-cap allocation"
-          value="Data unavailable."
-        />
+        <FieldRow label="Market-cap allocation" value="Data unavailable." />
         <FieldRow label="Country allocation" value="Data unavailable." />
         <FieldRow label="Cash allocation" value="Data unavailable." />
         <FieldRow

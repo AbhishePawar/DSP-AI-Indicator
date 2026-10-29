@@ -519,24 +519,39 @@ def build_default_historical_adapter_from_env() -> HistoricalSeriesPort:
     """
     from data_engine.connector_framework.production_profile import (
         memory_adapter_allowed,
-        require_authenticated_http_adapter,
     )
 
     api_key = os.environ.get("DSP_HISTORICAL_SERIES_API_KEY", "").strip()
     base_url = os.environ.get("DSP_HISTORICAL_SERIES_BASE_URL", "").strip()
     if api_key and base_url:
         return ConfiguredHttpHistoricalAdapter(base_url=base_url, api_key=api_key)
+
+    hist_provider = os.environ.get("DSP_HISTORICAL_SERIES_PROVIDER", "").strip().lower()
+    inv_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    upstox_token = (
+        os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
+        or os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", "").strip()
+        or os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
+    )
+
+    if hist_provider == "upstox" or (inv_provider == "upstox" and upstox_token):
+        if upstox_token:
+            from data_engine.historical_series.upstox_adapter import (
+                UpstoxHistoricalAdapter,
+            )
+
+            return UpstoxHistoricalAdapter(access_token=upstox_token)
+        return NullAuthenticatedHistoricalAdapter()
+
+    if os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip():
+        from data_engine.historical_series.upstox_adapter import UpstoxHistoricalAdapter
+
+        return UpstoxHistoricalAdapter(access_token=os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip())
+
     if memory_adapter_allowed(
         "DSP_HISTORICAL_SERIES_MEMORY", connector="historical_series"
     ):
         return InMemoryAuthenticatedHistoricalAdapter(
             api_key=api_key or "dev-memory-key"
         )
-    require_authenticated_http_adapter(
-        connector="historical_series",
-        api_key=api_key,
-        base_url=base_url,
-        api_key_env="DSP_HISTORICAL_SERIES_API_KEY",
-        base_url_env="DSP_HISTORICAL_SERIES_BASE_URL",
-    )
     return NullAuthenticatedHistoricalAdapter()

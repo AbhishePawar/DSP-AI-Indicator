@@ -74,16 +74,14 @@ export const DecisionTraceCard = memo(function DecisionTraceCard({
       <CardBody className="space-y-3">
         {!trace.available ? (
           <p className="text-sm text-[var(--muted)]">
-            Trace scaffold is ready — conclusion output is Unavailable until Analyze returns a DSP
-            View.
+            Trace scaffold is ready — conclusion output is Unavailable until Analyze
+            returns a DSP View.
           </p>
         ) : null}
         <ol className="space-y-2" aria-label="Decision trace steps">
           {steps.map((s, i) => (
             <li key={s.id}>
-              <p className="mb-1 text-xs text-[var(--muted)]">
-                Step {i + 1}
-              </p>
+              <p className="mb-1 text-xs text-[var(--muted)]">Step {i + 1}</p>
               <TraceStep step={s} />
             </li>
           ))}
@@ -107,8 +105,8 @@ export function DecisionTraceSection({ trace }: { trace: DecisionTraceView }) {
     <div className="space-y-4">
       <p className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">
         <span className="font-medium">What you should know — </span>
-        Decision Trace turns the research conclusion into Inputs → Calculations → Rules → Evidence →
-        Confidence → Limitations → Reasoning → Output.
+        Decision Trace turns the research conclusion into Inputs → Calculations → Rules
+        → Evidence → Confidence → Limitations → Reasoning → Output.
       </p>
       <DecisionTraceCard trace={trace} />
     </div>

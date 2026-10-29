@@ -72,9 +72,7 @@ function renderWithClient(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("SaasPlatform", () => {
@@ -97,8 +95,8 @@ describe("SaasPlatform", () => {
     await waitFor(() => {
       expect(screen.getByTestId("saas-admin-dashboard")).toBeTruthy();
     });
-    expect(
-      screen.getByTestId("saas-admin-dashboard").textContent,
-    ).toMatch(/Data unavailable/i);
+    expect(screen.getByTestId("saas-admin-dashboard").textContent).toMatch(
+      /Data unavailable/i,
+    );
   });
 });

@@ -15,8 +15,9 @@ export function AdvisorDemoGate({ children }: { children: ReactNode }) {
         <CardBody className="space-y-3 text-sm">
           <p className="text-[var(--muted)]">
             The Advisor Platform is optional. Enable demo mode with{" "}
-            <code className="text-xs">NEXT_PUBLIC_ADVISOR_DEMO=true</code> to explore the foundation
-            workspace. Single-user research experience remains unchanged when disabled.
+            <code className="text-xs">NEXT_PUBLIC_ADVISOR_DEMO=true</code> to explore
+            the foundation workspace. Single-user research experience remains unchanged
+            when disabled.
           </p>
           <Link href="/dashboard">
             <Button variant="secondary">Back to Dashboard</Button>

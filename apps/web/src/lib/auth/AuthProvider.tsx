@@ -11,11 +11,11 @@ import {
   type ReactNode,
 } from "react";
 
-import { api, setApiAuthFailureHandler } from "@/lib/api/client";
+import { setApiAuthFailureHandler } from "@/lib/api/client";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import { ApiClientError } from "@/lib/api/types";
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 import { logger } from "@/lib/observability/logger";
 import { useAuthStore } from "./authStore";
 import {
@@ -26,7 +26,14 @@ import {
   readStoredSession,
   sessionFromRbacLogin,
 } from "./sessionStore";
-import { cookieAuthPreferred, probeCookieSession } from "./cookieSession";
+import {
+  cookieAuthPreferred,
+  cookieFetchInit,
+  persistCsrfToken,
+  probeCookieSession,
+  readCookieMeta,
+} from "./cookieSession";
+import { COOKIE_TOKEN_PLACEHOLDER } from "./sessionStore";
 import { clearRecentAnalyses } from "@/lib/analysis/recentAnalyses";
 import { clearMarketCache } from "@/lib/market/cache";
 import { clearMemoryUserData } from "@/lib/persistence/storage";
@@ -120,9 +127,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             resetAuthStore();
             return;
           }
+
+          if (probe.csrf_token) {
+            const cookieMeta = readCookieMeta();
+            persistCsrfToken(probe.csrf_token, cookieMeta?.rememberMe ?? false);
+          }
         }
 
-        const stored = readStoredSession();
+        let stored = readStoredSession();
+        if (cancelled || statusRef.current !== "restoring") return;
+        if ((!stored || isSessionExpired(stored)) && cookieAuthPreferred()) {
+          try {
+            const meRes = await rbacAuthApi.me(null);
+            if (meRes?.ok && meRes.result) {
+              const u = meRes.result;
+              const hydratedSession: Session = {
+                accessToken: COOKIE_TOKEN_PLACEHOLDER,
+                refreshToken: null,
+                tokenType: "bearer",
+                role: u.roles?.[0] || "read_only",
+                roles: u.roles || ["read_only"],
+                // /auth/rbac/me returns no permissions field; permissions are
+                // filled in by the existing evaluatePermission enrichment path.
+                permissions: [],
+                subject: u.user_id,
+                username: u.username,
+                displayName: u.display_name || u.username,
+                email: u.email || null,
+                authMethod: "cookie_rbac",
+                sessionId: null,
+                issuedAt: new Date().toISOString(),
+                expiresAt: null,
+                rememberMe: false,
+              };
+              persistSession(hydratedSession);
+              stored = hydratedSession;
+            }
+          } catch {
+            // failed to hydrate via me
+          }
+        }
         if (cancelled || statusRef.current !== "restoring") return;
         if (!stored || isSessionExpired(stored)) {
           clearStoredSession();
@@ -164,8 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const enrichPermissions = useCallback(async (next: Session) => {
     if (!next.roles.length) return next;
     try {
-      const token =
-        next.authMethod === "cookie_rbac" ? null : next.accessToken;
+      const token = next.authMethod === "cookie_rbac" ? null : next.accessToken;
       const evalResult = await rbacAuthApi.evaluate(token ?? "", {
         user_id: next.subject,
         permission: "read_research",
@@ -245,7 +288,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        throw new Error("Choose an available sign-in method and provide your credentials.");
+        throw new Error(
+          "Choose an available sign-in method and provide your credentials.",
+        );
       } catch (error) {
         setStatus(session ? "authenticated" : "unauthenticated");
         syncStore(session ? "authenticated" : "unauthenticated", session);
@@ -275,11 +320,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     // Clear HttpOnly auth cookies (enterprise cookie session).
     try {
-      await fetch(`${env.apiBaseUrl}/auth/logout`, {
+      const logoutInit = cookieFetchInit({
         method: "POST",
-        credentials: "include",
         headers: { Accept: "application/json" },
       });
+      await fetch(buildApiUrl("/auth/logout"), logoutInit);
     } catch (error) {
       logger.warn("Cookie logout failed — clearing local session", {
         error: error instanceof Error ? error.message : String(error),
@@ -290,6 +335,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearResearchSession();
     clearRecentAnalyses();
     clearMarketCache();
+    try {
+      const { clearResearchArchive } = await import("@/lib/copilot/sessionArchive");
+      clearResearchArchive();
+    } catch {}
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.removeItem("dsp.oauth.pending");
+      } catch {}
+    }
     logger.info("User signed out", { subject });
   }, [applySession, session]);
 

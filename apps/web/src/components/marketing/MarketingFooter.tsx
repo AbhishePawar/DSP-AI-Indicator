@@ -12,8 +12,8 @@ export function MarketingFooter() {
             {env.appName}
           </p>
           <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
-            {env.tagline}. Professional investment research for everyone —
-            research use, not investment advice.
+            {env.tagline}. Professional investment research for everyone — research use,
+            not investment advice.
           </p>
         </div>
         <div>
@@ -118,8 +118,8 @@ export function MarketingFooter() {
         </div>
       </div>
       <div className="border-t border-[var(--border)] px-4 py-4 text-center text-xs text-[var(--muted)] sm:px-6">
-        © {new Date().getFullYear()} {env.appName}. Research Mode by default.
-        Not a brokerage order router.
+        © {new Date().getFullYear()} {env.appName}. Research Mode by default. Not a
+        brokerage order router.
       </div>
     </footer>
   );

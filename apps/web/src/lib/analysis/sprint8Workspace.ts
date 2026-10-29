@@ -67,11 +67,7 @@ export type WorkspaceFilterId =
   | "generated_reports";
 
 export type WorkspaceSortId =
-  | "newest"
-  | "oldest"
-  | "alphabetical"
-  | "confidence"
-  | "recently_modified";
+  "newest" | "oldest" | "alphabetical" | "confidence" | "recently_modified";
 
 export type CompareDiff = {
   field: string;
@@ -131,8 +127,7 @@ function metaFromView(view: AnalysisWorkspaceView) {
     company,
     ticker,
     industry: view.snapshot.industry.value,
-    analysisDate:
-      view.freshness.researchDate ?? view.snapshot.researchDate.value,
+    analysisDate: view.freshness.researchDate ?? view.snapshot.researchDate.value,
     researchMode: view.freshness.researchMode,
     confidence: view.confidenceBreakdown.overall,
     confidenceLabel: CONFIDENCE_LABELS[view.confidenceBreakdown.overall],
@@ -253,10 +248,7 @@ export function renameAnalysis(
   };
 }
 
-export function duplicateAnalysis(
-  store: WorkspaceStore,
-  id: string,
-): WorkspaceStore {
+export function duplicateAnalysis(store: WorkspaceStore, id: string): WorkspaceStore {
   const src = store.analyses.find((a) => a.id === id);
   if (!src) return store;
   const now = new Date().toISOString();
@@ -299,7 +291,12 @@ export function archiveAnalysis(
     ...store,
     analyses: store.analyses.map((a) =>
       a.id === id
-        ? { ...a, archived, pinned: archived ? false : a.pinned, updatedAt: new Date().toISOString() }
+        ? {
+            ...a,
+            archived,
+            pinned: archived ? false : a.pinned,
+            updatedAt: new Date().toISOString(),
+          }
         : a,
     ),
   };
@@ -313,17 +310,12 @@ export function moveAnalysis(
   return {
     ...store,
     analyses: store.analyses.map((a) =>
-      a.id === id
-        ? { ...a, folderId, updatedAt: new Date().toISOString() }
-        : a,
+      a.id === id ? { ...a, folderId, updatedAt: new Date().toISOString() } : a,
     ),
   };
 }
 
-export function markReportGenerated(
-  store: WorkspaceStore,
-  id: string,
-): WorkspaceStore {
+export function markReportGenerated(store: WorkspaceStore, id: string): WorkspaceStore {
   return {
     ...store,
     analyses: store.analyses.map((a) =>
@@ -333,9 +325,7 @@ export function markReportGenerated(
             reportGenerated: true,
             updatedAt: new Date().toISOString(),
             versions: a.versions.map((v, i) =>
-              i === a.versions.length - 1
-                ? { ...v, reportGenerated: true }
-                : v,
+              i === a.versions.length - 1 ? { ...v, reportGenerated: true } : v,
             ),
           }
         : a,
@@ -408,8 +398,7 @@ export function filterAndSortAnalyses(
     if (opts.folderId !== "all" && a.folderId !== opts.folderId) return false;
     if (opts.filter === "favorites" && !a.pinned) return false;
     if (opts.filter === "archived" && !a.archived) return false;
-    if (opts.filter !== "archived" && a.archived && opts.filter !== "all")
-      return false;
+    if (opts.filter !== "archived" && a.archived && opts.filter !== "all") return false;
     if (opts.filter === "recent") {
       const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
       if (new Date(a.updatedAt).getTime() < week) return false;
@@ -523,8 +512,7 @@ export function compareVersions(
       field: `${presentField("recommendation")}`,
       left: String(lv.conclusion.conclusion.value ?? "Unavailable"),
       right: String(rv.conclusion.conclusion.value ?? "Unavailable"),
-      changed:
-        lv.conclusion.conclusion.value !== rv.conclusion.conclusion.value,
+      changed: lv.conclusion.conclusion.value !== rv.conclusion.conclusion.value,
     },
   ];
   return rows;

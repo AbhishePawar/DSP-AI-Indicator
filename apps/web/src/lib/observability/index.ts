@@ -1,10 +1,5 @@
 export { logger } from "./logger";
-export type {
-  ClientErrorEntry,
-  ClientErrorSource,
-  LogEntry,
-  LogLevel,
-} from "./logger";
+export type { ClientErrorEntry, ClientErrorSource, LogEntry, LogLevel } from "./logger";
 export {
   APPLICATION_VERSION,
   BUILD_TIMESTAMP,

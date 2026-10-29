@@ -151,7 +151,12 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
         if not self.api_key.strip():
             raise ProviderRequestError("market quote api_key required")
         symbol = instrument.symbol.strip().upper()
-        url = f"{self.base_url.rstrip('/')}?{urlencode({'symbol': symbol})}"
+        params = {"symbol": symbol}
+        if instrument.exchange:
+            params["exchange"] = str(instrument.exchange).strip().upper()
+        if instrument.currency:
+            params["currency"] = str(instrument.currency).strip().upper()
+        url = f"{self.base_url.rstrip('/')}?{urlencode(params)}"
         req = urllib.request.Request(
             url,
             headers={
@@ -187,6 +192,19 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
             return None
         fields = payload.get("fields")
         data = fields if isinstance(fields, dict) else payload
+        gateway = payload.get("gateway")
+        upstream = payload.get("provenance")
+        provenance_metadata = {"base_url": self.base_url}
+        if isinstance(upstream, Mapping):
+            for key in ("provider_id", "provider_name", "as_of", "retrieved_at"):
+                value = upstream.get(key)
+                if value is not None:
+                    provenance_metadata[f"upstream_{key}"] = str(value)
+        if isinstance(gateway, Mapping):
+            for key in ("selected_source", "fallback_used", "fallback_reason"):
+                value = gateway.get(key)
+                if value is not None:
+                    provenance_metadata[f"gateway_{key}"] = str(value)
         provenance = MarketQuoteProvenance(
             provider_id=self.provider_id,
             provider_name=self.provider_name,
@@ -194,7 +212,7 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
             retrieved_at=utc_now(),
             as_of=None,
             auth_mode="api_key",
-            metadata={"base_url": self.base_url},
+            metadata=provenance_metadata,
         )
         return build_quote_from_mapping(
             symbol=symbol, payload=data, provenance=provenance
@@ -220,19 +238,38 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     route. Explicit development memory remains test-only.
     """
     from data_engine.connector_framework.production_profile import (
+        ConnectorConfigurationError,
         memory_adapter_allowed,
         require_authenticated_http_adapter,
     )
+    selected_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    if selected_provider == "upstox":
+        from data_engine.connector_framework.production_profile import (
+            ConnectorConfigurationError,
+        )
+        from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
+
+        # Prefer the canonical application credential. Legacy aliases remain
+        # supported for existing deployments; values are never logged.
+        token = (
+            os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
+            or os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", "").strip()
+            or os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
+        )
+        if not token:
+            raise ConnectorConfigurationError(
+                "Upstox selected but credentials are missing; set "
+                "DSP_UPSTOX_ANALYTICS_TOKEN."
+            )
+        return UpstoxQuoteAdapter(access_token=token)
+
     from data_engine.investment_data_provider import resolve_investment_data_provider
 
     resolve_investment_data_provider()
 
+    memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote")
     api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
     base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
-    if api_key and base_url:
-        return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
-    if memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote"):
-        return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
     require_authenticated_http_adapter(
         connector="market_quote",
         api_key=api_key,
@@ -240,4 +277,10 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
         api_key_env="DSP_MARKET_QUOTE_API_KEY",
         base_url_env="DSP_MARKET_QUOTE_BASE_URL",
     )
+    if api_key and base_url:
+        return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
+    if os.environ.get("DSP_MARKET_QUOTE_MEMORY", "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }:
+        return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
     return NullAuthenticatedQuoteAdapter()

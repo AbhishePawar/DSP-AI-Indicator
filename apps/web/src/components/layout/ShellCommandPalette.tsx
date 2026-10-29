@@ -13,10 +13,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { filterResearchQuickActions } from "@/lib/research-canvas";
 import { searchableRoutes, useUiStore } from "@/lib/shell";
 
-function isAllowedPath(
-  path: string,
-  allowed: ReadonlySet<string>,
-): boolean {
+function isAllowedPath(path: string, allowed: ReadonlySet<string>): boolean {
   if (allowed.has(path)) return true;
   // Favourites/recents may be nested under allowed shells (e.g. /research/…).
   for (const base of allowed) {
@@ -97,21 +94,13 @@ export function ShellCommandPalette() {
       onSelect: () => {
         if (typeof window === "undefined") return;
         const path = window.location.pathname;
-        const title =
-          document.title.replace(/\s*[·|].*$/, "").trim() || path;
+        const title = document.title.replace(/\s*[·|].*$/, "").trim() || path;
         toggleFavourite(path, title);
       },
     });
 
     return list;
-  }, [
-    favouritePages,
-    permissions,
-    recentPages,
-    roles,
-    router,
-    toggleFavourite,
-  ]);
+  }, [favouritePages, permissions, recentPages, roles, router, toggleFavourite]);
 
   return (
     <CommandPalette

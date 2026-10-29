@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ds";
-import {
-  ADMIN_SECTIONS,
-  useAdminConsolePrefsStore,
-} from "@/lib/admin-console";
+import { ADMIN_SECTIONS, useAdminConsolePrefsStore } from "@/lib/admin-console";
 import { cn } from "@/lib/utils";
 
 export function AdminLeftNav({
@@ -48,9 +45,7 @@ export function AdminLeftNav({
                     ? "bg-[var(--surface-2)] font-medium text-[var(--fg)]"
                     : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
                 )}
-                aria-current={
-                  activeSection === section.id ? "page" : undefined
-                }
+                aria-current={activeSection === section.id ? "page" : undefined}
                 onClick={() => setActiveSection(section.id)}
               >
                 <span>{section.label}</span>

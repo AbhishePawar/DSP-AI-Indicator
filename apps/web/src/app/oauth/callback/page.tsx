@@ -16,7 +16,7 @@ import type { MfaChallengeInfo } from "@/lib/auth/types";
 export default function OAuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
-  const [nextPath, setNextPath] = useState("/dashboard");
+  const [nextPath, setNextPath] = useState("/");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,7 +50,7 @@ export default function OAuthCallbackPage() {
       return;
     }
     sessionStorage.removeItem("dsp.oauth.pending");
-    setNextPath(pending.next || "/dashboard");
+    setNextPath(pending.next || "/");
 
     enterpriseAuthApi
       .oauthCallback({
@@ -70,14 +70,17 @@ export default function OAuthCallbackPage() {
           setMfaChallenge(challenge);
           return;
         }
-        navigateAfterLogin(pending.next || "/dashboard");
+        navigateAfterLogin(pending.next || "/");
       })
       .catch((err) => setError(mapAuthError(err)));
   }, []);
 
   return (
     <AuthShell>
-      <AuthCard title="Completing sign-in" description="Finishing OAuth provider handshake.">
+      <AuthCard
+        title="Completing sign-in"
+        description="Finishing OAuth provider handshake."
+      >
         <Stack gap={4}>
           {error ? (
             <>
@@ -89,7 +92,10 @@ export default function OAuthCallbackPage() {
               </Link>
             </>
           ) : mfaChallenge ? (
-            <MfaChallenge challenge={mfaChallenge} onDone={() => navigateAfterLogin(nextPath)} />
+            <MfaChallenge
+              challenge={mfaChallenge}
+              onDone={() => navigateAfterLogin(nextPath)}
+            />
           ) : (
             <Alert variant="info" title="Please wait">
               Contacting the identity provider and establishing your session…

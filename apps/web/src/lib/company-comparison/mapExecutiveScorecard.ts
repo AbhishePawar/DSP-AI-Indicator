@@ -7,11 +7,7 @@
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import { DATA_UNAVAILABLE } from "./constants";
 import { mapEvidenceStrengthMeters } from "./mapEvidenceStrength";
-import {
-  honestDisplay,
-  isUnavailableDisplay,
-  parseExistingScore,
-} from "./ranking";
+import { honestDisplay, isUnavailableDisplay, parseExistingScore } from "./ranking";
 import type {
   EvidenceStrengthMeter,
   ExecutiveScorecardRow,
@@ -24,9 +20,7 @@ import {
   type WeightingProfileId,
 } from "./weightingProfiles";
 
-function emphasisKey(
-  id: ExecutiveScorecardRow["id"],
-): EmphasisDimensionId {
+function emphasisKey(id: ExecutiveScorecardRow["id"]): EmphasisDimensionId {
   if (id === "financial") return "financialStrength";
   return id;
 }
@@ -44,10 +38,7 @@ function moduleDisplay(
     return { display: labelDisp, numeric: null };
   }
   return {
-    display:
-      labelDisp === DATA_UNAVAILABLE
-        ? scoreDisp
-        : `${scoreDisp} (${labelDisp})`,
+    display: labelDisp === DATA_UNAVAILABLE ? scoreDisp : `${scoreDisp} (${labelDisp})`,
     numeric: parseExistingScore(score),
   };
 }
@@ -58,8 +49,7 @@ export function mapExecutiveScorecard(
   evidenceMeters?: EvidenceStrengthMeter[],
   weightingProfileId: WeightingProfileId = "equal",
 ): ExecutiveScorecardRow[] {
-  const meters =
-    evidenceMeters ?? mapEvidenceStrengthMeters(views);
+  const meters = evidenceMeters ?? mapEvidenceStrengthMeters(views);
   const meterBySymbol = new Map(meters.map((m) => [m.symbol, m]));
   const profile = getWeightingProfile(weightingProfileId);
 
@@ -144,10 +134,7 @@ export function mapExecutiveScorecard(
       id: "financial",
       label: "Financial",
       pick: (v) => {
-        const m = moduleDisplay(
-          v.financialStrength.score,
-          v.financialStrength.label,
-        );
+        const m = moduleDisplay(v.financialStrength.score, v.financialStrength.label);
         return {
           display: m.display,
           evidence: `financial_strength status=${v.financialStrength.status}`,
@@ -185,7 +172,10 @@ export function mapExecutiveScorecard(
         }
         const cell = overallRow.cells.find((c) => c.symbol === v.ticker);
         if (!cell || isUnavailableDisplay(cell.display)) {
-          return { display: DATA_UNAVAILABLE, evidence: cell?.evidence ?? DATA_UNAVAILABLE };
+          return {
+            display: DATA_UNAVAILABLE,
+            evidence: cell?.evidence ?? DATA_UNAVAILABLE,
+          };
         }
         const medal = cell.medal ? ` [${cell.medal}]` : "";
         const leaderNote =

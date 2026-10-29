@@ -26,7 +26,6 @@ services:
       DSP_PUBLIC_DOMAIN: ${DSP_PUBLIC_DOMAIN:-localhost}
       DSP_API_DOMAIN: ${DSP_API_DOMAIN:-api.localhost}
       DSP_ACME_EMAIL: ${DSP_ACME_EMAIL:-ops@localhost}
-      DSP_AUTO_HTTPS: ${DSP_AUTO_HTTPS:-on}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -72,13 +71,13 @@ services:
       DSP_BACKUP_DIR: /var/backups/dsp
       # P1-08 — Non-Null BackupPort: shell pg_dump when tools exist, else logical
       DSP_BACKUP_ADAPTER: ${DSP_BACKUP_ADAPTER:-auto}
-      DSP_DATABASE_URL: ${DSP_DATABASE_URL:-postgresql://dsp:${POSTGRES_PASSWORD:-dsp_change_me}@postgres:5432/dsp}
       DSP_REDIS_URL: ${DSP_REDIS_URL:-redis://redis:6379/0}
       DSP_REDIS_FALLBACK: ${DSP_REDIS_FALLBACK:-false}
       DSP_FORWARDED_ALLOW_IPS: "*"
     volumes:
       - dsp_api_tmp:/tmp/dsp
       - dsp_backups:/var/backups/dsp
+      - dsp_artifacts:/var/lib/dsp/artifacts
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,10 +103,10 @@ services:
   web:
     image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG_WEB:-2.0.0-rc.1}
     build:
-      context: ..
-      dockerfile: docker/frontend/Dockerfile
+      context: ../apps/web
+      dockerfile: ../../docker/frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://${DSP_PUBLIC_DOMAIN:-localhost}/api/v1}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/v1}
         NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DSP AI Indicator}
         NEXT_PUBLIC_BUILD_TIMESTAMP: ${BUILD_TIMESTAMP:-}
     restart: unless-stopped
@@ -133,6 +132,40 @@ services:
       timeout: 5s
       retries: 5
       start_period: 45s
+
+  # Optional internal Upstox market-data gateway. Disabled in the default
+  # production profile; enable explicitly after configuring server-side secrets.
+  market-data-gateway:
+    profiles: ["market-data"]
+    image: ${DSP_MARKET_GATEWAY_IMAGE:-dsp-market-data-gateway}:${DSP_MARKET_GATEWAY_TAG:-2.0.0}
+    build:
+      context: ..
+      dockerfile: docker/market-data-gateway.Dockerfile
+    restart: unless-stopped
+    environment:
+      DSP_MARKET_GATEWAY_API_KEY: ${DSP_MARKET_GATEWAY_API_KEY:-}
+      UPSTOX_ACCESS_TOKEN: ${UPSTOX_ACCESS_TOKEN:-${DSP_UPSTOX_ANALYTICS_TOKEN:-}}
+      UPSTOX_BASE_URL: ${UPSTOX_BASE_URL:-https://api.upstox.com}
+      DSP_MARKET_GATEWAY_FALLBACK_BASE_URL: ${DSP_MARKET_GATEWAY_FALLBACK_BASE_URL:-}
+      DSP_MARKET_GATEWAY_FALLBACK_API_KEY: ${DSP_MARKET_GATEWAY_FALLBACK_API_KEY:-}
+    expose:
+      - "8081"
+    networks:
+      - dsp_prod
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   postgres:
     image: postgres:16-alpine
@@ -296,6 +329,7 @@ volumes:
   dsp_redis_data:
   dsp_api_tmp:
   dsp_backups:
+  dsp_artifacts:
   caddy_data:
   caddy_config:
   caddy_logs:

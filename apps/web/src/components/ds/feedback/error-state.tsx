@@ -35,9 +35,7 @@ export function ErrorState({
           {description}
         </p>
       ) : null}
-      {action ? (
-        <div className="mt-4 flex justify-center">{action}</div>
-      ) : null}
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   );
 }

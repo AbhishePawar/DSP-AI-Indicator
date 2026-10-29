@@ -101,10 +101,8 @@ export function WorkspaceSkeleton() {
 
 export function MedalBadge({ medal }: { medal: Medal }) {
   if (!medal) return null;
-  const label =
-    medal === "gold" ? "1st" : medal === "silver" ? "2nd" : "3rd";
-  const tone =
-    medal === "gold" ? "accent" : medal === "silver" ? "default" : "outline";
+  const label = medal === "gold" ? "1st" : medal === "silver" ? "2nd" : "3rd";
+  const tone = medal === "gold" ? "accent" : medal === "silver" ? "default" : "outline";
   return (
     <Badge variant={tone} className="ml-1">
       {label}

@@ -52,9 +52,7 @@ export default function PlatformPage() {
             </dl>
           </div>
           <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5">
-            <h3 className="text-sm font-medium text-[var(--muted)]">
-              Capabilities
-            </h3>
+            <h3 className="text-sm font-medium text-[var(--muted)]">Capabilities</h3>
             <ul className="mt-3 flex flex-wrap gap-2">
               {query.data.capabilities.map((cap) => (
                 <li
@@ -65,9 +63,7 @@ export default function PlatformPage() {
                 </li>
               ))}
             </ul>
-            <h3 className="mt-6 text-sm font-medium text-[var(--muted)]">
-              Services
-            </h3>
+            <h3 className="mt-6 text-sm font-medium text-[var(--muted)]">Services</h3>
             <ul className="mt-3 space-y-1 text-sm">
               {query.data.registered_services.map((svc) => (
                 <li key={svc}>{svc}</li>

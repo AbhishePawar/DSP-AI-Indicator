@@ -6,7 +6,7 @@ import json
 from collections.abc import Iterator
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from api_platform.api.copilot_schemas import (
@@ -15,7 +15,11 @@ from api_platform.api.copilot_schemas import (
     CopilotProviderInfo,
 )
 from api_platform.api.copilot_v2_schemas import CopilotV2Request
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_authenticated_actor,
+)
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import ApiResponse, CopilotChatRequest
 
@@ -23,7 +27,14 @@ router = APIRouter(tags=["copilot"])
 
 
 def _run_v2(
-    state: ApiState, body: CopilotV2Request, *, default_mode: str | None
+    state: ApiState,
+    body: CopilotV2Request,
+    *,
+    default_mode: str | None,
+    user_id: str | None = None,
+    analysis_id: str | None = None,
+    idempotency_key: str | None = None,
+    require_ai: bool = False,
 ) -> JSONResponse:
     message = body.resolved_message()
     if not message:
@@ -43,6 +54,9 @@ def _run_v2(
             symbol=body.symbol,
             symbols=body.symbols,
             portfolio_id=body.portfolio_id,
+            analysis_id=analysis_id or body.analysis_id,
+            user_id=user_id,
+            idempotency_key=idempotency_key or body.idempotency_key,
             analyse_response=body.analyse_response,
             secondary_analyse_response=body.secondary_analyse_response,
             research_object=body.research_object,
@@ -54,6 +68,10 @@ def _run_v2(
             document_kind=body.document_kind,
             workspace=body.workspace,
             buffett_mode=body.buffett_mode,
+            research_orchestrator=state.research_orchestrator,
+            language_model=state.language_model,
+            provider_registry=getattr(state, "provider_registry", None) or (getattr(state.copilot_service, "_registry", None) if state.copilot_service else None),
+            require_ai=require_ai,
         )
     except ValueError as exc:
         return JSONResponse(
@@ -63,7 +81,7 @@ def _run_v2(
     except Exception as exc:  # noqa: BLE001
         return JSONResponse(
             status_code=503,
-            content={"ok": False, "error": str(exc), "message": "Data unavailable."},
+            content={"ok": False, "error": "Generation failed.", "message": "Data unavailable."},
         )
     return JSONResponse(
         {"ok": True, "result": result, "message": result.get("message")}
@@ -80,7 +98,11 @@ def copilot_schema(state: ApiState = Depends(get_api_state)) -> dict[str, Any]:
 def copilot_chat(
     body: CopilotV2Request,
     state: ApiState = Depends(get_api_state),
+    actor: dict[str, Any] = Depends(require_authenticated_actor),
+    idempotency_key_header: str | None = Header(None, alias="Idempotency-Key"),
+    x_idempotency_key_header: str | None = Header(None, alias="X-Idempotency-Key"),
 ) -> ApiResponse | JSONResponse:
+    user_id = str(actor.get("user_id") or "").strip()
     """Copilot chat — M7 orchestration when ``message``/``user_text`` present.
 
     Legacy J1 path: supply ``context_ref`` without ``message`` to use
@@ -122,7 +144,36 @@ def copilot_chat(
             platform_version=result.metadata.version,
         )
 
-    return _run_v2(state, body, default_mode="chat")
+    clean_symbol = (body.symbol or "").strip()
+    clean_analysis_id = (body.analysis_id or "").strip()
+    if not clean_symbol or not clean_analysis_id:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "error": "symbol and analysis_id required for durable copilot session",
+                "message": "Data unavailable.",
+            },
+        )
+
+    effective_idempotency_key = (
+        idempotency_key_header
+        or x_idempotency_key_header
+        or body.idempotency_key
+        or None
+    )
+    if effective_idempotency_key:
+        effective_idempotency_key = effective_idempotency_key.strip() or None
+
+    return _run_v2(
+        state,
+        body,
+        default_mode=None,
+        user_id=user_id,
+        analysis_id=clean_analysis_id,
+        idempotency_key=effective_idempotency_key,
+        require_ai=True,
+    )
 
 
 @router.post("/copilot/company")
@@ -196,18 +247,35 @@ def copilot_history_delete(
     return JSONResponse({"ok": True, "deleted": True, "message": None})
 
 
-@router.post("/copilot/complete", response_model=CopilotCompleteResponse)
+@router.post("/copilot/complete", response_model=None)
 def copilot_complete(
     body: CopilotCompleteRequest,
     state: ApiState = Depends(get_api_state),
-) -> CopilotCompleteResponse:
+) -> CopilotCompleteResponse | JSONResponse:
     """Complete a copilot answer via backend LLM with deterministic fallback."""
+    if body.mode == "simple":
+        return JSONResponse(
+            status_code=403,
+            content={
+                "ok": False,
+                "error": "COPILOT_NOT_AVAILABLE_IN_SIMPLE_MODE",
+                "message": "AI Copilot is available only in Buffett AI Indicator mode.",
+            },
+        )
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
+    req = body.request
+    if (not req or not req.get("ticker")) and body.response and isinstance(body.response, dict):
+        payload = body.response.get("payload") or {}
+        req = {
+            "ticker": (req.get("ticker") if req else None) or payload.get("ticker") or (body.market_context or {}).get("symbol") or "",
+            "company": (req.get("company") if req else None) or payload.get("company") or (body.market_context or {}).get("symbol") or "",
+            "exchange": (req.get("exchange") if req else None) or payload.get("exchange"),
+        }
     result = state.copilot_service.complete(
         question_id=body.question_id,
         freeform=body.freeform,
-        request=body.request,
+        request=req,
         response=body.response,
         secondary_request=body.secondary_request,
         secondary_response=body.secondary_response,
@@ -224,12 +292,21 @@ def copilot_complete(
     )
 
 
-@router.post("/copilot/stream")
+@router.post("/copilot/stream", response_model=None)
 def copilot_stream(
     body: CopilotCompleteRequest,
     state: ApiState = Depends(get_api_state),
-) -> StreamingResponse:
+) -> StreamingResponse | JSONResponse:
     """Stream copilot answer deltas via Server-Sent Events."""
+    if body.mode == "simple":
+        return JSONResponse(
+            status_code=403,
+            content={
+                "ok": False,
+                "error": "COPILOT_NOT_AVAILABLE_IN_SIMPLE_MODE",
+                "message": "AI Copilot is available only in Buffett AI Indicator mode.",
+            },
+        )
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
 

@@ -1,17 +1,11 @@
 "use client";
 
-export function SaasPlanMatrix({
-  data,
-}: {
-  data?: Record<string, unknown>;
-}) {
+export function SaasPlanMatrix({ data }: { data?: Record<string, unknown> }) {
   const plans = (data?.plans || []) as Array<Record<string, unknown>>;
   const featureKeys = (data?.feature_keys || []) as string[];
 
   if (plans.length === 0) {
-    return (
-      <p className="text-sm text-[var(--muted)]">Data unavailable.</p>
-    );
+    return <p className="text-sm text-[var(--muted)]">Data unavailable.</p>;
   }
 
   return (

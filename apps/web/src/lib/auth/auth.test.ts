@@ -92,8 +92,24 @@ describe("routeGuards", () => {
   it("normalizes safe in-app paths", () => {
     expect(normalizePath("/portfolio")).toBe("/portfolio");
     expect(normalizePath("/portfolio/")).toBe("/portfolio");
-    expect(normalizePath("")).toBe("/dashboard");
-    expect(normalizePath("/")).toBe("/dashboard");
+    expect(normalizePath("")).toBe("/");
+    expect(normalizePath("/")).toBe("/");
+  });
+
+  it("preserves explicit valid destination in next parameter", () => {
+    expect(normalizePath("/analysis")).toBe("/analysis");
+    expect(normalizePath("/portfolio")).toBe("/portfolio");
+    expect(normalizePath("/companies")).toBe("/companies");
+  });
+
+  it("safely handles auth-public paths and open redirects according to route-guard rules", () => {
+    expect(isAuthPublicPath("/login")).toBe(true);
+    expect(isAuthPublicPath("/signup")).toBe(true);
+    expect(isAuthPublicPath("/oauth/callback")).toBe(true);
+    // Unsafe / open-redirect payloads fall back safely to /dashboard
+    expect(normalizePath("https://evil.com")).toBe("/dashboard");
+    expect(normalizePath("//evil.com")).toBe("/dashboard");
+    expect(normalizePath("/\\evil.com")).toBe("/dashboard");
   });
 
   it("rejects open-redirect payloads in ?next=, falling back to /dashboard", () => {
@@ -198,9 +214,7 @@ describe("sessionStore", () => {
     const payload = btoa(JSON.stringify({ exp: 2_000_000_000 }));
     const token = `${header}.${payload}.sig`;
     expect(parseJwtExpiryMs(token)).toBe(2_000_000_000_000);
-    expect(resolveExpiry(token, new Date().toISOString(), false)).toContain(
-      "2033",
-    );
+    expect(resolveExpiry(token, new Date().toISOString(), false)).toContain("2033");
   });
 });
 

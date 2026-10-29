@@ -34,9 +34,15 @@ export const ResearchLimitationsCard = memo(function ResearchLimitationsCard({
         <ListBlock title="Unavailable data" items={limitations.unavailableData} />
         <ListBlock title="Unknown factors" items={limitations.unknownFactors} />
         <ListBlock title="Assumptions" items={limitations.assumptions} />
-        <ListBlock title="External dependencies" items={limitations.externalDependencies} />
+        <ListBlock
+          title="External dependencies"
+          items={limitations.externalDependencies}
+        />
         <div className="sm:col-span-2">
-          <ListBlock title="Pending improvements" items={limitations.pendingImprovements} />
+          <ListBlock
+            title="Pending improvements"
+            items={limitations.pendingImprovements}
+          />
         </div>
         <p className="text-xs text-[var(--muted)] sm:col-span-2">
           Trace: <TraceLink href="#transparency_panel">Transparency Panel</TraceLink>

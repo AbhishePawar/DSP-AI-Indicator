@@ -54,13 +54,13 @@ export function DocumentsSection({ view }: { view: ResearchView }) {
   const corporateActionsPayload = corporateActionsQuery.data;
   const events =
     corporateActionsPayload?.available && corporateActionsPayload.authenticated
-      ? corporateActionsPayload.events ?? []
+      ? (corporateActionsPayload.events ?? [])
       : [];
 
   const filingsPayload = filingsQuery.data;
   const filings =
     filingsPayload?.available && filingsPayload.authenticated
-      ? filingsPayload.filings ?? []
+      ? (filingsPayload.filings ?? [])
       : [];
   const annualReports = filings.filter(
     (f) => f.filing_type && REPORT_FILING_TYPES.has(f.filing_type),
@@ -75,7 +75,7 @@ export function DocumentsSection({ view }: { view: ResearchView }) {
   const transcriptsPayload = transcriptsQuery.data;
   const transcripts =
     transcriptsPayload?.available && transcriptsPayload.authenticated
-      ? transcriptsPayload.transcripts ?? []
+      ? (transcriptsPayload.transcripts ?? [])
       : [];
 
   return (
@@ -106,7 +106,9 @@ export function DocumentsSection({ view }: { view: ResearchView }) {
                   <FieldRow label="Ex date" value={e.ex_date} />
                   <FieldRow
                     label="Amount"
-                    value={e.amount != null ? `${e.amount} ${e.currency ?? ""}`.trim() : null}
+                    value={
+                      e.amount != null ? `${e.amount} ${e.currency ?? ""}`.trim() : null
+                    }
                   />
                 </dl>
               </li>
@@ -181,9 +183,7 @@ function FilingListCard({
   title: string;
   description: string;
   isLoading: boolean;
-  filings: NonNullable<
-    import("@/lib/api/client").FilingsPayload["filings"]
-  >;
+  filings: NonNullable<import("@/lib/api/client").FilingsPayload["filings"]>;
 }) {
   return (
     <SectionCard title={title} description={description}>
@@ -193,7 +193,10 @@ function FilingListCard({
       ) : (
         <ul className="space-y-2 text-sm">
           {filings.map((f) => (
-            <li key={f.filing_id} className="border-b border-[var(--border)] pb-2 last:border-0">
+            <li
+              key={f.filing_id}
+              className="border-b border-[var(--border)] pb-2 last:border-0"
+            >
               <a
                 href={f.url}
                 target="_blank"

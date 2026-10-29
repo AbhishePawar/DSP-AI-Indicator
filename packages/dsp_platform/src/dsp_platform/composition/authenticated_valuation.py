@@ -8,15 +8,21 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
+from data_engine import (
+    InvalidProviderDataError,
+    ShareCount,
+    ShareCountPort,
+    is_approved_source,
+    resolve_verified_share_count,
+)
 from data_engine.connector_framework.production_profile import (
-    assert_production_investment_connectors_configured,
     is_production_environment,
 )
 from data_engine.financial_statement.models import (
@@ -62,7 +68,6 @@ __all__ = [
     "AuthenticatedValuationError",
     "DATA_UNAVAILABLE",
     "load_authenticated_valuation_bundle",
-    "production_investment_connectors",
     "signals_from_assessment",
     "to_financial_statements",
 ]
@@ -106,6 +111,7 @@ class AuthenticatedValuationBundle:
     statement_basis: str
     unit_scale: str
     company_name: str | None = None
+    share_count_provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_trace_dict(self) -> dict[str, Any]:
         latest = self.financial_snapshot.latest
@@ -117,6 +123,7 @@ class AuthenticatedValuationBundle:
             "unit_scale": self.unit_scale,
             "current_market_price": self.current_market_price,
             "shares_outstanding": self.shares_outstanding,
+            "share_count_provenance": dict(self.share_count_provenance),
             "market_cap": self.market_snapshot.market_cap,
             "company_name": self.company_name,
             "revenue": latest.revenue,
@@ -215,14 +222,68 @@ def _validate_currency_set(
 def _resolve_shares(
     quote: AuthenticatedMarketQuote,
     latest: AuthenticatedStatementPeriod,
-) -> float:
-    """Require authenticated quote shares — never invent from NI/EPS."""
-    _ = latest  # EPS integrity checked separately against quote shares
-    shares = _qf(quote.shares_outstanding)
-    if shares is not None and shares > 0:
-        return float(shares)
+    *,
+    ticker: str,
+    supplemental: ShareCount | None = None,
+) -> tuple[float, dict[str, Any]]:
+    """Resolve shares from verified fundamentals, never from a quote field.
+
+    The authenticated statement is authoritative when it contains the metric.
+    A separately injected ShareCountPort can supply an approved, verified
+    primary-source filing when statements omit it. Quote shares are only a
+    cross-check and can never become the valuation denominator.
+    """
+    statement_shares = _sf(
+        getattr(latest, "shares_outstanding", StatementField.missing())
+    )
+    quote_shares = _qf(quote.shares_outstanding)
+    if supplemental is not None:
+        if supplemental.ticker.strip().upper() != ticker.strip().upper():
+            raise AuthenticatedValuationError(
+                f"{DATA_UNAVAILABLE} (share-count identity mismatch)"
+            )
+        if not supplemental.verified or not is_approved_source(
+            supplemental.source, purpose=supplemental.purpose
+        ):
+            supplemental = None
+
+    if statement_shares is not None and statement_shares > 0:
+        for other_shares in (
+            quote_shares,
+            supplemental.shares if supplemental is not None else None,
+        ):
+            if other_shares is not None and other_shares > 0:
+                relative_delta = abs(statement_shares - other_shares) / max(
+                    statement_shares, other_shares
+                )
+                if relative_delta > 0.05:
+                    raise AuthenticatedValuationError(
+                        f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                    )
+        return float(statement_shares), {
+            "source": "authenticated_financial_statement",
+            "as_of": latest.period_end.isoformat(),
+            "verified": True,
+        }
+
+    resolved = resolve_verified_share_count(
+        ticker, (supplemental,) if supplemental is not None else ()
+    )
+    if resolved is not None:
+        if quote_shares is not None and quote_shares > 0:
+            relative_delta = abs(resolved.shares - quote_shares) / max(
+                resolved.shares, quote_shares
+            )
+            if relative_delta > 0.05:
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                )
+        return float(resolved.shares), resolved.to_dict()
+
+    # Do not use quote.shares_outstanding here: Upstox is approved for market
+    # data only, not as an authoritative fundamental share-count source.
     raise AuthenticatedValuationError(
-        f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
+        f"{DATA_UNAVAILABLE} (verified primary-source shares outstanding unavailable)"
     )
 
 
@@ -380,6 +441,7 @@ def load_authenticated_valuation_bundle(
         Callable[[str], AuthenticatedFinancialStatements | None] | None
     ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
+    share_count_port: ShareCountPort | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
 
@@ -397,10 +459,15 @@ def load_authenticated_valuation_bundle(
         statement_service=statement_service,
         get_statements=get_statements,
     )
+    quote_currency = (
+        getattr(statements.identity, "currency", None)
+        or getattr(statements, "reporting_currency", None)
+        or currency
+    )
     quote = _fetch_quote(
         symbol,
         exchange=exchange,
-        currency=currency,
+        currency=quote_currency,
         quote_service=quote_service,
         get_quote=get_quote,
     )
@@ -452,7 +519,17 @@ def load_authenticated_valuation_bundle(
     except FinancialIntegrityError as exc:
         raise AuthenticatedValuationError(str(exc)) from exc
 
-    shares = _resolve_shares(quote, latest_period)
+    supplemental_share_count = (
+        share_count_port.get_outstanding_shares(symbol)
+        if share_count_port is not None
+        else None
+    )
+    shares, share_count_provenance = _resolve_shares(
+        quote,
+        latest_period,
+        ticker=symbol,
+        supplemental=supplemental_share_count,
+    )
     try:
         assert_eps_share_integrity(latest_period, shares)
     except FinancialIntegrityError as exc:
@@ -506,6 +583,7 @@ def load_authenticated_valuation_bundle(
         reporting_currency=reporting_currency,
         statement_provenance=statements.provenance.to_dict(),
         quote_provenance=quote.provenance.to_dict(),
+        share_count_provenance=share_count_provenance,
         period_kind=selected[0].period_type,
         statement_basis=statement_basis,
         unit_scale="actual",
@@ -581,7 +659,12 @@ def _fetch_quote(
             currency=currency,
             exchange=exchange,
         )
-        quote = service.get_quote(instrument)
+        try:
+            quote = service.get_quote(instrument)
+        except InvalidProviderDataError as exc:
+            # Keep connector validation failures inside the valuation boundary.
+            # Callers depend on a single domain exception and a fail-closed result.
+            raise AuthenticatedValuationError(str(exc)) from exc
     if quote is None:
         raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
     if not quote.has_any_price():
@@ -592,14 +675,3 @@ def _fetch_quote(
 def production_requires_authenticated_bundle() -> bool:
     """True when missing authenticated valuation inputs must fail closed."""
     return is_production_environment()
-
-
-def production_investment_connectors() -> dict[str, str]:
-    """Adapter class names the P1-03 production gate selects for this bundle.
-
-    Empty outside production. Constructed offline — no provider I/O — so
-    readiness probes can assert the authenticated quote/statement connectors
-    without contacting external providers. Raises when production would select an unsafe
-    (Null/memory/demo) adapter.
-    """
-    return assert_production_investment_connectors_configured()

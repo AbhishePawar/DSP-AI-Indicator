@@ -50,8 +50,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function ProfileContent() {
   const router = useRouter();
-  const { user, session, status, logout, refreshSession, loadProfile } =
-    useAuth();
+  const { user, session, status, logout, refreshSession, loadProfile } = useAuth();
   const [sessions, setSessions] = useState<RbacSession[] | null>(null);
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -113,12 +112,8 @@ function ProfileContent() {
           setNewName(String(profileEnv.result.name || user?.displayName || ""));
           setNewEmail(String(profileEnv.result.email || user?.email || ""));
         }
-        setDevices(
-          Array.isArray(devicesEnv.result) ? devicesEnv.result : [],
-        );
-        setHistory(
-          Array.isArray(historyEnv.result) ? historyEnv.result : [],
-        );
+        setDevices(Array.isArray(devicesEnv.result) ? devicesEnv.result : []);
+        setHistory(Array.isArray(historyEnv.result) ? historyEnv.result : []);
       } catch {
         /* profile extras optional when enterprise API offline */
       }
@@ -191,9 +186,7 @@ function ProfileContent() {
               </Avatar>
               <div>
                 <CardTitle>{user.displayName}</CardTitle>
-                <CardDescription>
-                  {user.email || "Data unavailable."}
-                </CardDescription>
+                <CardDescription>{user.email || "Data unavailable."}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -202,10 +195,7 @@ function ProfileContent() {
               <Row label="Username" value={user.username} />
               <Row label="Subject" value={user.subject} />
               <Row label="Primary role" value={user.role} />
-              <Row
-                label="Auth status"
-                value={sessionStatusLabel(status)}
-              />
+              <Row label="Auth status" value={sessionStatusLabel(status)} />
             </dl>
           </CardContent>
         </Card>
@@ -255,7 +245,10 @@ function ProfileContent() {
           </CardHeader>
           <CardContent>
             <dl className="space-y-3">
-              <Row label="Session id" value={session.sessionId || "Data unavailable."} />
+              <Row
+                label="Session id"
+                value={session.sessionId || "Data unavailable."}
+              />
               <Row label="Auth method" value={session.authMethod} />
               <Row label="Issued at" value={session.issuedAt} />
               <Row label="Expires at" value={session.expiresAt || "—"} />
@@ -264,14 +257,8 @@ function ProfileContent() {
                 label="Refresh token"
                 value={token.hasRefresh ? "Present" : "Data unavailable."}
               />
-              <Row
-                label="Remember me"
-                value={session.rememberMe ? "Yes" : "No"}
-              />
-              <Row
-                label="Frontend foundation"
-                value={`v${env.foundationVersion}`}
-              />
+              <Row label="Remember me" value={session.rememberMe ? "Yes" : "No"} />
+              <Row label="Frontend foundation" value={`v${env.foundationVersion}`} />
             </dl>
           </CardContent>
         </Card>
@@ -507,15 +494,11 @@ function ProfileContent() {
                               session.accessToken,
                             );
                             setLinked((prev) =>
-                              prev.filter(
-                                (p) => p.provider !== lnk.provider,
-                              ),
+                              prev.filter((p) => p.provider !== lnk.provider),
                             );
                           } catch (e) {
                             setAccountErr(
-                              e instanceof Error
-                                ? e.message
-                                : "Unlink failed",
+                              e instanceof Error ? e.message : "Unlink failed",
                             );
                           }
                         }}
@@ -558,14 +541,11 @@ function ProfileContent() {
                                 !d.trusted,
                                 session.accessToken,
                               );
-                              const refreshed =
-                                await enterpriseAuthApi.listDevices(
-                                  session.accessToken,
-                                );
+                              const refreshed = await enterpriseAuthApi.listDevices(
+                                session.accessToken,
+                              );
                               setDevices(
-                                Array.isArray(refreshed.result)
-                                  ? refreshed.result
-                                  : [],
+                                Array.isArray(refreshed.result) ? refreshed.result : [],
                               );
                             }}
                           >
@@ -581,9 +561,7 @@ function ProfileContent() {
                                 session.accessToken,
                               );
                               setDevices((prev) =>
-                                prev.filter(
-                                  (x) => x.device_id !== d.device_id,
-                                ),
+                                prev.filter((x) => x.device_id !== d.device_id),
                               );
                             }}
                           >
@@ -629,9 +607,7 @@ function ProfileContent() {
                   await logout();
                   router.push("/login");
                 } catch (e) {
-                  setAccountErr(
-                    e instanceof Error ? e.message : "Delete failed",
-                  );
+                  setAccountErr(e instanceof Error ? e.message : "Delete failed");
                 } finally {
                   setBusy(false);
                 }

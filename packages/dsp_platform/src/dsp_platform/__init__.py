@@ -125,6 +125,12 @@ from decision_intelligence import (
     attach_evidence_bundle_ref,
     present_decision_pack,
 )
+from dsp_platform.asset_resolution import (
+    AssetIdentity,
+    AssetResolutionService,
+    get_asset_resolver,
+    resolve_asset,
+)
 from dsp_platform.boundaries import (
     ALLOWED_APPLICATION_PACKAGES,
     FORBIDDEN_APPLICATION_PACKAGES,
@@ -718,6 +724,10 @@ from workflow import (
 )
 
 __all__ = [
+    "AssetIdentity",
+    "AssetResolutionService",
+    "get_asset_resolver",
+    "resolve_asset",
     "ALLOWED_APPLICATION_PACKAGES",
     "AnalysisRequest",
     "ApplicabilityGroup",

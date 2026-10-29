@@ -1,4 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
+
+import { loadP109LocalEnv } from "./e2e/browser/p109/env";
+
+// Playwright does not automatically load apps/web/.env.local. Resolve the
+// file from this config's directory rather than relying on process.cwd().
+// Explicit shell/CI variables win over local-file values.
+loadP109LocalEnv(path.resolve(__dirname, ".env.local"));
 
 /**
  * EPIC-019A — Visual regression + multi-browser smoke.
@@ -62,7 +70,9 @@ export default defineConfig({
         timeout: 300_000,
         env: {
           ...process.env,
-          PORT: "3000",
+          PORT:
+            process.env.PORT ||
+            (baseURL ? String(new URL(baseURL).port || "3000") : "3000"),
           HOSTNAME: "127.0.0.1",
         },
       },

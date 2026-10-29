@@ -73,10 +73,7 @@ export function RoleDashboard({
     retry: false,
   });
 
-  const widgetKeys = useMemo(
-    () => meta?.widgetKeys ?? [],
-    [meta?.widgetKeys],
-  );
+  const widgetKeys = useMemo(() => meta?.widgetKeys ?? [], [meta?.widgetKeys]);
 
   // Hooks must run unconditionally (P1-09 build gate / rules-of-hooks).
   const trustSummary = useMemo(
@@ -111,23 +108,20 @@ export function RoleDashboard({
                 Home dashboard
               </Button>
             </Link>
-            {ENTERPRISE_DASHBOARD_ROLES.filter((r) => r.role !== role).map(
-              (r) => (
-                <Link key={r.role} href={r.href}>
-                  <Button size="sm" variant="secondary">
-                    {r.title.replace(" Dashboard", "")}
-                  </Button>
-                </Link>
-              ),
-            )}
+            {ENTERPRISE_DASHBOARD_ROLES.filter((r) => r.role !== role).map((r) => (
+              <Link key={r.role} href={r.href}>
+                <Button size="sm" variant="secondary">
+                  {r.title.replace(" Dashboard", "")}
+                </Button>
+              </Link>
+            ))}
           </div>
         }
       />
 
       {query.isError ? (
         <Alert variant="error" title="Data unavailable.">
-          {(query.error as Error)?.message ||
-            "Unable to load enterprise dashboard."}
+          {(query.error as Error)?.message || "Unable to load enterprise dashboard."}
         </Alert>
       ) : null}
 
@@ -142,8 +136,7 @@ export function RoleDashboard({
                   query.isLoading
                     ? undefined
                     : (section as
-                        | import("@/lib/api/client").DashboardWidgetSection
-                        | undefined)
+                        import("@/lib/api/client").DashboardWidgetSection | undefined)
                 }
               />
             </Suspense>
@@ -153,8 +146,8 @@ export function RoleDashboard({
 
       {query.data?.result?.generated_at ? (
         <p className="text-xs text-[var(--muted)]">
-          Generated at {query.data.result.generated_at} · aggregation only · no
-          browser calculations
+          Generated at {query.data.result.generated_at} · aggregation only · no browser
+          calculations
         </p>
       ) : null}
     </div>

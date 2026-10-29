@@ -359,7 +359,9 @@ def _resolve_shares(
     """Require authenticated quote shares — never invent from NI/EPS."""
     _ = latest  # EPS integrity checked separately against quote shares
     shares = _qf(quote.shares_outstanding)
-    if shares is not None and shares > 0:
+    # A malformed provider value such as +inf must not bypass the missing-share
+    # fallback and poison market-cap / per-share valuation arithmetic.
+    if shares is not None and math.isfinite(shares) and shares > 0:
         return float(shares)
     raise AuthenticatedValuationError(
         f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"

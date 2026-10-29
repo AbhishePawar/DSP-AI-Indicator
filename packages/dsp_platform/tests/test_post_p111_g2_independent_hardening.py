@@ -102,7 +102,8 @@ def test_shares_from_authenticated_quote() -> None:
 
 
 @pytest.mark.parametrize(
-    "bad_shares", [float("inf"), float("-inf"), float("nan")]
+    "bad_shares",
+    [float("inf"), float("-inf"), float("nan")],
 )
 def test_non_finite_quote_shares_fail_closed(bad_shares: float) -> None:
     quote = SimpleNamespace(

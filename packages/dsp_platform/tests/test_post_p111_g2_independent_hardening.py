@@ -92,6 +92,8 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
 
     evidence = ShareCountResearchEvidence(
         ticker="ABC",
+        company_name="ABC Ltd",
+        metric="issued_equity_shares",
         shares_outstanding=50_000_000,
         source="Issuer annual report",
         evidence_url="https://example.com/annual-report.pdf",
@@ -112,24 +114,32 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
         None,
         ShareCountResearchEvidence(
             ticker="OTHER",
+            company_name="ABC Ltd",
+            metric="issued_equity_shares",
             shares_outstanding=50_000_000,
             source="Issuer report",
             evidence_url="https://example.com/report",
         ),
         ShareCountResearchEvidence(
             ticker="ABC",
+            company_name="ABC Ltd",
+            metric="issued_equity_shares",
             shares_outstanding=-1,
             source="Issuer report",
             evidence_url="https://example.com/report",
         ),
         ShareCountResearchEvidence(
             ticker="ABC",
+            company_name="ABC Ltd",
+            metric="issued_equity_shares",
             shares_outstanding=float("nan"),
             source="Issuer report",
             evidence_url="https://example.com/report",
         ),
         ShareCountResearchEvidence(
             ticker="ABC",
+            company_name="ABC Ltd",
+            metric="issued_equity_shares",
             shares_outstanding=50_000_000,
             source="",
             evidence_url="",
@@ -162,6 +172,8 @@ def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
 
     base = {
         "ticker": "ABC",
+        "company_name": "ABC Ltd",
+        "metric": "issued_equity_shares",
         "shares_outstanding": 50_000_000,
         "source": "Issuer annual report",
         "evidence_url": "https://example.com/annual-report.pdf",

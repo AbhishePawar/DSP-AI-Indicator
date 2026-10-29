@@ -2,7 +2,7 @@ name: Hosting Dependency Policy
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, "rc/**"]
   pull_request:
     branches: [main, master]
 

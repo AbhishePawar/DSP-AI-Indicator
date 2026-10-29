@@ -119,7 +119,9 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
             shares_outstanding=50_000_000,
             source="Issuer report",
             evidence_url="https://example.com/report",
-        ),
+        as_of="2025-03-31",
+        unit="shares",
+),
         ShareCountResearchEvidence(
             ticker="ABC",
             company_name="ABC Ltd",
@@ -127,12 +129,17 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
             shares_outstanding=-1,
             source="Issuer report",
             evidence_url="https://example.com/report",
-        ),
+        as_of="2025-03-31",
+        unit="shares",
+),
         ShareCountResearchEvidence(
             ticker="ABC",
             company_name="ABC Ltd",
             metric="issued_equity_shares",
-            shares_outstanding=float("nan"),
+            shares_outstanding=float("nan"
+            as_of="2025-03-31",
+            unit="shares",
+),
             source="Issuer report",
             evidence_url="https://example.com/report",
         ),
@@ -143,7 +150,9 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
             shares_outstanding=50_000_000,
             source="",
             evidence_url="",
-        ),
+        as_of="2025-03-31",
+        unit="shares",
+),
         ShareCountResearchEvidence(
             ticker="ABC",
             company_name="Other Ltd",
@@ -213,14 +222,21 @@ def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
         "shares_outstanding": 50_000_000,
         "source": "Issuer annual report",
         "evidence_url": "https://example.com/annual-report.pdf",
+        "unit": "shares",
     }
     invalid_evidence = (
         ShareCountResearchEvidence(**base, as_of="2025-03-31", unit="lots"),
-        ShareCountResearchEvidence(**base, as_of=None),
-        ShareCountResearchEvidence(**base, as_of="not-a-date"),
+        ShareCountResearchEvidence(**base, as_of=None
+unit="shares",
+),
+        ShareCountResearchEvidence(**base, as_of="not-a-date"
+unit="shares",
+),
         ShareCountResearchEvidence(
             **base,
-            as_of=date.today().replace(year=date.today().year + 1).isoformat(),
+            as_of=date.today(
+            unit="shares",
+).replace(year=date.today().year + 1).isoformat(),
         ),
     )
     for evidence in invalid_evidence:

@@ -82,7 +82,7 @@ python scripts/validate_env.py production
 
 Caddy (`docker/Caddyfile`) obtains and renews certificates automatically when:
 
-- `DSP_AUTO_HTTPS=on` (default)
+- Automatic HTTPS is Caddy's default; change it only in `docker/Caddyfile` (supported: off, disable_redirects, disable_certs, ignore_loaded_certs)
 - `DSP_PUBLIC_DOMAIN` is a publicly resolvable hostname
 - Port 80 is reachable from the internet (ACME challenge)
 

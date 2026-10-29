@@ -3,7 +3,12 @@
  * Consumes frozen /api/v1/admin/* only. No client administration logic.
  */
 
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
+import {
+  cookieAuthPreferred,
+  cookieFetchInit,
+} from "@/lib/auth/cookieSession";
+import { COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
 import { ApiClientError, type ApiErrorBody } from "@/lib/api/types";
 import type {
   AdminAuditExport,
@@ -41,14 +46,19 @@ async function adminRequest<T>(
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  if (options.token) {
-    headers.set("Authorization", `Bearer ${options.token}`);
+  const token = options.token;
+  const cookieMode = cookieAuthPreferred();
+  if (!cookieMode && token && token !== COOKIE_TOKEN_PLACEHOLDER) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = buildApiUrl(path);
+  const fetchInit = cookieMode
+    ? cookieFetchInit({ ...init, headers })
+    : { ...init, headers };
   let response: Response;
   try {
-    response = await fetch(url, { ...init, headers, signal: options.signal });
+    response = await fetch(url, { ...fetchInit, signal: options.signal });
   } catch (err) {
     const aborted =
       options.signal?.aborted ||

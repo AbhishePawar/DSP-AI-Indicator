@@ -65,7 +65,15 @@ def _is_truthy(value: str | None) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:
-    argv = argv if argv is not None else sys.argv[1:]
+    argv = list(argv if argv is not None else sys.argv[1:])
+    if argv and argv[0].startswith("--profile"):
+        # Accept both "--profile NAME" and "--profile=NAME" as well as positional NAME.
+        flag = argv.pop(0)
+        if "=" in flag:
+            argv.insert(0, flag.split("=", 1)[1])
+        elif not argv:
+            print("--profile requires a value", file=sys.stderr)
+            return 1
     profile = (
         argv[0].lower()
         if argv

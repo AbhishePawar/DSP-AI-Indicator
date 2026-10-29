@@ -26,7 +26,6 @@ services:
       DSP_PUBLIC_DOMAIN: ${DSP_PUBLIC_DOMAIN:-localhost}
       DSP_API_DOMAIN: ${DSP_API_DOMAIN:-api.localhost}
       DSP_ACME_EMAIL: ${DSP_ACME_EMAIL:-ops@localhost}
-      DSP_AUTO_HTTPS: ${DSP_AUTO_HTTPS:-on}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

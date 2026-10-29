@@ -36,12 +36,22 @@ if [[ "${CONFIRM}" != "YES" ]]; then
   exit 1
 fi
 
-if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "running\|Up"; then
+TARGET="${DSP_BACKUP_TARGET:-}"
+if [[ -z "${TARGET}" ]]; then
+  if [[ -n "${DSP_DATABASE_URL:-}" ]]; then TARGET="external"; else TARGET="local"; fi
+fi
+echo "[restore] target=${TARGET}"
+
+if [[ "${TARGET}" == "local" ]] && docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "running\|Up"; then
   echo "[restore] restoring into postgres container from ${ARCHIVE}"
   gunzip -c "${ARCHIVE}" | docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T postgres \
-    sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+    sh -c 'psql -v ON_ERROR_STOP=1 --single-transaction -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
   echo "[restore] OK — verify /health/ready and run smoke"
   exit 0
 fi
 
-exec "${ROOT}/scripts/ops/restore_postgres.sh" "${ARCHIVE}"
+if [[ "${TARGET}" == "local" ]]; then
+  echo "[restore] FAILED: DSP_BACKUP_TARGET=local but the postgres container is not running" >&2
+  exit 1
+fi
+exec bash "${ROOT}/scripts/ops/restore_postgres.sh" "${ARCHIVE}"

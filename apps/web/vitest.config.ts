@@ -2,9 +2,7 @@
 import path from "node:path";
 
 export default defineConfig({
-  esbuild: {
-    jsx: "automatic",
-  },
+  esbuild: { jsx: "automatic" } as unknown as import("vite").UserConfig["esbuild"],
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],

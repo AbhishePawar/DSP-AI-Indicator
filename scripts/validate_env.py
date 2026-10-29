@@ -173,6 +173,26 @@ def main(argv: list[str] | None = None) -> int:
             if host_error:
                 print(f"[production] {var_name} {host_error}", file=sys.stderr)
                 return 1
+        hosts = {
+            name: (os.environ.get(name) or "").strip().lower()
+            for name in (
+                "DSP_PUBLIC_DOMAIN",
+                "DSP_WWW_REDIRECT_DOMAIN",
+                "DSP_API_DOMAIN",
+            )
+        }
+        named = [(n, h) for n, h in hosts.items() if h]
+        for i, (name_a, host_a) in enumerate(named):
+            for name_b, host_b in named[i + 1 :]:
+                if host_a == host_b:
+                    # Caddy refuses duplicate site blocks ("ambiguous site
+                    # definition"), so the proxy would never start.
+                    print(
+                        f"[production] {name_a} and {name_b} must be different "
+                        f"hostnames (both are {host_a!r})",
+                        file=sys.stderr,
+                    )
+                    return 1
         if domain.startswith("http://") or domain.startswith("https://"):
             print(
                 "[production] DSP_PUBLIC_DOMAIN must be a hostname only " "(no scheme)",

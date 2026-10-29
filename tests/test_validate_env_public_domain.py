@@ -92,3 +92,52 @@ def test_caddy_redirects_www_alias_to_public_domain() -> None:
     assert (
         "DSP_WWW_REDIRECT_DOMAIN: ${DSP_WWW_REDIRECT_DOMAIN:-www.localhost}" in compose
     )
+
+
+_PROD_ENV = {
+    "DSP_ENVIRONMENT": "production",
+    "DSP_JWT_SECRET": "a-strong-test-secret-value-0123456789",
+    "DSP_CORS_ORIGINS": "https://dspaiindicator.com",
+    "DSP_ENABLE_SECURITY": "true",
+    "DSP_REQUIRE_ADMIN_AUTH": "true",
+    "DSP_RATE_LIMIT_ENABLED": "true",
+    "DSP_HSTS_ENABLED": "true",
+    "DSP_INDIA_TIMEZONE": "Asia/Kolkata",
+    "DSP_INDIA_CURRENCY": "INR",
+    "DSP_APP_VERSION": "2.0.0-rc.1",
+    "DSP_DATABASE_URL": "postgresql://dsp:pw@postgres:5432/dsp",
+    "DSP_PUBLIC_DOMAIN": "dspaiindicator.com",
+}
+
+
+def _validate(monkeypatch: pytest.MonkeyPatch, **extra: str) -> int:
+    for key in list(validate_env.os.environ):
+        if key.startswith("DSP_"):
+            monkeypatch.delenv(key, raising=False)
+    for key, value in {**_PROD_ENV, **extra}.items():
+        monkeypatch.setenv(key, value)
+    return validate_env.main(["production"])
+
+
+def test_production_accepts_apex_with_www_redirect(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert _validate(monkeypatch, DSP_WWW_REDIRECT_DOMAIN="www.dspaiindicator.com") == 0
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"DSP_WWW_REDIRECT_DOMAIN": "dspaiindicator.com"},
+        {
+            "DSP_WWW_REDIRECT_DOMAIN": "WWW.dspaiindicator.com",
+            "DSP_API_DOMAIN": "www.dspaiindicator.com",
+        },
+        {"DSP_API_DOMAIN": "dspaiindicator.com"},
+    ],
+)
+def test_production_rejects_duplicate_caddy_hostnames(
+    monkeypatch: pytest.MonkeyPatch, extra: dict[str, str]
+) -> None:
+    # Caddy fails with "ambiguous site definition" on duplicate site blocks.
+    assert _validate(monkeypatch, **extra) == 1

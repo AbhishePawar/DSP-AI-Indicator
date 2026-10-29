@@ -172,9 +172,7 @@ def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
         ShareCountResearchEvidence(**base, as_of="not-a-date"),
         ShareCountResearchEvidence(
             **base,
-            as_of=date.today()
-            .replace(year=date.today().year + 1)
-            .isoformat(),
+            as_of=date.today().replace(year=date.today().year + 1).isoformat(),
         ),
     )
     for evidence in invalid_evidence:

@@ -45,14 +45,14 @@ class HealthCheckResult:
 class PlatformHealthReport:
     """Aggregated readiness report for the platform.
 
-    Attributes:
-        ready: ``True`` when every *blocking* non-skipped check passed.
-            ``investment_data_provider`` may fail without clearing readiness so
-auth/API boot is independent of market-data credentials (P1-03 still
-        fail-closes on investment use paths).
-        status: Overall status (``pass`` if ready else ``fail``).
-        checks: Individual check results.
-        checked_at: UTC timestamp of the report.
+        Attributes:
+            ready: ``True`` when every *blocking* non-skipped check passed.
+                ``investment_data_provider`` may fail without clearing readiness so
+    auth/API boot is independent of market-data credentials (P1-03 still
+            fail-closes on investment use paths).
+            status: Overall status (``pass`` if ready else ``fail``).
+            checks: Individual check results.
+            checked_at: UTC timestamp of the report.
     """
 
     ready: bool
@@ -243,47 +243,6 @@ class PlatformHealthService:
             message=f"required providers present: {list(required)}",
         )
 
-    def _check_investment_data_provider(self) -> HealthCheckResult:
-        """Report investment connector configuration without blocking API boot.
-
-        Authentication and core API health must remain available when vendor
-        credentials are absent. Investment use paths still fail closed through
-        the adapter factories; this check makes that degraded capability visible.
-        """
-        import os
-
-        if str(os.environ.get("DSP_ENVIRONMENT", "")).strip().lower() != "production":
-            return HealthCheckResult(
-                name="investment_data_provider",
-                status=CheckStatus.SKIP,
-                message="production investment connector check not applicable",
-            )
-
-        try:
-            from data_engine.connector_framework.production_profile import (
-                assert_production_investment_connectors_configured,
-            )
-
-            selected = assert_production_investment_connectors_configured()
-        except Exception as exc:  # noqa: BLE001 — health must surface safe config errors
-            return HealthCheckResult(
-                name="investment_data_provider",
-                status=CheckStatus.FAIL,
-                message=(
-                    "investment_capability: degraded; "
-                    "does not block auth; " + str(exc)
-                ),
-            )
-        return HealthCheckResult(
-            name="investment_data_provider",
-            status=CheckStatus.PASS,
-            message=(
-                "configured authenticated connectors: "
-                f"market_quote={selected.get('market_quote', 'unknown')}, "
-                f"financial_statement={selected.get('financial_statement', 'unknown')}"
-            ),
-        )
-
     def _check_composition_pipeline(self) -> HealthCheckResult:
         """Readiness of the canonical composition path served by ``/analyse``.
 
@@ -345,7 +304,6 @@ class PlatformHealthService:
             ),
         )
 
-
     def _check_investment_data_provider(self) -> HealthCheckResult:
         """Report investment connector configuration without blocking API readiness."""
         import os
@@ -362,7 +320,9 @@ class PlatformHealthService:
             )
 
             selected = assert_production_investment_connectors_configured()
-        except Exception as exc:  # noqa: BLE001 — health must report missing configuration
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 — health must report missing configuration
             return HealthCheckResult(
                 name="investment_data_provider",
                 status=CheckStatus.FAIL,

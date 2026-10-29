@@ -342,7 +342,6 @@ class PostgresStorageProvider:
         payload = found[0]
         return deepcopy(payload) if isinstance(payload, dict) else None
 
-
     def append_research_turn_atomic(
         self,
         *,
@@ -376,14 +375,26 @@ class PostgresStorageProvider:
                 session_payload = dict(row[0]) if isinstance(row[0], dict) else {}
 
                 # Server-authoritative ownership validation
-                if expected_user_id is not None and str(session_payload.get("user_id", "")) != str(expected_user_id):
-                    raise ValidationError("Ownership validation failed: unauthorized user")
+                if expected_user_id is not None and str(
+                    session_payload.get("user_id", "")
+                ) != str(expected_user_id):
+                    raise ValidationError(
+                        "Ownership validation failed: unauthorized user"
+                    )
 
                 # Context validation
-                if expected_symbol is not None and str(session_payload.get("symbol", "")).upper() != str(expected_symbol).upper():
+                if (
+                    expected_symbol is not None
+                    and str(session_payload.get("symbol", "")).upper()
+                    != str(expected_symbol).upper()
+                ):
                     raise ValidationError("Context validation failed: symbol mismatch")
-                if expected_analysis_id is not None and str(session_payload.get("analysis_id", "")) != str(expected_analysis_id):
-                    raise ValidationError("Context validation failed: analysis_id mismatch")
+                if expected_analysis_id is not None and str(
+                    session_payload.get("analysis_id", "")
+                ) != str(expected_analysis_id):
+                    raise ValidationError(
+                        "Context validation failed: analysis_id mismatch"
+                    )
 
                 # 2. Write turn row
                 cur.execute(
@@ -391,7 +402,13 @@ class PostgresStorageProvider:
                     "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) "
                     "ON CONFLICT (collection, entity_id) DO UPDATE SET "
                     "payload = EXCLUDED.payload, updated_at = EXCLUDED.updated_at",
-                    (turns_collection, turn_id, Json(clean_turn), turn_created, turn_updated),
+                    (
+                        turns_collection,
+                        turn_id,
+                        Json(clean_turn),
+                        turn_created,
+                        turn_updated,
+                    ),
                 )
 
                 # 3. FIFO eviction if exceeding max_turns
@@ -415,7 +432,12 @@ class PostgresStorageProvider:
                 cur.execute(
                     f"UPDATE {_TABLE} SET payload = %s, updated_at = %s::timestamptz "
                     "WHERE collection = %s AND entity_id = %s",
-                    (Json(session_payload), turn_updated, session_collection, session_id),
+                    (
+                        Json(session_payload),
+                        turn_updated,
+                        session_collection,
+                        session_id,
+                    ),
                 )
 
                 conn.commit()

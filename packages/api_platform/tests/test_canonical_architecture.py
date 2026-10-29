@@ -64,8 +64,9 @@ class TestCanonicalArchitecture:
         }
         for mod in imports:
             for f in forbidden:
-                assert not (mod == f or mod.startswith(f"{f}.")), f"Forbidden import: {mod}"
-
+                assert not (
+                    mod == f or mod.startswith(f"{f}.")
+                ), f"Forbidden import: {mod}"
 
     def test_canonical_frontend_analysis_client_is_single_api_contract(self) -> None:
         client = (_WEB / "lib" / "api" / "client.ts").read_text(encoding="utf-8")

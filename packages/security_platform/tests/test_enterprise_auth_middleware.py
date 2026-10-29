@@ -30,9 +30,7 @@ def test_enterprise_admin_token_maps_to_admin_permissions(monkeypatch) -> None:
         ),
     )
 
-    principal = _authenticate_enterprise_bearer(
-        "Bearer signed-enterprise-token"
-    )
+    principal = _authenticate_enterprise_bearer("Bearer signed-enterprise-token")
 
     assert principal is not None
     assert principal.subject == "admin-1"
@@ -54,10 +52,7 @@ def test_enterprise_unknown_role_fails_closed(monkeypatch) -> None:
         ),
     )
 
-    assert (
-        _authenticate_enterprise_bearer("Bearer signed-enterprise-token")
-        is None
-    )
+    assert _authenticate_enterprise_bearer("Bearer signed-enterprise-token") is None
 
 
 def test_enterprise_bridge_rejects_non_bearer_tokens() -> None:

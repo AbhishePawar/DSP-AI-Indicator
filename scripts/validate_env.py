@@ -13,6 +13,41 @@ FORBIDDEN_JWT = {
     "secret",
 }
 
+_HOST_LABEL_CHARS = set("abcdefghijklmnopqrstuvwxyz0123456789-")
+
+
+def hostname_error(value: str | None) -> str | None:
+    """Return why ``value`` is not a single bare hostname, or None if valid/empty.
+
+    DSP_PUBLIC_DOMAIN feeds the Caddy site address and the deploy script's
+    ``https://${DSP_PUBLIC_DOMAIN}/api/health`` smoke URL, so it must be exactly
+    one hostname: no scheme, path, port, spaces or comma-separated list.
+    """
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    if any(ch.isspace() for ch in raw) or "," in raw:
+        return (
+            "must be a single hostname (no spaces or lists); put the www "
+            "alias in DSP_WWW_REDIRECT_DOMAIN"
+        )
+    if "://" in raw or "/" in raw or ":" in raw:
+        return "must be a hostname only (no scheme, path or port)"
+    labels = raw.lower().split(".")
+    if raw.lower() != "localhost" and len(labels) < 2:
+        return "must be a fully qualified hostname"
+    for label in labels:
+        if (
+            not label
+            or len(label) > 63
+            or label.startswith("-")
+            or label.endswith("-")
+            or set(label) - _HOST_LABEL_CHARS
+        ):
+            return "contains an invalid hostname label"
+    return None
+
+
 PROFILES = {
     "development": {
         "required": [],
@@ -47,6 +82,7 @@ PROFILES = {
             "DEFAULT_AI_PROVIDER",
             "NEXT_PUBLIC_API_BASE_URL",
             "DSP_API_DOMAIN",
+            "DSP_WWW_REDIRECT_DOMAIN",
             "DSP_ACME_EMAIL",
             "DSP_PLATFORM_VERSION",
         ],
@@ -132,10 +168,34 @@ def main(argv: list[str] | None = None) -> int:
                 "[production] Warning: DSP_PUBLIC_DOMAIN looks like a placeholder "
                 f"({domain!r}) — set a real public hostname before launch",
             )
+        for var_name in ("DSP_PUBLIC_DOMAIN", "DSP_WWW_REDIRECT_DOMAIN"):
+            host_error = hostname_error(os.environ.get(var_name))
+            if host_error:
+                print(f"[production] {var_name} {host_error}", file=sys.stderr)
+                return 1
+        hosts = {
+            name: (os.environ.get(name) or "").strip().lower()
+            for name in (
+                "DSP_PUBLIC_DOMAIN",
+                "DSP_WWW_REDIRECT_DOMAIN",
+                "DSP_API_DOMAIN",
+            )
+        }
+        named = [(n, h) for n, h in hosts.items() if h]
+        for i, (name_a, host_a) in enumerate(named):
+            for name_b, host_b in named[i + 1 :]:
+                if host_a == host_b:
+                    # Caddy refuses duplicate site blocks ("ambiguous site
+                    # definition"), so the proxy would never start.
+                    print(
+                        f"[production] {name_a} and {name_b} must be different "
+                        f"hostnames (both are {host_a!r})",
+                        file=sys.stderr,
+                    )
+                    return 1
         if domain.startswith("http://") or domain.startswith("https://"):
             print(
-                "[production] DSP_PUBLIC_DOMAIN must be a hostname only "
-                "(no scheme)",
+                "[production] DSP_PUBLIC_DOMAIN must be a hostname only " "(no scheme)",
                 file=sys.stderr,
             )
             return 1

@@ -68,12 +68,18 @@ def test_environment_templates_and_provider_runtime_are_gateway_free() -> None:
         assert "AI_GATEWAY_API_KEY" not in text
         assert "AI_GATEWAY_BASE_URL" not in text
         assert "ai-gateway.vercel.sh" not in text.lower()
-    config = (_REPO / "packages/llm_adapters/src/llm_adapters/config.py").read_text(encoding="utf-8")
-    registry = (_REPO / "packages/llm_adapters/src/llm_adapters/registry.py").read_text(encoding="utf-8")
+    config = (_REPO / "packages/llm_adapters/src/llm_adapters/config.py").read_text(
+        encoding="utf-8"
+    )
+    registry = (_REPO / "packages/llm_adapters/src/llm_adapters/registry.py").read_text(
+        encoding="utf-8"
+    )
     assert "ai_gateway_api_key" not in config
     assert "ai_gateway_base_url" not in config
     assert "AIGatewayAdapter" not in registry
-    assert not (_REPO / "packages/llm_adapters/src/llm_adapters/gateway_adapter.py").exists()
+    assert not (
+        _REPO / "packages/llm_adapters/src/llm_adapters/gateway_adapter.py"
+    ).exists()
 
 
 def test_no_vercel_json_in_repo() -> None:

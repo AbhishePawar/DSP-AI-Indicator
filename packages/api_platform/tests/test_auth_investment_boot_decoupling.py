@@ -164,7 +164,9 @@ def test_d_valid_http_configuration_still_works(
     monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", _SOURCE_KEY)
     monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://source.example/quotes")
     monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_API_KEY", _SOURCE_KEY)
-    monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_BASE_URL", "https://source.example/statements")
+    monkeypatch.setenv(
+        "DSP_FINANCIAL_STATEMENT_BASE_URL", "https://source.example/statements"
+    )
 
     app = create_app(platform=platform, enable_security=False)
     assert app is not None
@@ -189,7 +191,9 @@ def test_e_p103_assert_helper_still_enforces_investment_boundary(
     monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", _SOURCE_KEY)
     monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://source.example/quotes")
     monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_API_KEY", _SOURCE_KEY)
-    monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_BASE_URL", "https://source.example/statements")
+    monkeypatch.setenv(
+        "DSP_FINANCIAL_STATEMENT_BASE_URL", "https://source.example/statements"
+    )
     selected = assert_production_investment_connectors_configured()
     assert selected["market_quote"] == "ConfiguredHttpQuoteAdapter"
     assert selected["financial_statement"] == "ConfiguredHttpStatementAdapter"

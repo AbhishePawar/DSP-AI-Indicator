@@ -53,6 +53,14 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
                 "share_count_as_of": share_count.get("as_of"),
                 "share_count_verified": share_count.get("verified", False),
                 "share_count_provenance": share_count,
+                # Research-derived counts are public research, not verified
+                # provider data; label them explicitly at the top level.
+                "shares_source": (
+                    "research_fallback"
+                    if share_count.get("retrieval") == "ai_research_fallback"
+                    else ("verified_source" if share_count else None)
+                ),
+                "shares_evidence_class": share_count.get("evidence_class"),
                 "statement_provider": stmt.get("provider_id")
                 or stmt.get("provider_name")
                 or stmt.get("provider")
@@ -116,7 +124,11 @@ def build_investment_provenance(
         "unit_scale": source.get("unit_scale"),
         "currency": source.get("reporting_currency"),
         "integrity": (
-            "authenticated_bundle"
+            (
+                "authenticated_bundle_with_research_shares"
+                if source.get("shares_source") == "research_fallback"
+                else "authenticated_bundle"
+            )
             if source.get("authenticated")
             else "client_or_degraded_path"
         ),

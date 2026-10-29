@@ -242,7 +242,10 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
         memory_adapter_allowed,
         require_authenticated_http_adapter,
     )
-    selected_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+
+    selected_provider = (
+        os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    )
     if selected_provider == "upstox":
         from data_engine.connector_framework.production_profile import (
             ConnectorConfigurationError,
@@ -280,7 +283,10 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     if api_key and base_url:
         return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
     if os.environ.get("DSP_MARKET_QUOTE_MEMORY", "").strip().lower() in {
-        "1", "true", "yes", "on"
+        "1",
+        "true",
+        "yes",
+        "on",
     }:
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
     return NullAuthenticatedQuoteAdapter()

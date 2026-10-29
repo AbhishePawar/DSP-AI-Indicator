@@ -145,15 +145,25 @@ export async function assertValuationVisible(
   payload: Record<string, unknown>,
 ): Promise<void> {
   await openAnalysisSection(page, /^Valuation(\s+\d|\d)?$/i, /^Valuation$/i);
-  await expect(page.getByText("Intrinsic Value", { exact: true })).toBeVisible();
-  await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
-  await expect(page.getByText("Margin of Safety", { exact: true })).toBeVisible();
+  // The value appears in the summary, the valuation card and its detail list;
+  // assert the label inside the active analysis area rather than page-wide.
+  await expect(
+    analysisMain(page).getByText("Intrinsic Value", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    analysisMain(page).getByText("Current Price", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    analysisMain(page).getByText("Margin of Safety", { exact: true }).first(),
+  ).toBeVisible();
 
   const stages = (payload.stage_summaries ?? []) as Array<Record<string, unknown>>;
   const valuation = stages.find((s) => s.stage === "valuation");
   expect(valuation, "[P1-09 VALUATION] valuation stage must exist").toBeTruthy();
   expect(["succeeded", "degraded", "unavailable"]).toContain(String(valuation!.status));
-  await expect(page.getByText("Stage status", { exact: true })).toBeVisible();
+  await expect(
+    analysisMain(page).getByText("Stage status", { exact: true }).first(),
+  ).toBeVisible();
 }
 
 export async function assertBuffettVisible(
@@ -164,7 +174,7 @@ export async function assertBuffettVisible(
   await openAnalysisSection(page, /Buffett Indicator/i, /Buffett Indicator Analysis/i);
   const buffettMain = analysisMain(page);
   await expect(
-    buffettMain.getByText(/Presentation synthesis of existing/i),
+    buffettMain.getByText(/Presentation synthesis of existing/i).first(),
   ).toBeVisible();
   // Scorecard repeats the same dt labels; the section contract is the
   // heading + at least one rating/action row, not uniqueness of the dt.
@@ -190,7 +200,9 @@ export async function assertEvidenceVisible(
   analysisId: string,
 ): Promise<void> {
   await openAnalysisSection(page, /Supporting Evidence/i, /Research objects/i);
-  await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
+  await expect(
+    analysisMain(page).getByText("Analysis ID", { exact: true }).first(),
+  ).toBeVisible();
   await expect(analysisMain(page)).toContainText(analysisId);
 }
 

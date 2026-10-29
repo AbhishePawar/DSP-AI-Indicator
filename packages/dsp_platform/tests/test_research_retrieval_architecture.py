@@ -55,6 +55,7 @@ class TestResearchRetrievalArchitecture:
 
     def test_no_forbidden_direct_network_imports_in_models(self) -> None:
         import dsp_platform.research_retrieval.models as models
+
         source = inspect.getsource(models)
         assert "socket" not in source
         assert "urllib.request" not in source
@@ -75,5 +76,10 @@ class TestResearchRetrievalArchitecture:
         for mod_name in modules:
             mod = sys.modules[mod_name]
             mod_source = inspect.getsource(mod)
-            assert "valuation" not in mod_source.lower() or "dcf" not in mod_source.lower()
-            assert "recommendation" not in mod_source.lower() or "action" not in mod_source.lower()
+            assert (
+                "valuation" not in mod_source.lower() or "dcf" not in mod_source.lower()
+            )
+            assert (
+                "recommendation" not in mod_source.lower()
+                or "action" not in mod_source.lower()
+            )

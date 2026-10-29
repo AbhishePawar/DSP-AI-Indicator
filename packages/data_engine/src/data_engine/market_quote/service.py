@@ -235,7 +235,11 @@ class MarketQuoteService:
                 self.metrics.successes += 1
                 _LOG.info(
                     "market_quote_cache_hit",
-                    extra={"symbol": symbol, "exchange": exchange, "provider": self.provider_id},
+                    extra={
+                        "symbol": symbol,
+                        "exchange": exchange,
+                        "provider": self.provider_id,
+                    },
                 )
                 return cached
             except Exception as exc:

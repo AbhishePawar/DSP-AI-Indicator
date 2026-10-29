@@ -143,7 +143,9 @@ class TestInstitutionalAuthZones:
             "/api/v1/auth/enterprise/oauth/callback",
         ],
     )
-    def test_enterprise_auth_bootstrap_routes_are_institutional(self, path: str) -> None:
+    def test_enterprise_auth_bootstrap_routes_are_institutional(
+        self, path: str
+    ) -> None:
         assert _is_institutional_auth_zone(path) is True
 
     def test_unrelated_api_route_is_not_institutional(self) -> None:

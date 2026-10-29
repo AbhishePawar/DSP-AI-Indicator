@@ -513,7 +513,9 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
         require_authenticated_http_adapter,
     )
 
-    memory_adapter_allowed("DSP_FINANCIAL_STATEMENT_MEMORY", connector="financial_statement")
+    memory_adapter_allowed(
+        "DSP_FINANCIAL_STATEMENT_MEMORY", connector="financial_statement"
+    )
     api_key = os.environ.get("DSP_FINANCIAL_STATEMENT_API_KEY", "").strip()
     base_url = os.environ.get("DSP_FINANCIAL_STATEMENT_BASE_URL", "").strip()
     require_authenticated_http_adapter(

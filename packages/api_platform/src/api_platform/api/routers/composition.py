@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from dataclasses import replace
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -35,6 +36,7 @@ from api_platform.api.research_orchestration_service import (
 from api_platform.api.research_orchestration_service import (
     parse_orchestration_timeout as parse_orchestration_timeout,
 )
+from api_platform.api.share_count_research import build_share_count_researcher
 from api_platform.api.validation import validate_analyse_request
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.investment_provenance import (
@@ -108,6 +110,14 @@ def analyse(
             detail=str(exc),
         ) from None
 
+    # Server-only fallback: invoked by the authenticated valuation loader only
+    # when verified statements/filings omit shares. Never taken from the body.
+    researcher = build_share_count_researcher()
+    if researcher is not None:
+        composition_request = replace(
+            composition_request, research_missing_shares=researcher
+        )
+
     platform_result = state.platform.compose_intelligence(composition_request)
     pipeline = platform_result.payload
     if pipeline is None:
@@ -140,7 +150,9 @@ def analyse(
             orchestration_limitations.extend(lims)
 
         if orchestration_limitations:
-            if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+            if "limitations" in public_payload and isinstance(
+                public_payload["limitations"], list
+            ):
                 public_payload["limitations"].extend(orchestration_limitations)
             else:
                 public_payload["limitations"] = list(orchestration_limitations)

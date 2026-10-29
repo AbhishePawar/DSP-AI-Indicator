@@ -66,7 +66,9 @@ class DocumentValidationResult:
 _PROMPT_INJECTION_PATTERNS = (
     re.compile(r"ignore\s+(all\s+)?(previous|prior)\s+instructions", re.IGNORECASE),
     re.compile(r"system\s*:\s*you\s+are\s+now", re.IGNORECASE),
-    re.compile(r"reveal\s+(internal|secret|private)\s+(prompt|api_key|token)", re.IGNORECASE),
+    re.compile(
+        r"reveal\s+(internal|secret|private)\s+(prompt|api_key|token)", re.IGNORECASE
+    ),
     re.compile(r"do\s+not\s+validate\s+this\s+claim", re.IGNORECASE),
     re.compile(r"override\s+source\s+governance", re.IGNORECASE),
     re.compile(r"<script[\s>]", re.IGNORECASE),
@@ -85,7 +87,11 @@ def detect_prompt_injection(text: str) -> tuple[bool, str]:
 def parse_indian_and_western_number(text: str) -> float | None:
     """Parse text representation of financial numbers with scale multipliers."""
     cleaned = text.replace(",", "").strip()
-    match = re.search(r"(-?\d+(?:\.\d+)?)\s*(cr|crore|crores|lakh|lakhs|lk|m|million|b|billion|k)?", cleaned, re.IGNORECASE)
+    match = re.search(
+        r"(-?\d+(?:\.\d+)?)\s*(cr|crore|crores|lakh|lakhs|lk|m|million|b|billion|k)?",
+        cleaned,
+        re.IGNORECASE,
+    )
     if not match:
         return None
     val = float(match.group(1))
@@ -104,11 +110,23 @@ def parse_indian_and_western_number(text: str) -> float | None:
 
 
 _UNIT_MULTIPLIERS = {
-    "cr": 10_000_000.0, "crore": 10_000_000.0, "crores": 10_000_000.0,
-    "lakh": 100_000.0, "lakhs": 100_000.0, "lk": 100_000.0,
-    "m": 1_000_000.0, "mn": 1_000_000.0, "million": 1_000_000.0, "millions": 1_000_000.0,
-    "b": 1_000_000_000.0, "bn": 1_000_000_000.0, "billion": 1_000_000_000.0, "billions": 1_000_000_000.0,
-    "k": 1_000.0, "thousand": 1_000.0, "thousands": 1_000.0,
+    "cr": 10_000_000.0,
+    "crore": 10_000_000.0,
+    "crores": 10_000_000.0,
+    "lakh": 100_000.0,
+    "lakhs": 100_000.0,
+    "lk": 100_000.0,
+    "m": 1_000_000.0,
+    "mn": 1_000_000.0,
+    "million": 1_000_000.0,
+    "millions": 1_000_000.0,
+    "b": 1_000_000_000.0,
+    "bn": 1_000_000_000.0,
+    "billion": 1_000_000_000.0,
+    "billions": 1_000_000_000.0,
+    "k": 1_000.0,
+    "thousand": 1_000.0,
+    "thousands": 1_000.0,
 }
 
 _CLAIM_STOPWORDS = frozenset(
@@ -182,7 +200,11 @@ def period_present(claimed_period: str, text: str) -> bool:
     full_year = re.fullmatch(r"(Q[1-4])?FY(\d{4})", period)
     if full_year:
         quarter, year = full_year.group(1) or "", int(full_year.group(2))
-        candidates |= {f"{quarter}FY{year % 100:02d}", f"{quarter}FY{year - 1}{year % 100:02d}", f"{quarter}FY{year - 1}{year}"}
+        candidates |= {
+            f"{quarter}FY{year % 100:02d}",
+            f"{quarter}FY{year - 1}{year % 100:02d}",
+            f"{quarter}FY{year - 1}{year}",
+        }
     return any(c in norm_text for c in candidates)
 
 
@@ -190,7 +212,9 @@ def claim_terms(claim: str, ticker: str) -> tuple[str, ...]:
     """Content words of a prose claim that the document must contain to ground it."""
     symbol = ticker.strip().lower()
     words = re.findall(r"[a-z][a-z0-9]+", claim.lower())
-    return tuple(w for w in words if len(w) >= 4 and w not in _CLAIM_STOPWORDS and w != symbol)
+    return tuple(
+        w for w in words if len(w) >= 4 and w not in _CLAIM_STOPWORDS and w != symbol
+    )
 
 
 class DocumentValidator:
@@ -275,7 +299,9 @@ class DocumentValidator:
                         continue
                     value_seen = True
                     # The number only supports the claim if the metric label sits beside it.
-                    window = lower_para[max(0, m.start() - _METRIC_WINDOW) : m.end() + _METRIC_WINDOW]
+                    window = lower_para[
+                        max(0, m.start() - _METRIC_WINDOW) : m.end() + _METRIC_WINDOW
+                    ]
                     if terms and not all(t in window for t in terms):
                         continue
                     found_match = True
@@ -290,7 +316,9 @@ class DocumentValidator:
                     is_valid=False,
                     status=EvidenceStatus.REJECTED,
                     failure_reason=(
-                        ValidationFailureReason.METRIC_NOT_FOUND if value_seen else ValidationFailureReason.VALUE_MISMATCH
+                        ValidationFailureReason.METRIC_NOT_FOUND
+                        if value_seen
+                        else ValidationFailureReason.VALUE_MISMATCH
                     ),
                     grounded_excerpt="",
                     warnings=tuple(warnings),
@@ -304,7 +332,10 @@ class DocumentValidator:
                     status=EvidenceStatus.REJECTED,
                     failure_reason=ValidationFailureReason.UNGROUNDED_CLAIM,
                     grounded_excerpt="",
-                    warnings=tuple(warnings + [f"Claim terms not found in document: {', '.join(missing)}"]),
+                    warnings=tuple(
+                        warnings
+                        + [f"Claim terms not found in document: {', '.join(missing)}"]
+                    ),
                 )
 
         # 3. Share-count specificity check
@@ -312,13 +343,21 @@ class DocumentValidator:
             # Check if excerpt or document specifies weighted average or diluted rather than period-end
             lower_text = text.lower()
             if "weighted average" in lower_text or "diluted shares" in lower_text:
-                if "period-end" not in lower_text and "outstanding shares" not in lower_text:
+                if (
+                    "period-end" not in lower_text
+                    and "outstanding shares" not in lower_text
+                ):
                     return DocumentValidationResult(
                         is_valid=False,
                         status=EvidenceStatus.REJECTED,
                         failure_reason=ValidationFailureReason.SHARE_TYPE_MISMATCH,
                         grounded_excerpt=grounded_excerpt or text[:200],
-                        warnings=tuple(warnings + ["Weighted average or diluted shares cannot substitute for period-end count"]),
+                        warnings=tuple(
+                            warnings
+                            + [
+                                "Weighted average or diluted shares cannot substitute for period-end count"
+                            ]
+                        ),
                     )
 
         # 4. Period Verification: a claim for a period the document never mentions is not supported.
@@ -329,7 +368,12 @@ class DocumentValidator:
                 status=EvidenceStatus.REJECTED,
                 failure_reason=ValidationFailureReason.PERIOD_MISMATCH,
                 grounded_excerpt="",
-                warnings=tuple(warnings + [f"Reporting period '{claimed_period}' not found in document text"]),
+                warnings=tuple(
+                    warnings
+                    + [
+                        f"Reporting period '{claimed_period}' not found in document text"
+                    ]
+                ),
             )
 
         if not grounded_excerpt:

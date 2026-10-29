@@ -329,9 +329,7 @@ class TestCompareWorkflowCopilot:
         response = client.post("/workflow/run", json={"context_ref": "missing"})
         assert response.status_code == 404
 
-    def test_copilot_chat_requires_authentication(
-        self, client: TestClient
-    ) -> None:
+    def test_copilot_chat_requires_authentication(self, client: TestClient) -> None:
         """Phase 7 — /copilot/chat spends AI credit, so anonymous calls are rejected."""
         response = client.post("/copilot/chat", json={"user_text": "hi"})
         assert response.status_code == 401

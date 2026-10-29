@@ -52,7 +52,9 @@ def test_share_count_rejects_non_positive_values() -> None:
         ShareCount("TCS", 0, date(2026, 3, 31), "issuer filing")
 
 
-def test_share_count_resolver_uses_verified_primary_and_cross_checks_secondary() -> None:
+def test_share_count_resolver_uses_verified_primary_and_cross_checks_secondary() -> (
+    None
+):
     candidates = (
         ShareCount(
             "TCS",

@@ -107,9 +107,13 @@ def analyze_company(
             )
             research_pack = research.to_public().to_dict()
             if research.status.value != "accepted":
-                limitations.append("AI research validation failed closed; deterministic result returned.")
+                limitations.append(
+                    "AI research validation failed closed; deterministic result returned."
+                )
         except Exception:  # noqa: BLE001 — deterministic analysis remains available
-            limitations.append("AI research unavailable; deterministic result returned.")
+            limitations.append(
+                "AI research unavailable; deterministic result returned."
+            )
 
     # AI is an explanation layer over the already validated DSP result. The
     # service owns provider routing, dual-provider verification, fallback, and
@@ -122,12 +126,12 @@ def analyze_company(
                     "Explain the validated company analysis concisely. "
                     "Do not invent or alter financial facts."
                 ),
-                    request={"symbol": instrument.symbol},
-                    response={
-                        "result": serialized_result,
-                        "validated_research": research_pack,
-                    },
-                )
+                request={"symbol": instrument.symbol},
+                response={
+                    "result": serialized_result,
+                    "validated_research": research_pack,
+                },
+            )
             payload["explanation"] = {
                 "content": explanation.content,
                 "citations": explanation.citations,
@@ -135,7 +139,9 @@ def analyze_company(
             }
             limitations.extend(explanation.limitations)
         except Exception:  # noqa: BLE001 — analysis remains available without AI
-            limitations.append("AI explanation unavailable; deterministic result returned.")
+            limitations.append(
+                "AI explanation unavailable; deterministic result returned."
+            )
 
     return ApiResponse(
         ok=result.ok,

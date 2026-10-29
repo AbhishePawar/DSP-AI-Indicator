@@ -414,7 +414,6 @@ class MetricsRegistry:
         except Exception:  # noqa: BLE001 — observability must not break research flow
             pass
 
-
     def set_gauge(self, name: str, value: float) -> None:
         with self._lock:
             if name in self._gauges:
@@ -456,7 +455,11 @@ class MetricsRegistry:
             self._gauges["dsp_uptime_seconds"] = round(time.time() - _START_TIME, 2)
             counters_copy = list(self._counters.items())
             gauges_copy = list(self._gauges.items())
-            avg = (self._latency_sum_ms / self._latency_count) if self._latency_count else None
+            avg = (
+                (self._latency_sum_ms / self._latency_count)
+                if self._latency_count
+                else None
+            )
 
         lines: list[str] = []
         for name, value in counters_copy:

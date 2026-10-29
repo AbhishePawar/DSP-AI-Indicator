@@ -241,7 +241,11 @@ def build_research_orchestrator(platform: DSPPlatform) -> Any | None:
     backend = (
         platform
         if hasattr(platform, "get_valuation")
-        else (DSPPlatformToolAdapter(platform) if DSPPlatformToolAdapter is not None else platform)
+        else (
+            DSPPlatformToolAdapter(platform)
+            if DSPPlatformToolAdapter is not None
+            else platform
+        )
     )
     return ResearchOrchestrator(
         backend=backend,

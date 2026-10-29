@@ -16,42 +16,46 @@ __all__ = [
     "validate_public_research_report",
 ]
 
-ALLOWED_RECOMMENDATIONS = frozenset({
-    "BUY",
-    "SELL",
-    "HOLD",
-    "UNAVAILABLE",
-    "NEUTRAL",
-    "AVOID",
-    "WATCHLIST",
-})
+ALLOWED_RECOMMENDATIONS = frozenset(
+    {
+        "BUY",
+        "SELL",
+        "HOLD",
+        "UNAVAILABLE",
+        "NEUTRAL",
+        "AVOID",
+        "WATCHLIST",
+    }
+)
 
-FORBIDDEN_PRIVATE_KEYS = frozenset({
-    "provider",
-    "model",
-    "routing_tier",
-    "routing_reasons",
-    "confidence_requirement",
-    "estimated_cost_usd",
-    "input_tokens",
-    "output_tokens",
-    "latency_ms",
-    "model_score",
-    "routing_criteria",
-    "internal_prompt",
-    "tool_calls",
-    "tool_results",
-    "raw_ai_response",
-    "internal_validation",
-    "chain_of_thought",
-    "scratchpad",
-    "system_prompt",
-    "api_key",
-    "secret",
-    "access_token",
-    "authorization",
-    "canary",
-})
+FORBIDDEN_PRIVATE_KEYS = frozenset(
+    {
+        "provider",
+        "model",
+        "routing_tier",
+        "routing_reasons",
+        "confidence_requirement",
+        "estimated_cost_usd",
+        "input_tokens",
+        "output_tokens",
+        "latency_ms",
+        "model_score",
+        "routing_criteria",
+        "internal_prompt",
+        "tool_calls",
+        "tool_results",
+        "raw_ai_response",
+        "internal_validation",
+        "chain_of_thought",
+        "scratchpad",
+        "system_prompt",
+        "api_key",
+        "secret",
+        "access_token",
+        "authorization",
+        "canary",
+    }
+)
 
 _CANARY_PATTERN = re.compile(
     r"(?:sk-[a-zA-Z0-9_-]{16,}|canary_[a-zA-Z0-9_-]{8,}|bearer\s+[a-zA-Z0-9_\.\-]{20,}|DSP_AI_SECRET_CANARY)",
@@ -140,7 +144,9 @@ class PublicResearchReportDTO(BaseModel):
             if not stripped:
                 raise ValueError(f"{field_name}[{idx}] cannot be empty or blank")
             if any(ord(c) < 32 and c not in "\t\n\r" for c in stripped):
-                raise ValueError(f"{field_name}[{idx}] contains invalid control characters")
+                raise ValueError(
+                    f"{field_name}[{idx}] contains invalid control characters"
+                )
             cleaned.append(stripped)
         return cleaned
 
@@ -167,7 +173,9 @@ def _scan_for_leakage(val: Any) -> str | None:
     return None
 
 
-def validate_public_research_report(data: Any) -> tuple[dict[str, Any] | None, str | None]:
+def validate_public_research_report(
+    data: Any,
+) -> tuple[dict[str, Any] | None, str | None]:
     """Validate research report dict against explicit schema and privacy boundary.
 
     Returns:

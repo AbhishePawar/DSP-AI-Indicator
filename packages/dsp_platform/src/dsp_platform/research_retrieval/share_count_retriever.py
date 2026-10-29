@@ -25,8 +25,15 @@ def resolve_share_count_from_evidence(
         return None
 
     # Separate primary candidates and secondary cross-checks
-    primary_candidates = [c for c in cand_list if c.purpose == "fundamental" and c.source in {"NSE", "BSE", "SEC", "COMPANY_OFFICIAL_WEBSITE"}]
-    secondary_candidates = [c for c in cand_list if c.purpose in {"cross_check", "verification"}]
+    primary_candidates = [
+        c
+        for c in cand_list
+        if c.purpose == "fundamental"
+        and c.source in {"NSE", "BSE", "SEC", "COMPANY_OFFICIAL_WEBSITE"}
+    ]
+    secondary_candidates = [
+        c for c in cand_list if c.purpose in {"cross_check", "verification"}
+    ]
 
     if not primary_candidates:
         # No primary source evidence available -> Fail closed!
@@ -76,4 +83,6 @@ class RetrievalShareCountResolver:
         ticker: str,
         candidates: Iterable[ShareCount],
     ) -> ShareCountEvidence | None:
-        return resolve_share_count_from_evidence(ticker, candidates, tolerance=self.tolerance)
+        return resolve_share_count_from_evidence(
+            ticker, candidates, tolerance=self.tolerance
+        )

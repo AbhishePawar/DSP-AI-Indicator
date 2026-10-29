@@ -285,7 +285,9 @@ def assert_evidence_privacy(data: Any) -> None:
             key_str = str(k).lower()
             for forbidden in FORBIDDEN_LEAKAGE_TERMS:
                 if forbidden in key_str:
-                    raise ValueError(f"Privacy breach: forbidden key {k} in evidence payload")
+                    raise ValueError(
+                        f"Privacy breach: forbidden key {k} in evidence payload"
+                    )
             assert_evidence_privacy(v)
     elif isinstance(data, (list, tuple)):
         for item in data:

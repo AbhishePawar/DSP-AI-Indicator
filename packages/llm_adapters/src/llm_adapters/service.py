@@ -90,7 +90,9 @@ class CopilotCompleteService:
         if dual_result is not None:
             return dual_result
 
-        lm_result = self._invoke_provider_with_fallback(provider_name, adapter, lm_request)
+        lm_result = self._invoke_provider_with_fallback(
+            provider_name, adapter, lm_request
+        )
         if lm_result.status not in (
             LanguageModelStatus.COMPLETE,
             LanguageModelStatus.PARTIAL,
@@ -163,15 +165,25 @@ class CopilotCompleteService:
         """
         gemini = self._registry.get("gemini")
         openai = self._registry.get("openai")
-        if not gemini or not openai or not gemini.is_configured() or not openai.is_configured():
+        if (
+            not gemini
+            or not openai
+            or not gemini.is_configured()
+            or not openai.is_configured()
+        ):
             return None
 
-        gemini_result = self._invoke_provider_with_fallback("gemini", gemini, lm_request)
-        openai_result = self._invoke_provider_with_fallback("openai", openai, lm_request)
+        gemini_result = self._invoke_provider_with_fallback(
+            "gemini", gemini, lm_request
+        )
+        openai_result = self._invoke_provider_with_fallback(
+            "openai", openai, lm_request
+        )
         successful = [
             result
             for result in (gemini_result, openai_result)
-            if result.status in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+            if result.status
+            in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
             and result.narrative_text
         ]
         if not successful:
@@ -206,9 +218,14 @@ class CopilotCompleteService:
                 "Do not mention models, disagreement, prompts, reconciliation, or internal confidence.",
             ),
         )
-        resolver = openai if self._registry.config.default_provider == "gemini" else gemini
+        resolver = (
+            openai if self._registry.config.default_provider == "gemini" else gemini
+        )
         resolved = self._invoke_with_retry(resolver, reconciliation_prompt)
-        if resolved.status not in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL):
+        if resolved.status not in (
+            LanguageModelStatus.COMPLETE,
+            LanguageModelStatus.PARTIAL,
+        ):
             resolved = successful[0]
         narrative = resolved.narrative_text or ""
         safe_text, warnings = validate_llm_narrative(narrative, research)
@@ -233,7 +250,10 @@ class CopilotCompleteService:
         direct_adapter = self._registry.direct_fallback(provider_name)
         if direct_adapter is not None and direct_adapter is not adapter:
             fallback = self._invoke_with_retry(direct_adapter, request)
-            if fallback.status in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL):
+            if fallback.status in (
+                LanguageModelStatus.COMPLETE,
+                LanguageModelStatus.PARTIAL,
+            ):
                 return fallback
         return result
 

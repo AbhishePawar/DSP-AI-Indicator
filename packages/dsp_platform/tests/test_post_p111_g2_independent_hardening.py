@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -22,6 +23,21 @@ from dsp_platform.composition.authenticated_valuation import (
     _resolve_shares,
     _select_homogeneous_periods,
 )
+
+
+def _research_evidence(**overrides: Any) -> ShareCountResearchEvidence:
+    values: dict[str, Any] = {
+        "ticker": "ABC",
+        "company_name": "ABC Ltd",
+        "metric": "issued_equity_shares",
+        "shares_outstanding": 50_000_000,
+        "source": "Issuer annual report",
+        "evidence_url": "https://example.com/annual-report.pdf",
+        "as_of": "2025-03-31",
+        "unit": "shares",
+    }
+    values.update(overrides)
+    return ShareCountResearchEvidence(**values)
 
 
 def test_evidence_class_taxonomy_public_never_clears_g2() -> None:
@@ -84,116 +100,39 @@ def test_shares_from_authenticated_quote() -> None:
     assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
 
 
-
 def test_researched_shares_require_explicit_valid_evidence() -> None:
     from dsp_platform.composition.authenticated_valuation import (
         _resolve_researched_shares,
     )
 
-    evidence = ShareCountResearchEvidence(
-        ticker="ABC",
-        company_name="ABC Ltd",
-        metric="issued_equity_shares",
-        shares_outstanding=50_000_000,
-        source="Issuer annual report",
-        evidence_url="https://example.com/annual-report.pdf",
-        as_of="2025-03-31",
-    )
     shares, provenance = _resolve_researched_shares(
-        "ABC", "ABC Ltd", "NSE", lambda *_: evidence
+        "ABC", "ABC Ltd", "NSE", lambda *_: _research_evidence()
     )
     assert shares == 50_000_000
     assert provenance["evidence_url"] == "https://example.com/annual-report.pdf"
     assert provenance["evidence_class"] == "public_research_unverified_for_g2"
+    assert provenance["company_name"] == "ABC Ltd"
+    assert provenance["metric"] == "issued_equity_shares"
     assert provenance["unit"] == "shares"
+    assert provenance["as_of"] == "2025-03-31"
 
 
 @pytest.mark.parametrize(
     "evidence",
     [
         None,
-        ShareCountResearchEvidence(
-            ticker="OTHER",
-            company_name="ABC Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=50_000_000,
-            source="Issuer report",
-            evidence_url="https://example.com/report",
-        as_of="2025-03-31",
-        unit="shares",
-),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="ABC Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=-1,
-            source="Issuer report",
-            evidence_url="https://example.com/report",
-        as_of="2025-03-31",
-        unit="shares",
-),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="ABC Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=float("nan"
-            as_of="2025-03-31",
-            unit="shares",
-),
-            source="Issuer report",
-            evidence_url="https://example.com/report",
-        ),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="ABC Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=50_000_000,
-            source="",
-            evidence_url="",
-        as_of="2025-03-31",
-        unit="shares",
-),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="Other Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=50_000_000,
-            source="Issuer report",
-            evidence_url="https://example.com/report",
-            as_of="2025-03-31",
-        ),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="ABC Ltd",
-            metric="weighted_average_eps_shares",
-            shares_outstanding=50_000_000,
-            source="Issuer report",
-            evidence_url="https://example.com/report",
-            as_of="2025-03-31",
-        ),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="ABC Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=50_000_000.5,
-            source="Issuer report",
-            evidence_url="https://example.com/report",
-            as_of="2025-03-31",
-        ),
-        ShareCountResearchEvidence(
-            ticker="ABC",
-            company_name="ABC Ltd",
-            metric="issued_equity_shares",
-            shares_outstanding=50_000_000,
-            source="Issuer report",
-            evidence_url="http://example.com/report",
-            as_of="2025-03-31",
-        ),
+        _research_evidence(ticker="OTHER"),
+        _research_evidence(shares_outstanding=-1),
+        _research_evidence(shares_outstanding=float("nan")),
+        _research_evidence(source="", evidence_url=""),
+        _research_evidence(company_name="Other Ltd"),
+        _research_evidence(metric="weighted_average_eps_shares"),
+        _research_evidence(shares_outstanding=50_000_000.5),
+        _research_evidence(evidence_url="http://example.com/report"),
     ],
 )
 def test_researched_shares_reject_invalid_or_unverifiable_evidence(evidence) -> None:
     from dsp_platform.composition.authenticated_valuation import (
-        ShareCountResearchEvidence,
         _resolve_researched_shares,
     )
 
@@ -210,37 +149,24 @@ def test_researched_shares_fail_closed_when_adapter_not_configured() -> None:
         _resolve_researched_shares("ABC", "ABC Ltd", "NSE", None)
 
 
-def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"unit": "lots"},
+        {"as_of": None},
+        {"as_of": "not-a-date"},
+        {
+            "as_of": date.today()
+            .replace(year=date.today().year + 1)
+            .isoformat()
+        },
+    ],
+)
+def test_researched_shares_require_valid_unit_and_as_of_date(overrides) -> None:
     from dsp_platform.composition.authenticated_valuation import (
         _resolve_researched_shares,
     )
 
-    base = {
-        "ticker": "ABC",
-        "company_name": "ABC Ltd",
-        "metric": "issued_equity_shares",
-        "shares_outstanding": 50_000_000,
-        "source": "Issuer annual report",
-        "evidence_url": "https://example.com/annual-report.pdf",
-        "unit": "shares",
-    }
-    invalid_evidence = (
-        ShareCountResearchEvidence(**base, as_of="2025-03-31", unit="lots"),
-        ShareCountResearchEvidence(**base, as_of=None
-unit="shares",
-),
-        ShareCountResearchEvidence(**base, as_of="not-a-date"
-unit="shares",
-),
-        ShareCountResearchEvidence(
-            **base,
-            as_of=date.today(
-            unit="shares",
-).replace(year=date.today().year + 1).isoformat(),
-        ),
-    )
-    for evidence in invalid_evidence:
-        with pytest.raises(AuthenticatedValuationError):
-            _resolve_researched_shares(
-                "ABC", "ABC Ltd", "NSE", lambda *_: evidence
-            )
+    evidence = _research_evidence(**overrides)
+    with pytest.raises(AuthenticatedValuationError):
+        _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: evidence)

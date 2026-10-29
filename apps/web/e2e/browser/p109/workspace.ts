@@ -158,7 +158,10 @@ export async function assertValuationVisible(
   await openAnalysisSection(page, /^Valuation(\s+\d|\d)?$/i, /^Valuation$/i);
   await expect(page.getByText("Intrinsic Value", { exact: true })).toBeVisible();
   await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
-  await expect(page.getByText("Margin of Safety", { exact: true })).toBeVisible();
+  await expect(
+    analysisMain(page).getByText("Margin of Safety", { exact: true }).first(),
+    "[P1-09 VALUATION] margin-of-safety label must be visible in the active analysis area",
+  ).toBeVisible();
 
   const stages = (payload.stage_summaries ?? []) as Array<
     Record<string, unknown>

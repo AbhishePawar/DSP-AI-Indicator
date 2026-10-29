@@ -581,6 +581,12 @@ def load_authenticated_valuation_bundle(
     price = _resolve_price(quote)
 
     quote_shares = _qf(quote.shares_outstanding)
+    # Treat non-finite/non-positive provider values as missing so the explicit
+    # sourced research fallback can run instead of poisoning integrity math.
+    if quote_shares is not None and (
+        not math.isfinite(quote_shares) or quote_shares <= 0
+    ):
+        quote_shares = None
     derived_shares = None
     latest_period = selected[0]
     net_income = _sf(latest_period.net_income)

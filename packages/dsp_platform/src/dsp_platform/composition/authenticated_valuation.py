@@ -102,8 +102,8 @@ class ShareCountResearchEvidence:
     shares_outstanding: float
     source: str
     evidence_url: str
-    as_of: str | None = None
-    unit: str = "shares"
+    as_of: str
+    unit: str
 
 
 ShareCountResearcher = Callable[

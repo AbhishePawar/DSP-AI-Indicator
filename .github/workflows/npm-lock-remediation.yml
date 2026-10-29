@@ -1,0 +1,58 @@
+name: Temporary npm lockfile remediation
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "apps/web/package.json"
+      - "apps/web/package-lock.json"
+      - ".github/workflows/npm-lock-remediation.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate-lockfile:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Regenerate lockfile and apply compatible transitive fixes
+        working-directory: apps/web
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only --ignore-scripts
+      - name: Validate clean install
+        working-directory: apps/web
+        run: npm ci
+      - name: Capture audit result without hiding it
+        id: audit
+        working-directory: apps/web
+        continue-on-error: true
+        run: npm audit --audit-level=high
+      - name: Commit regenerated lockfile for review
+        if: always()
+        run: |
+          if ! git diff --quiet -- apps/web/package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/web/package-lock.json
+            git commit -m "fix(security): regenerate audited frontend lockfile"
+            git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          else
+            echo "Lockfile unchanged; no commit required."
+          fi
+      - name: Fail unless high and critical audit findings are cleared
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo "::error::npm audit still reports high or critical vulnerabilities; inspect the audit output and continue remediation."
+          exit 1

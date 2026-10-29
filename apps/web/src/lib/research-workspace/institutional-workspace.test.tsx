@@ -70,10 +70,13 @@ vi.mock("@/lib/api/client", () => ({
   },
 }));
 
+const queryClients: QueryClient[] = [];
+
 function renderWithClient(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  queryClients.push(client);
   return render(
     <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
   );
@@ -89,6 +92,7 @@ describe("Research Workspace templates", () => {
 describe("InstitutionalResearchWorkspace", () => {
   afterEach(() => {
     cleanup();
+    for (const client of queryClients.splice(0)) client.clear();
   });
 
   beforeEach(() => {
@@ -108,5 +112,6 @@ describe("InstitutionalResearchWorkspace", () => {
     });
     expect(screen.getByText("New note")).toBeTruthy();
     expect(screen.getByText("Folders")).toBeTruthy();
+    await screen.findByTestId("rw-dashboard-panel");
   });
 });

@@ -186,3 +186,55 @@ def test_researcher_rejects_company_identity_mismatch(monkeypatch) -> None:
     researcher = share_count_research.build_share_count_researcher()
     assert researcher is not None
     assert researcher("ABC", "Different Company Ltd", "NSE") is None
+
+def test_researcher_rejects_conflicting_grounded_provider_response(
+    monkeypatch,
+) -> None:
+    as_of = date.today().isoformat()
+    source = (
+        '{"info":{"symbol":"ABC","companyName":"ABC Limited"},'
+        f'"metadata":{{"lastUpdateTime":"{as_of}"}},'
+        '"securityInfo":{"issuedSize":12345}}'
+    )
+
+    class ConfiguredAdapter:
+        def __init__(self, provider_id: str) -> None:
+            self.provider_id = provider_id
+            self.model_label = provider_id
+
+        def is_configured(self) -> bool:
+            return True
+
+    adapters = {
+        "gemini": ConfiguredAdapter("gemini"),
+        "openai": ConfiguredAdapter("openai"),
+    }
+    registry = SimpleNamespace(
+        config=SimpleNamespace(provider_mode="direct", default_provider="gemini"),
+        get=lambda name: adapters.get(name),
+    )
+    monkeypatch.setattr(
+        share_count_research, "build_default_registry", lambda: registry
+    )
+    monkeypatch.setattr(
+        share_count_research,
+        "_fetch_nse_record",
+        lambda _symbol: (
+            source,
+            "https://www.nseindia.com/api/quote-equity?symbol=ABC",
+        ),
+    )
+
+    def completion(provider, _prompt):
+        count = 12345 if provider.provider_id == "gemini" else 12346
+        return {
+            "ticker": "ABC",
+            "shares_outstanding": count,
+            "as_of": as_of,
+            "evidence_excerpt": '"issuedSize":12345',
+        }
+
+    monkeypatch.setattr(share_count_research, "_json_completion", completion)
+    researcher = share_count_research.build_share_count_researcher()
+    assert researcher is not None
+    assert researcher("ABC", "ABC Ltd", "NSE") is None

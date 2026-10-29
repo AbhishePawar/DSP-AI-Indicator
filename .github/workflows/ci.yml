@@ -108,7 +108,7 @@ jobs:
         run: ruff check packages tests
 
       - name: Check formatting with Black
-        run: black --check --diff packages tests
+        run: black --check packages tests
 
       - name: Type check with mypy
         run: mypy

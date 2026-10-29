@@ -134,8 +134,8 @@ export async function waitForAnalyseSuccess(
   }
 
   await expect(
-    page.getByRole("heading", { name: /Executive Summary|Summary/i }).first(),
-    "[P1-09 ANALYSIS] executive summary must be visible",
+    page.getByRole("heading", { name: /What the research says/i }).first(),
+    "[P1-09 ANALYSIS] current research summary surface must be visible",
   ).toBeVisible({ timeout: 30_000 });
 
   const mainText = await analysisMain(page).innerText();

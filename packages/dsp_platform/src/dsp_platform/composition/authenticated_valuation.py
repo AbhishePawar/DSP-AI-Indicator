@@ -31,7 +31,7 @@ from data_engine.financial_statement.service import (
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
 from data_engine.market_quote.service import MarketQuoteService
-from data_engine.source_governance import is_approved_source
+from data_engine import is_approved_source
 from dsp_platform.composition.financial_integrity import (
     FinancialIntegrityError,
     assert_balance_sheet_integrity,

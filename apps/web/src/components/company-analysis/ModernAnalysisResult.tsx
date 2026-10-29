@@ -62,6 +62,7 @@ export function ModernAnalysisResult({
           <div className="max-w-3xl">
             <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">DSP AI Indicator / Company analysis</p>
             <h1 data-testid="analysis-title" className="mt-3 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight text-[var(--fg)]">{view?.company || "Research a company"}</h1>
+            <p data-testid="analysis-ticker" className="mt-1 font-mono text-xs uppercase tracking-wider text-[var(--muted)]">{view?.ticker || symbol}</p>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">Business quality, financial strength, valuation, and evidence — brought together by the DSP research framework.</p>
           </div>
           <form onSubmit={(event) => { event.preventDefault(); onAnalyze(); }} data-testid="analysis-search-form" className="flex w-full max-w-md gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2">

@@ -155,7 +155,7 @@ def test_researched_shares_require_explicit_valid_evidence() -> None:
     assert provenance["metric"] == "issued_equity_shares"
     assert provenance["source_id"] == "COMPANY_OFFICIAL_WEBSITE"
     assert provenance["unit"] == "shares"
-    assert provenance["as_of"] == "2025-03-31"
+    assert provenance["as_of"] == date.today().isoformat()
 
 
 @pytest.mark.parametrize(

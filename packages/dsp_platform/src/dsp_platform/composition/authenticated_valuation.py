@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from contracts.domain.fundamental_statement import FundamentalStatement
@@ -207,9 +207,14 @@ def _resolve_researched_shares(
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (share-count evidence date missing or invalid)"
         ) from exc
-    if as_of_date > date.today():
+    today = date.today()
+    if as_of_date > today:
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (share-count evidence date is in the future)"
+        )
+    if (today - as_of_date).days > 120:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence is stale; maximum age is 120 days)"
         )
     if not source or not url.startswith("https://"):
         raise AuthenticatedValuationError(

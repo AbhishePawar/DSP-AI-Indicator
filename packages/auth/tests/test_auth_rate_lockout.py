@@ -281,7 +281,11 @@ def test_totp_replay_and_concurrent_same_counter() -> None:
         "user-totp-race", {"code": totp_at(begin["secret"])}
     )
     assert confirmed["ok"] is True
-    later = totp_at(begin["secret"], for_time=__import__("time").time() + 31)
+    # Exactly the next 30s step (mid-window). "now + 31s" lands two steps
+    # ahead when now is in the last second of a step, outside the ±1 drift
+    # window, which made this race test fail intermittently in CI.
+    now = __import__("time").time()
+    later = totp_at(begin["secret"], for_time=(now // 30 + 1) * 30 + 15)
     barrier = threading.Barrier(2)
 
     def attempt() -> bool:

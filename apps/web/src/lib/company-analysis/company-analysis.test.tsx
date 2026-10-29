@@ -404,22 +404,27 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     expect(screen.getByRole("textbox", { name: "Company ticker" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Refresh analysis" })).toBeTruthy();
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: "Refresh analysis" })).toBeTruthy();
     });
     const body = analyseMock.mock.calls[0]?.[0] as {
       ticker: string;
-      financial_statements: { income_statement?: { revenue?: number } };
+      exchange?: string;
+      company?: string;
+      financial_statements?: unknown;
       valuation_signals?: unknown;
-      current_market_price?: number;
+      current_market_price?: unknown;
     };
     expect(body.ticker).toBe("AAPL");
-    expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
-    expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
+    expect(body.exchange).toBe("NASDAQ");
+    expect(body.company).toBe("Apple");
+    // Server-side research remains authoritative: client enrichment is not
+    // injected into the analyse request as if it were verified evidence.
+    expect(body.financial_statements).toBeUndefined();
     expect(body.valuation_signals).toBeUndefined();
-    expect(body.current_market_price).toBe(190.5);
+    expect(body.current_market_price).toBeUndefined();
     expect(marketQuoteMock).toHaveBeenCalled();
   });
 
@@ -475,7 +480,7 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.exchange == null || body.exchange === "").toBe(true);
   });
 
-  it("does not call analyse when authenticated statements are unavailable", async () => {
+  it("keeps server analyse authoritative when client statement enrichment is unavailable", async () => {
     financialStatementsMock.mockResolvedValue({
       ok: true,
       available: false,
@@ -489,8 +494,16 @@ describe("EPIC-F005 workspace UI", () => {
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
     });
-    expect(analyseMock).not.toHaveBeenCalled();
+    const body = analyseMock.mock.calls[0]?.[0] as {
+      ticker: string;
+      financial_statements?: unknown;
+      current_market_price?: unknown;
+    };
+    expect(body.ticker).toBe("AAPL");
+    expect(body.financial_statements).toBeUndefined();
+    expect(body.current_market_price).toBeUndefined();
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
@@ -542,7 +555,9 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
-    expect(await screen.findByText(/source-led analysis surface/i)).toBeTruthy();
+    expect(await screen.findByText(/What the research says/i)).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Analysis sections" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Main analysis area" })).toBeTruthy();
     expect(screen.queryByLabelText("Company navigation")).toBeNull();
     expect(screen.queryByLabelText("Context panel")).toBeNull();
   });

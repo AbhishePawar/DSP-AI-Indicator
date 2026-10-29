@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from api_platform.api.share_count_research import _evidence_is_grounded
+from api_platform.api.share_count_research import (
+    _company_identity_matches,
+    _evidence_is_grounded,
+)
 
 
 def _result(*, ticker: str = "ABC", count: int = 12345, as_of: str | None = None):
@@ -77,3 +80,10 @@ def test_rejects_fractional_share_count() -> None:
     }
     source = '{"info":{"symbol":"ABC"},"securityInfo":{"issuedSize":12345.5}}'
     assert _evidence_is_grounded(result, source, "ABC") is None
+
+def test_company_identity_accepts_legal_suffix_variants() -> None:
+    assert _company_identity_matches("HDFC Bank Limited", "HDFC BANK LTD")
+
+
+def test_company_identity_rejects_mismatched_company() -> None:
+    assert not _company_identity_matches("HDFC Bank Limited", "ABC Industries Ltd")

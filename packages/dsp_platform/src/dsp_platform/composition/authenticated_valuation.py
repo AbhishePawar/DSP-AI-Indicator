@@ -97,6 +97,8 @@ class ShareCountResearchEvidence:
     """A share count returned by a research adapter, with auditable evidence."""
 
     ticker: str
+    company_name: str
+    metric: str
     shares_outstanding: float
     source: str
     evidence_url: str
@@ -107,6 +109,19 @@ class ShareCountResearchEvidence:
 ShareCountResearcher = Callable[
     [str, str | None, str | None], ShareCountResearchEvidence | None
 ]
+
+
+def _normalise_research_company_name(value: str | None) -> str:
+    """Normalise legal suffixes for exact company-identity checks."""
+    raw = str(value or "").upper().replace("&", " AND ")
+    tokens = raw.replace(".", " ").replace(",", " ").split()
+    suffixes = {
+        "LIMITED", "LTD", "PRIVATE", "PVT", "COMPANY", "CO",
+        "INCORPORATED", "INC", "CORPORATION", "CORP",
+    }
+    while tokens and tokens[-1].strip().upper() in suffixes:
+        tokens.pop()
+    return " ".join("".join(ch for ch in token if ch.isalnum()) for token in tokens).strip()
 
 
 def _resolve_researched_shares(
@@ -133,16 +148,32 @@ def _resolve_researched_shares(
         )
     if str(evidence.ticker or "").strip().upper() != ticker:
         raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share-count ticker mismatch)"
+        )
+    evidence_company = _normalise_research_company_name(evidence.company_name)
+    requested_company = _normalise_research_company_name(company_name)
+    if not evidence_company or (
+        requested_company and evidence_company != requested_company
+    ):
+        raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (researched share-count company identity mismatch)"
+        )
+    if str(evidence.metric or "").strip().lower() != "issued_equity_shares":
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched metric is not issued equity shares)"
         )
     shares = evidence.shares_outstanding
     if isinstance(shares, bool) or not isinstance(shares, (int, float)):
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (researched share count is not numeric)"
         )
-    if not math.isfinite(float(shares)) or float(shares) <= 0:
+    if (
+        not math.isfinite(float(shares))
+        or float(shares) <= 0
+        or not float(shares).is_integer()
+    ):
         raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (researched share count is invalid)"
+            f"{DATA_UNAVAILABLE} (researched share count must be a positive integer)"
         )
     source = str(evidence.source or "").strip()
     url = str(evidence.evidence_url or "").strip()
@@ -169,6 +200,8 @@ def _resolve_researched_shares(
     return float(shares), {
         "provider_id": "ai_research_fallback",
         "ticker": ticker,
+        "company_name": str(evidence.company_name).strip(),
+        "metric": "issued_equity_shares",
         "shares_outstanding": float(shares),
         "source": source,
         "evidence_url": url,

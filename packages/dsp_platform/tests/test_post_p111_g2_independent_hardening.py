@@ -101,7 +101,9 @@ def test_shares_from_authenticated_quote() -> None:
     assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("bad_shares", [float("inf"), float("-inf"), float("nan")])
+@pytest.mark.parametrize(
+    "bad_shares", [float("inf"), float("-inf"), float("nan")]
+)
 def test_non_finite_quote_shares_fail_closed(bad_shares: float) -> None:
     quote = SimpleNamespace(
         shares_outstanding=SimpleNamespace(available=True, value=bad_shares)

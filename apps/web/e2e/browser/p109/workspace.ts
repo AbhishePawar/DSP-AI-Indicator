@@ -278,7 +278,15 @@ export async function exportJsonSnapshot(
   ticker: string,
   analysisId: string,
 ): Promise<Record<string, unknown>> {
-  await openAnalysisSection(page, /Downloads/i, /^Downloads$/i);
+  // Export is intentionally grouped in the "More research tools" dropdown,
+  // not rendered as a regular AnalysisNavigation button.
+  const moreTools = page.getByRole("combobox", { name: "More research tools" });
+  await expect(moreTools, "[P1-09 EXPORT] research tools selector must be visible").toBeVisible();
+  await moreTools.selectOption("export");
+  await expect(
+    page.getByRole("heading", { name: /^Downloads$/i }),
+    "[P1-09 EXPORT] Downloads section must render after selecting Export",
+  ).toBeVisible({ timeout: 20_000 });
   const exportJson = page.getByRole("button", { name: /Export JSON/i });
   await expect(exportJson).toBeVisible({ timeout: 15_000 });
   const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });

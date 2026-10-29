@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 from types import SimpleNamespace
 
+import pytest
+
 import api_platform.api.share_count_research as share_count_research
 from api_platform.api.share_count_research import (
     _company_identity_matches,
@@ -175,7 +177,9 @@ def test_researcher_rejects_company_identity_mismatch(monkeypatch) -> None:
     monkeypatch.setattr(
         share_count_research,
         "_json_completion",
-        lambda *_: pytest.fail("AI must not be called for mismatched company identity"),
+        lambda *_: pytest.fail(
+            "AI must not be called for mismatched company identity"
+        ),
     )
 
     researcher = share_count_research.build_share_count_researcher()

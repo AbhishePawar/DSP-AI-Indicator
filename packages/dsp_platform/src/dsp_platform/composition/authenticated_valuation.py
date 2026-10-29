@@ -31,6 +31,7 @@ from data_engine.financial_statement.service import (
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
 from data_engine.market_quote.service import MarketQuoteService
+from data_engine.source_governance import is_approved_source
 from dsp_platform.composition.financial_integrity import (
     FinancialIntegrityError,
     assert_balance_sheet_integrity,
@@ -100,6 +101,7 @@ class ShareCountResearchEvidence:
     company_name: str
     metric: str
     shares_outstanding: float
+    source_id: str
     source: str
     evidence_url: str
     as_of: str
@@ -186,8 +188,13 @@ def _resolve_researched_shares(
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (researched share count must be a positive integer)"
         )
+    source_id = str(evidence.source_id or "").strip().upper()
     source = str(evidence.source or "").strip()
     url = str(evidence.evidence_url or "").strip()
+    if not is_approved_source(source_id, purpose="verification"):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (unapproved share-count evidence source)"
+        )
     unit = str(evidence.unit or "").strip().lower()
     if unit not in {"share", "shares"}:
         raise AuthenticatedValuationError(
@@ -214,6 +221,7 @@ def _resolve_researched_shares(
         "company_name": str(evidence.company_name).strip(),
         "metric": "issued_equity_shares",
         "shares_outstanding": float(shares),
+        "source_id": source_id,
         "source": source,
         "evidence_url": url,
         "as_of": as_of_date.isoformat(),

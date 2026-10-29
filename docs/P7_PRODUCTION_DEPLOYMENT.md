@@ -44,7 +44,7 @@
 ## Prerequisites
 
 - Linux host (or Docker Desktop) with Docker + Compose v2
-- DNS A/AAAA records for `DSP_PUBLIC_DOMAIN` (and optional `DSP_API_DOMAIN`) pointing to the host
+- DNS A/AAAA records for `DSP_PUBLIC_DOMAIN` (and optional `DSP_WWW_REDIRECT_DOMAIN` / `DSP_API_DOMAIN`) pointing to the host
 - Ports **80** and **443** open for ACME HTTP-01 / HTTPS
 - Secrets available (JWT, admin password, Postgres password)
 
@@ -83,7 +83,7 @@ python scripts/validate_env.py production
 Caddy (`docker/Caddyfile`) obtains and renews certificates automatically when:
 
 - Automatic HTTPS is Caddy's default; change it only in `docker/Caddyfile` (supported: off, disable_redirects, disable_certs, ignore_loaded_certs)
-- `DSP_PUBLIC_DOMAIN` is a publicly resolvable hostname
+- `DSP_PUBLIC_DOMAIN` is exactly one publicly resolvable hostname (no spaces, lists or scheme); a www alias goes in `DSP_WWW_REDIRECT_DOMAIN`, which Caddy permanently redirects
 - Port 80 is reachable from the internet (ACME challenge)
 
 Certificates persist in the `caddy_data` volume.

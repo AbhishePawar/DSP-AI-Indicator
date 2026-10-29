@@ -53,6 +53,12 @@
 }
 
 # Optional dedicated API hostname
+# Optional alias (e.g. www.example.com) that permanently redirects to the
+# public hostname. Keep DSP_PUBLIC_DOMAIN a single hostname.
+{$DSP_WWW_REDIRECT_DOMAIN:www.localhost} {
+	redir https://{$DSP_PUBLIC_DOMAIN:localhost}{uri} permanent
+}
+
 {$DSP_API_DOMAIN:api.localhost} {
 	encode gzip zstd
 

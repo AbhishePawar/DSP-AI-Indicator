@@ -168,8 +168,12 @@ def _resolve_researched_shares(
         )
     evidence_company = _normalise_research_company_name(evidence.company_name)
     requested_company = _normalise_research_company_name(company_name)
-    if not evidence_company or (
-        requested_company and evidence_company != requested_company
+    # Exact identity is mandatory: without a requested company name the
+    # research cannot be tied to this issuer, so it fails closed.
+    if (
+        not evidence_company
+        or not requested_company
+        or evidence_company != requested_company
     ):
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (researched share-count company identity mismatch)"

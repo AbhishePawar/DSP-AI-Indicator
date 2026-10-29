@@ -15,6 +15,16 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   exit 1
 fi
 
+# Unquoted values containing spaces make `source` run the remainder as a
+# command (e.g. "www.example.com: command not found") and silently drop the
+# variable. Refuse before sourcing.
+if grep -nE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^"'"'"'[:space:]#][^[:space:]]*[[:space:]]+[^#[:space:]]' "${ENV_FILE}" \
+  | cut -d= -f1 >&2; then
+  echo "[deploy] ${ENV_FILE}: the variables above have unquoted values containing spaces." >&2
+  echo "[deploy] DSP_PUBLIC_DOMAIN must be one hostname; use DSP_WWW_REDIRECT_DOMAIN for www." >&2
+  exit 1
+fi
+
 # shellcheck disable=SC1090
 set -a
 # shellcheck source=/dev/null

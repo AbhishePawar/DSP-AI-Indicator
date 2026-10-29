@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import type { ReactElement } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -87,6 +87,10 @@ describe("Research Workspace templates", () => {
 });
 
 describe("InstitutionalResearchWorkspace", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     cleanup();
     researchWorkspaceDashboard.mockClear();

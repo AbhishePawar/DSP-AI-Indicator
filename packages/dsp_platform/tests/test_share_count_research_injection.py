@@ -6,8 +6,8 @@ from typing import Any
 import pytest
 
 from dsp_platform import CompositionRequest
-from dsp_platform.composition.context import ExecutionContext
 from dsp_platform.composition import pipeline
+from dsp_platform.composition.context import ExecutionContext
 
 
 def test_pipeline_passes_researcher_to_authenticated_loader(

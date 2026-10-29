@@ -76,17 +76,32 @@ export function ModernAnalysisResult({
         {error ? <div data-testid="analysis-error" role="alert" className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] px-5 py-4 text-sm text-[var(--danger-fg)]">{error}</div> : null}
 
         {analyzing ? <section data-testid="analysis-loading" role="status" aria-live="polite" className="space-y-4 rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-8"><p className="text-sm">Preparing your analysis…</p><p className="text-xs text-[var(--muted)]">Checking company evidence and available financial data.</p><div className="h-3 w-2/3 animate-pulse rounded bg-[var(--surface-2)]" /><div className="h-24 animate-pulse rounded-lg bg-[var(--surface-2)]" /></section> : !hasResult ? (
-          <section data-testid="analysis-empty" className="mx-auto max-w-[660px] rounded-[14px] border border-[var(--accent)]/30 bg-[var(--surface)] p-7 sm:my-12">
-            <p className="font-mono text-[10px] tracking-wider text-[var(--accent)]">{simpleMode ? "QUICK OVERVIEW" : "FLAGSHIP RESEARCH"}</p>
-            <h2 className="mt-3 font-[family-name:var(--font-display)] text-lg font-medium text-[var(--fg)]">{simpleMode ? "Simple Company Research" : "DSP Buffett Indicator Analysis"}</h2>
-            <p className="mt-3 text-[13px] leading-6 text-[var(--muted)]">Complete evidence-driven analysis — business quality, economic moat, management, earnings, growth, valuation, and margin of safety.</p>
-            <p className="mt-4 text-xs text-[var(--muted)]">Enter a company ticker to begin. Results appear only when verified source data is available.</p>
-            <div className="mt-6"><Button data-testid="analysis-empty-submit" onClick={onAnalyze} disabled={!query.trim()}>Analyze {query || symbol || "company"}</Button></div>
-          </section>
+          <div className={`grid items-start gap-5 ${simpleMode ? "" : "lg:grid-cols-[176px_minmax(0,1fr)]"}`}>
+            {!simpleMode && navigation}
+            <main
+              role="region"
+              aria-label="Main analysis area"
+              data-testid="analysis-detail-content"
+              className="min-w-0 space-y-5"
+            >
+              <section data-testid="analysis-empty" className="mx-auto max-w-[660px] rounded-[14px] border border-[var(--accent)]/30 bg-[var(--surface)] p-7 sm:my-12">
+                <p className="font-mono text-[10px] tracking-wider text-[var(--accent)]">{simpleMode ? "QUICK OVERVIEW" : "FLAGSHIP RESEARCH"}</p>
+                <h2 className="mt-3 font-[family-name:var(--font-display)] text-lg font-medium text-[var(--fg)]">{simpleMode ? "Simple Company Research" : "DSP Buffett Indicator Analysis"}</h2>
+                <p className="mt-3 text-[13px] leading-6 text-[var(--muted)]">Complete evidence-driven analysis — business quality, economic moat, management, earnings, growth, valuation, and margin of safety.</p>
+                <p className="mt-4 text-xs text-[var(--muted)]">Enter a company ticker to begin. Results appear only when verified source data is available.</p>
+                <div className="mt-6"><Button data-testid="analysis-empty-submit" onClick={onAnalyze} disabled={!query.trim()}>Analyze {query || symbol || "company"}</Button></div>
+              </section>
+            </main>
+          </div>
         ) : (
           <div className={`grid items-start gap-5 ${simpleMode ? "" : "lg:grid-cols-[176px_minmax(0,1fr)]"}`}>
             {!simpleMode && navigation}
-            <div data-testid="analysis-detail-content" className="min-w-0 space-y-5">
+            <main
+              role="region"
+              aria-label="Main analysis area"
+              data-testid="analysis-detail-content"
+              className="min-w-0 space-y-5"
+            >
             {!simpleMode && activeSection !== "summary" ? detail : <>
             <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <DataCard label="Recommendation" value={view!.committee.finalRecommendation || "Unavailable"} tone="accent" />
@@ -105,7 +120,7 @@ export function ModernAnalysisResult({
 
             <section className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">Audit trail</p><h2 className="mt-2 font-[family-name:var(--font-display)] text-lg font-medium text-[var(--text)]">Data boundaries</h2></div><span className="text-xs text-[var(--muted)]">{view!.analysedAt ? `Updated ${new Date(view!.analysedAt).toLocaleString()}` : "Timestamp unavailable"}</span></div><div className="mt-5 grid gap-3 text-sm text-[var(--muted)] sm:grid-cols-3"><p className="rounded-2xl bg-[var(--bg)] p-4">Verified source outputs stay separate from interpretation.</p><p className="rounded-2xl bg-[var(--bg)] p-4">Calculated values are shown only when returned by the backend.</p><p className="rounded-2xl bg-[var(--bg)] p-4">Unavailable data blocks confidence rather than being filled in.</p></div></section>
           </>}
-            </div>
+            </main>
           </div>
         )}
       </div>

@@ -86,7 +86,9 @@ def test_shares_from_authenticated_quote() -> None:
 
 
 def test_researched_shares_require_explicit_valid_evidence() -> None:
-    from dsp_platform.composition.authenticated_valuation import _resolve_researched_shares
+    from dsp_platform.composition.authenticated_valuation import (
+        _resolve_researched_shares,
+    )
 
     evidence = ShareCountResearchEvidence(
         ticker="ABC",
@@ -145,13 +147,18 @@ def test_researched_shares_reject_invalid_or_unverifiable_evidence(evidence) -> 
 
 
 def test_researched_shares_fail_closed_when_adapter_not_configured() -> None:
-    from dsp_platform.composition.authenticated_valuation import _resolve_researched_shares
+    from dsp_platform.composition.authenticated_valuation import (
+        _resolve_researched_shares,
+    )
 
     with pytest.raises(AuthenticatedValuationError, match="not configured"):
         _resolve_researched_shares("ABC", "ABC Ltd", "NSE", None)
 
+
 def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
-    from dsp_platform.composition.authenticated_valuation import _resolve_researched_shares
+    from dsp_platform.composition.authenticated_valuation import (
+        _resolve_researched_shares,
+    )
 
     base = {
         "ticker": "ABC",
@@ -164,9 +171,14 @@ def test_researched_shares_require_valid_unit_and_as_of_date() -> None:
         ShareCountResearchEvidence(**base, as_of=None),
         ShareCountResearchEvidence(**base, as_of="not-a-date"),
         ShareCountResearchEvidence(
-            **base, as_of=(date.today().replace(year=date.today().year + 1)).isoformat()
+            **base,
+            as_of=date.today()
+            .replace(year=date.today().year + 1)
+            .isoformat(),
         ),
     )
     for evidence in invalid_evidence:
         with pytest.raises(AuthenticatedValuationError):
-            _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: evidence)
+            _resolve_researched_shares(
+                "ABC", "ABC Ltd", "NSE", lambda *_: evidence
+            )

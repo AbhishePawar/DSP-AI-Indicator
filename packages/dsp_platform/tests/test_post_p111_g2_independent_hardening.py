@@ -155,11 +155,7 @@ def test_researched_shares_fail_closed_when_adapter_not_configured() -> None:
         {"unit": "lots"},
         {"as_of": None},
         {"as_of": "not-a-date"},
-        {
-            "as_of": date.today()
-            .replace(year=date.today().year + 1)
-            .isoformat()
-        },
+        {"as_of": date.today().replace(year=date.today().year + 1).isoformat()},
     ],
 )
 def test_researched_shares_require_valid_unit_and_as_of_date(overrides) -> None:

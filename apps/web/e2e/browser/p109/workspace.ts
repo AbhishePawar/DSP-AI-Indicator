@@ -211,11 +211,9 @@ export async function assertEvidenceVisible(
   page: Page,
   analysisId: string,
 ): Promise<void> {
-  await openAnalysisSection(
-    page,
-    /Supporting Evidence/i,
-    /Research objects/i,
-  );
+  // The live navigation deliberately labels this destination "Evidence";
+  // the section registry's longer "Supporting Evidence" label is not rendered here.
+  await openAnalysisSection(page, /^Evidence$/i, /Research objects/i);
   await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
   await expect(analysisMain(page)).toContainText(analysisId);
 }

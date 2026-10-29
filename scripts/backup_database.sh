@@ -19,8 +19,16 @@ BACKUP_DIR="${DSP_BACKUP_DIR:-${ROOT}/backups}"
 mkdir -p "${BACKUP_DIR}"
 export DSP_BACKUP_DIR="${BACKUP_DIR}"
 
-# Prefer dump from running postgres container when available
-if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "running\|Up"; then
+# Choose the database explicitly. DSP_BACKUP_TARGET=local uses the bundled
+# postgres container; anything else (default when DSP_DATABASE_URL is set,
+# e.g. Neon) dumps the database the API actually uses.
+TARGET="${DSP_BACKUP_TARGET:-}"
+if [[ -z "${TARGET}" ]]; then
+  if [[ -n "${DSP_DATABASE_URL:-}" ]]; then TARGET="external"; else TARGET="local"; fi
+fi
+echo "[backup] target=${TARGET}"
+
+if [[ "${TARGET}" == "local" ]] && docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "running\|Up"; then
   STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
   OUT="${BACKUP_DIR}/dsp_pg_${STAMP}.sql.gz"
   echo "[backup] dumping via postgres container → ${OUT}"
@@ -41,4 +49,8 @@ if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/d
   exit 0
 fi
 
-exec "${ROOT}/scripts/ops/backup_postgres.sh"
+if [[ "${TARGET}" == "local" ]]; then
+  echo "[backup] FAILED: DSP_BACKUP_TARGET=local but the postgres container is not running" >&2
+  exit 1
+fi
+exec bash "${ROOT}/scripts/ops/backup_postgres.sh"

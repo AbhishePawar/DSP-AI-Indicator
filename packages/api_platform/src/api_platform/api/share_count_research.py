@@ -292,6 +292,7 @@ def build_share_count_researcher() -> (
             company_name=source_company,
             metric="issued_equity_shares",
             shares_outstanding=count_a,
+            source_id="NSE",
             source=(
                 "NSE quote-equity securityInfo.issuedSize; "
                 "AI-verified exact source excerpt"

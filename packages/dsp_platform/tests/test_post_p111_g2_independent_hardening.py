@@ -192,9 +192,7 @@ def test_researched_shares_reject_stale_evidence() -> None:
         _resolve_researched_shares,
     )
 
-    stale = _research_evidence(
-        as_of=(date.today() - timedelta(days=121)).isoformat()
-    )
+    stale = _research_evidence(as_of=(date.today() - timedelta(days=121)).isoformat())
     with pytest.raises(AuthenticatedValuationError, match="stale"):
         _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: stale)
 

@@ -34,7 +34,7 @@ def _research_evidence(**overrides: Any) -> ShareCountResearchEvidence:
         "source_id": "COMPANY_OFFICIAL_WEBSITE",
         "source": "Issuer annual report",
         "evidence_url": "https://example.com/annual-report.pdf",
-        "as_of": "2025-03-31",
+        "as_of": date.today().isoformat(),
         "unit": "shares",
     }
     values.update(overrides)
@@ -180,6 +180,20 @@ def test_researched_shares_reject_invalid_or_unverifiable_evidence(evidence) -> 
 
     with pytest.raises(AuthenticatedValuationError):
         _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: evidence)
+
+
+def test_researched_shares_reject_stale_evidence() -> None:
+    from datetime import timedelta
+
+    from dsp_platform.composition.authenticated_valuation import (
+        _resolve_researched_shares,
+    )
+
+    stale = _research_evidence(
+        as_of=(date.today() - timedelta(days=121)).isoformat()
+    )
+    with pytest.raises(AuthenticatedValuationError, match="stale"):
+        _resolve_researched_shares("ABC", "ABC Ltd", "NSE", lambda *_: stale)
 
 
 def test_researched_shares_fail_closed_when_adapter_not_configured() -> None:

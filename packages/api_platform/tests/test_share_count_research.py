@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from types import SimpleNamespace
 
+import api_platform.api.share_count_research as share_count_research
 from api_platform.api.share_count_research import (
     _company_identity_matches,
     _evidence_is_grounded,
@@ -89,3 +91,93 @@ def test_company_identity_accepts_legal_suffix_variants() -> None:
 
 def test_company_identity_rejects_mismatched_company() -> None:
     assert not _company_identity_matches("HDFC Bank Limited", "ABC Industries Ltd")
+
+def test_researcher_returns_only_source_grounded_share_evidence(
+    monkeypatch,
+) -> None:
+    as_of = date.today().isoformat()
+    source = (
+        '{"info":{"symbol":"ABC","companyName":"ABC Limited"},'
+        f'"metadata":{{"lastUpdateTime":"{as_of}"}},'
+        '"securityInfo":{"issuedSize":12345}}'
+    )
+    source_url = "https://www.nseindia.com/api/quote-equity?symbol=ABC"
+
+    class ConfiguredAdapter:
+        def is_configured(self) -> bool:
+            return True
+
+    adapter = ConfiguredAdapter()
+    registry = SimpleNamespace(
+        config=SimpleNamespace(provider_mode="direct", default_provider="gemini"),
+        get=lambda name: adapter if name == "gemini" else None,
+    )
+    monkeypatch.setattr(
+        share_count_research, "build_default_registry", lambda: registry
+    )
+    monkeypatch.setattr(
+        share_count_research,
+        "_fetch_nse_record",
+        lambda symbol: (source, source_url) if symbol == "ABC" else None,
+    )
+    monkeypatch.setattr(
+        share_count_research,
+        "_json_completion",
+        lambda _provider, _prompt: {
+            "ticker": "ABC",
+            "shares_outstanding": 12345,
+            "as_of": as_of,
+            "evidence_excerpt": '"issuedSize":12345',
+        },
+    )
+
+    researcher = share_count_research.build_share_count_researcher()
+    assert researcher is not None
+    evidence = researcher("ABC", "ABC Ltd", "NSE")
+    assert evidence is not None
+    assert evidence.ticker == "ABC"
+    assert evidence.company_name == "ABC Limited"
+    assert evidence.metric == "issued_equity_shares"
+    assert evidence.shares_outstanding == 12345
+    assert evidence.unit == "shares"
+    assert evidence.as_of == as_of
+    assert evidence.evidence_url == source_url
+
+
+def test_researcher_rejects_company_identity_mismatch(monkeypatch) -> None:
+    as_of = date.today().isoformat()
+    source = (
+        '{"info":{"symbol":"ABC","companyName":"ABC Limited"},'
+        f'"metadata":{{"lastUpdateTime":"{as_of}"}},'
+        '"securityInfo":{"issuedSize":12345}}'
+    )
+
+    class ConfiguredAdapter:
+        def is_configured(self) -> bool:
+            return True
+
+    adapter = ConfiguredAdapter()
+    registry = SimpleNamespace(
+        config=SimpleNamespace(provider_mode="direct", default_provider="gemini"),
+        get=lambda name: adapter if name == "gemini" else None,
+    )
+    monkeypatch.setattr(
+        share_count_research, "build_default_registry", lambda: registry
+    )
+    monkeypatch.setattr(
+        share_count_research,
+        "_fetch_nse_record",
+        lambda _symbol: (
+            source,
+            "https://www.nseindia.com/api/quote-equity?symbol=ABC",
+        ),
+    )
+    monkeypatch.setattr(
+        share_count_research,
+        "_json_completion",
+        lambda *_: pytest.fail("AI must not be called for mismatched company identity"),
+    )
+
+    researcher = share_count_research.build_share_count_researcher()
+    assert researcher is not None
+    assert researcher("ABC", "Different Company Ltd", "NSE") is None

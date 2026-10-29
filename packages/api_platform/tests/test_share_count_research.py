@@ -140,6 +140,7 @@ def test_researcher_returns_only_source_grounded_share_evidence(
     assert evidence.ticker == "ABC"
     assert evidence.company_name == "ABC Limited"
     assert evidence.metric == "issued_equity_shares"
+    assert evidence.source_id == "NSE"
     assert evidence.shares_outstanding == 12345
     assert evidence.unit == "shares"
     assert evidence.as_of == as_of

@@ -16,6 +16,7 @@ from typing import Any
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
+from data_engine import is_approved_source
 from data_engine.connector_framework.production_profile import (
     assert_production_investment_connectors_configured,
     is_production_environment,
@@ -31,7 +32,6 @@ from data_engine.financial_statement.service import (
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
 from data_engine.market_quote.service import MarketQuoteService
-from data_engine import is_approved_source
 from dsp_platform.composition.financial_integrity import (
     FinancialIntegrityError,
     assert_balance_sheet_integrity,

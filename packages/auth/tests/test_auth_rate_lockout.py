@@ -289,7 +289,7 @@ def test_totp_replay_and_concurrent_same_counter(
         "user-totp-race", {"code": totp_at(begin["secret"])}
     )
     assert confirmed["ok"] is True
-    later = totp_at(begin["secret"], for_time=__import__("time").time() + 31)
+    later = totp_at(begin["secret"], for_time=fixed_time + 31)
     barrier = threading.Barrier(2)
 
     def attempt() -> bool:

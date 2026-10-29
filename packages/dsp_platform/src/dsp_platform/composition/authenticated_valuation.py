@@ -101,6 +101,7 @@ class ShareCountResearchEvidence:
     source: str
     evidence_url: str
     as_of: str | None = None
+    unit: str = "shares"
 
 
 ShareCountResearcher = Callable[
@@ -145,9 +146,25 @@ def _resolve_researched_shares(
         )
     source = str(evidence.source or "").strip()
     url = str(evidence.evidence_url or "").strip()
-    if not source or not url.startswith(("https://", "http://")):
+    unit = str(evidence.unit or "").strip().lower()
+    if unit not in {"share", "shares"}:
         raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (share-count evidence source or URL missing)"
+            f"{DATA_UNAVAILABLE} (researched share-count unit must be shares)"
+        )
+    as_of_raw = str(evidence.as_of or "").strip()
+    try:
+        as_of_date = date.fromisoformat(as_of_raw)
+    except ValueError as exc:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence date missing or invalid)"
+        ) from exc
+    if as_of_date > date.today():
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence date is in the future)"
+        )
+    if not source or not url.startswith("https://"):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence source or HTTPS URL missing)"
         )
     return float(shares), {
         "provider_id": "ai_research_fallback",
@@ -155,7 +172,8 @@ def _resolve_researched_shares(
         "shares_outstanding": float(shares),
         "source": source,
         "evidence_url": url,
-        "as_of": evidence.as_of,
+        "as_of": as_of_date.isoformat(),
+        "unit": "shares",
         "evidence_class": "public_research_unverified_for_g2",
     }
 

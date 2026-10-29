@@ -12,7 +12,10 @@ on:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Keep active PR quality-gate runs alive while new commits arrive; otherwise
+  # GitHub cancels pytest mid-suite and reports 'The operation was canceled'.
+  # Superseded push runs may still be cancelled to conserve runner capacity.
+  cancel-in-progress: ${{ github.event_name != 'pull_request' }}
 
 jobs:
   frontend:

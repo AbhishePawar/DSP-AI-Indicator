@@ -524,7 +524,9 @@ class AssetResolutionService:
         if not raw:
             return None
 
-        cache_key = f"{raw.upper()}:{preferred_exchange.upper() if preferred_exchange else ''}"
+        cache_key = (
+            f"{raw.upper()}:{preferred_exchange.upper() if preferred_exchange else ''}"
+        )
         with self._lock:
             cached = self._dynamic_cache.get(cache_key)
             if cached is not None:
@@ -535,13 +537,21 @@ class AssetResolutionService:
 
         # 1. Match Commodities
         for comm in _COMMODITIES_MASTER:
-            if norm == self._normalize(comm.name) or upper == comm.symbol or norm == self._normalize(comm.query):
+            if (
+                norm == self._normalize(comm.name)
+                or upper == comm.symbol
+                or norm == self._normalize(comm.query)
+            ):
                 res = AssetIdentity(
                     query=raw,
                     symbol=comm.symbol,
                     name=comm.name,
                     asset_class=comm.asset_class,
-                    exchange=preferred_exchange.strip().upper() if preferred_exchange else comm.exchange,
+                    exchange=(
+                        preferred_exchange.strip().upper()
+                        if preferred_exchange
+                        else comm.exchange
+                    ),
                     currency=comm.currency,
                     unit=comm.unit,
                     contract_type=comm.contract_type,
@@ -553,13 +563,21 @@ class AssetResolutionService:
 
         # 2. Match Indices
         for idx in _INDICES_MASTER:
-            if norm == self._normalize(idx.name) or upper == idx.symbol or norm == self._normalize(idx.query):
+            if (
+                norm == self._normalize(idx.name)
+                or upper == idx.symbol
+                or norm == self._normalize(idx.query)
+            ):
                 res = AssetIdentity(
                     query=raw,
                     symbol=idx.symbol,
                     name=idx.name,
                     asset_class=idx.asset_class,
-                    exchange=preferred_exchange.strip().upper() if preferred_exchange else idx.exchange,
+                    exchange=(
+                        preferred_exchange.strip().upper()
+                        if preferred_exchange
+                        else idx.exchange
+                    ),
                     currency=idx.currency,
                     unit=idx.unit,
                     contract_type=idx.contract_type,
@@ -579,7 +597,11 @@ class AssetResolutionService:
                         symbol=eq["symbol"],
                         name=eq["name"],
                         asset_class=AssetClass.EQUITY,
-                        exchange=preferred_exchange.strip().upper() if preferred_exchange else "BSE",
+                        exchange=(
+                            preferred_exchange.strip().upper()
+                            if preferred_exchange
+                            else "BSE"
+                        ),
                         currency=currency,
                         bse_code=raw,
                         isin=eq.get("isin"),
@@ -595,7 +617,9 @@ class AssetResolutionService:
                 symbol=raw,
                 name=f"BSE Scrip {raw}",
                 asset_class=AssetClass.EQUITY,
-                exchange=preferred_exchange.strip().upper() if preferred_exchange else "BSE",
+                exchange=(
+                    preferred_exchange.strip().upper() if preferred_exchange else "BSE"
+                ),
                 currency=currency,
                 bse_code=raw,
                 dual_listed=False,
@@ -612,7 +636,11 @@ class AssetResolutionService:
                     symbol=eq["symbol"],
                     name=eq["name"],
                     asset_class=AssetClass.EQUITY,
-                    exchange=preferred_exchange.strip().upper() if preferred_exchange else eq["exchange"],
+                    exchange=(
+                        preferred_exchange.strip().upper()
+                        if preferred_exchange
+                        else eq["exchange"]
+                    ),
                     currency=currency,
                     bse_code=eq.get("bse_code"),
                     isin=eq.get("isin"),
@@ -626,13 +654,19 @@ class AssetResolutionService:
         # 5. Exact Equity Company Name / Alias Match
         for eq in _EQUITIES_REFERENCE:
             clean_name = self._normalize(eq["name"])
-            if norm == clean_name or any(norm == self._normalize(a) for a in eq.get("aliases", ())):
+            if norm == clean_name or any(
+                norm == self._normalize(a) for a in eq.get("aliases", ())
+            ):
                 res = AssetIdentity(
                     query=raw,
                     symbol=eq["symbol"],
                     name=eq["name"],
                     asset_class=AssetClass.EQUITY,
-                    exchange=preferred_exchange.strip().upper() if preferred_exchange else eq["exchange"],
+                    exchange=(
+                        preferred_exchange.strip().upper()
+                        if preferred_exchange
+                        else eq["exchange"]
+                    ),
                     currency=currency,
                     bse_code=eq.get("bse_code"),
                     isin=eq.get("isin"),
@@ -647,39 +681,49 @@ class AssetResolutionService:
         matching_equities: list[dict[str, Any]] = []
         for eq in _EQUITIES_REFERENCE:
             clean_name = self._normalize(eq["name"])
-            if norm in clean_name or any(norm in self._normalize(a) for a in eq.get("aliases", ())):
+            if norm in clean_name or any(
+                norm in self._normalize(a) for a in eq.get("aliases", ())
+            ):
                 matching_equities.append(eq)
 
         matching_commodities: list[AssetIdentity] = []
         for comm in _COMMODITIES_MASTER:
-            if norm in self._normalize(comm.name) or norm in self._normalize(comm.query):
+            if norm in self._normalize(comm.name) or norm in self._normalize(
+                comm.query
+            ):
                 matching_commodities.append(comm)
 
         total_matches = len(matching_equities) + len(matching_commodities)
         if total_matches > 1:
             candidates: list[dict[str, Any]] = []
             for eq in matching_equities:
-                candidates.append({
-                    "symbol": eq["symbol"],
-                    "name": eq["name"],
-                    "asset_class": AssetClass.EQUITY.value,
-                    "exchange": eq["exchange"],
-                    "bse_code": eq.get("bse_code"),
-                })
+                candidates.append(
+                    {
+                        "symbol": eq["symbol"],
+                        "name": eq["name"],
+                        "asset_class": AssetClass.EQUITY.value,
+                        "exchange": eq["exchange"],
+                        "bse_code": eq.get("bse_code"),
+                    }
+                )
             for comm in matching_commodities:
-                candidates.append({
-                    "symbol": comm.symbol,
-                    "name": comm.name,
-                    "asset_class": comm.asset_class.value,
-                    "exchange": comm.exchange,
-                    "unit": comm.unit,
-                })
+                candidates.append(
+                    {
+                        "symbol": comm.symbol,
+                        "name": comm.name,
+                        "asset_class": comm.asset_class.value,
+                        "exchange": comm.exchange,
+                        "unit": comm.unit,
+                    }
+                )
             return AssetIdentity(
                 query=raw,
                 symbol=upper,
                 name=raw,
                 asset_class=AssetClass.EQUITY,
-                exchange=preferred_exchange.strip().upper() if preferred_exchange else "NSE",
+                exchange=(
+                    preferred_exchange.strip().upper() if preferred_exchange else "NSE"
+                ),
                 currency=currency,
                 ambiguous=True,
                 candidates=tuple(candidates),
@@ -693,7 +737,9 @@ class AssetResolutionService:
                 symbol=upper,
                 name=upper,
                 asset_class=AssetClass.EQUITY,
-                exchange=preferred_exchange.strip().upper() if preferred_exchange else "NSE",
+                exchange=(
+                    preferred_exchange.strip().upper() if preferred_exchange else "NSE"
+                ),
                 currency=currency,
                 dual_listed=False,
                 provenance="dsp.asset_resolver.dynamic_ticker_fallback",

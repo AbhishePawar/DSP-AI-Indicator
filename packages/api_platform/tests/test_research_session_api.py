@@ -27,7 +27,9 @@ from dsp_platform.copilot_v2.memory import CopilotMemoryStore, get_copilot_memor
 class CanonicalResearchSessionManager:
     """Manages canonical ResearchSession instances with strict user + symbol + analysis context boundaries."""
 
-    def __init__(self, memory_store: CopilotMemoryStore | None = None, max_turns: int = 20) -> None:
+    def __init__(
+        self, memory_store: CopilotMemoryStore | None = None, max_turns: int = 20
+    ) -> None:
         self.store = memory_store or get_copilot_memory_store()
         self.max_turns = max_turns
         self._sessions: dict[str, dict[str, Any]] = {}
@@ -81,7 +83,7 @@ class CanonicalResearchSessionManager:
         if not self.validate_ownership(session_id, user_id):
             raise PermissionError("Access denied: session belongs to another user")
         raw = list(self.store.history(session_id))
-        return raw[-self.max_turns:]
+        return raw[-self.max_turns :]
 
     def append_turn(
         self,
@@ -152,8 +154,16 @@ def test_cross_symbol_context_isolation():
 
     assert session_tcs["session_id"] != session_infy["session_id"]
 
-    mgr.append_turn(session_tcs["session_id"], "userA", "user", "Explain TCS moat", topic="moat")
-    mgr.append_turn(session_infy["session_id"], "userA", "user", "Explain INFY margins", topic="margins")
+    mgr.append_turn(
+        session_tcs["session_id"], "userA", "user", "Explain TCS moat", topic="moat"
+    )
+    mgr.append_turn(
+        session_infy["session_id"],
+        "userA",
+        "user",
+        "Explain INFY margins",
+        topic="margins",
+    )
 
     tcs_msgs = mgr.get_messages(session_tcs["session_id"], "userA")
     infy_msgs = mgr.get_messages(session_infy["session_id"], "userA")
@@ -204,13 +214,17 @@ def test_session_context_validation_guards():
 # F: Persistence round-trip, ordering & metadata integrity
 def test_persistence_roundtrip_ordering_and_metadata():
     mgr = CanonicalResearchSessionManager()
-    session = mgr.create_or_get_session("userA", "TCS", "analysis-1", p109_state="COMPLETE")
+    session = mgr.create_or_get_session(
+        "userA", "TCS", "analysis-1", p109_state="COMPLETE"
+    )
     sid = session["session_id"]
 
     # Append user turn
     t1 = mgr.append_turn(sid, "userA", "user", "First question", topic="valuation")
     # Append assistant turn
-    t2 = mgr.append_turn(sid, "userA", "assistant", "Authoritative answer", topic="valuation")
+    t2 = mgr.append_turn(
+        sid, "userA", "assistant", "Authoritative answer", topic="valuation"
+    )
 
     history = mgr.get_messages(sid, "userA")
     assert len(history) == 2
@@ -237,7 +251,9 @@ def test_bounded_turn_retention():
 
     # Insert 30 turns
     for i in range(30):
-        mgr.append_turn(sid, "userA", "user" if i % 2 == 0 else "assistant", f"Turn {i}")
+        mgr.append_turn(
+            sid, "userA", "user" if i % 2 == 0 else "assistant", f"Turn {i}"
+        )
 
     # History capped at max_turns=20
     history = mgr.get_messages(sid, "userA")
@@ -254,10 +270,13 @@ def test_safe_json_serialization(client: TestClient):
     assert res_schema.status_code == 200
     assert isinstance(res_schema.json(), dict)
 
-    res_comp = client.post("/api/v1/copilot/complete", json={
-        "question_id": "freeform",
-        "freeform": "Check ROCE serialization",
-    })
+    res_comp = client.post(
+        "/api/v1/copilot/complete",
+        json={
+            "question_id": "freeform",
+            "freeform": "Check ROCE serialization",
+        },
+    )
     assert res_comp.status_code == 200
     body = res_comp.json()
     assert isinstance(body, dict)

@@ -69,7 +69,10 @@ def test_gate_not_ready_with_legacy_fmp_key_only() -> None:
     mod = _load_drill()
     gate = mod.classify_gate(environ={"DSP_FMP_API_KEY": "k"})
     assert gate["ready"] is False
-    assert gate["credential_presence"].get("DSP_FMP_API_KEY", "ABSENT") in {"PRESENT", "ABSENT"}
+    assert gate["credential_presence"].get("DSP_FMP_API_KEY", "ABSENT") in {
+        "PRESENT",
+        "ABSENT",
+    }
 
 
 def test_drill_fails_closed_without_credentials(

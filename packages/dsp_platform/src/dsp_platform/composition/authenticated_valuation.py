@@ -7,6 +7,7 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
@@ -93,6 +94,148 @@ class AuthenticatedValuationError(ValueError):
 
     def __init__(self, message: str = DATA_UNAVAILABLE) -> None:
         super().__init__(message if message else DATA_UNAVAILABLE)
+
+
+@dataclass(frozen=True, slots=True)
+class ShareCountResearchEvidence:
+    """A share count returned by a research adapter, with auditable evidence."""
+
+    ticker: str
+    company_name: str
+    metric: str
+    shares_outstanding: float
+    source_id: str
+    source: str
+    evidence_url: str
+    as_of: str
+    unit: str
+
+
+ShareCountResearcher = Callable[
+    [str, str | None, str | None], ShareCountResearchEvidence | None
+]
+
+
+def _normalise_research_company_name(value: str | None) -> str:
+    """Normalise legal suffixes for exact company-identity checks."""
+    raw = str(value or "").upper().replace("&", " AND ")
+    tokens = raw.replace(".", " ").replace(",", " ").split()
+    suffixes = {
+        "LIMITED",
+        "LTD",
+        "PRIVATE",
+        "PVT",
+        "COMPANY",
+        "CO",
+        "INCORPORATED",
+        "INC",
+        "CORPORATION",
+        "CORP",
+    }
+    while tokens and tokens[-1].strip().upper() in suffixes:
+        tokens.pop()
+    normalised_tokens = [
+        "".join(char for char in token if char.isalnum()) for token in tokens
+    ]
+    return " ".join(normalised_tokens).strip()
+
+
+def _resolve_researched_shares(
+    ticker: str,
+    company_name: str | None,
+    exchange: str | None,
+    researcher: ShareCountResearcher | None,
+) -> tuple[float, dict[str, Any]]:
+    """Use AI/web research only as a sourced fallback; reject ungrounded output."""
+    if researcher is None:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable; "
+            "share-count research adapter is not configured)"
+        )
+    try:
+        evidence = researcher(ticker, company_name, exchange)
+    except Exception as exc:  # noqa: BLE001 — research failure must degrade safely
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count research failed: {type(exc).__name__})"
+        ) from exc
+    if not isinstance(evidence, ShareCountResearchEvidence):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count research returned no validated evidence)"
+        )
+    if str(evidence.ticker or "").strip().upper() != ticker:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share-count ticker mismatch)"
+        )
+    evidence_company = _normalise_research_company_name(evidence.company_name)
+    requested_company = _normalise_research_company_name(company_name)
+    if not evidence_company or (
+        requested_company and evidence_company != requested_company
+    ):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share-count company identity mismatch)"
+        )
+    if str(evidence.metric or "").strip().lower() != "issued_equity_shares":
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched metric is not issued equity shares)"
+        )
+    shares = evidence.shares_outstanding
+    if isinstance(shares, bool) or not isinstance(shares, (int, float)):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share count is not numeric)"
+        )
+    if (
+        not math.isfinite(float(shares))
+        or float(shares) <= 0
+        or not float(shares).is_integer()
+    ):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share count must be a positive integer)"
+        )
+    source_id = str(evidence.source_id or "").strip().upper()
+    source = str(evidence.source or "").strip()
+    url = str(evidence.evidence_url or "").strip()
+    if not is_approved_source(source_id, purpose="verification"):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (unapproved share-count evidence source)"
+        )
+    unit = str(evidence.unit or "").strip().lower()
+    if unit not in {"share", "shares"}:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share-count unit must be shares)"
+        )
+    as_of_raw = str(evidence.as_of or "").strip()
+    try:
+        as_of_date = date.fromisoformat(as_of_raw)
+    except ValueError as exc:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence date missing or invalid)"
+        ) from exc
+    today = date.today()
+    if as_of_date > today:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence date is in the future)"
+        )
+    if (today - as_of_date).days > 120:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence is stale; maximum age is 120 days)"
+        )
+    if not source or not url.startswith("https://"):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence source or HTTPS URL missing)"
+        )
+    return float(shares), {
+        "provider_id": "ai_research_fallback",
+        "ticker": ticker,
+        "company_name": str(evidence.company_name).strip(),
+        "metric": "issued_equity_shares",
+        "shares_outstanding": float(shares),
+        "source_id": source_id,
+        "source": source,
+        "evidence_url": url,
+        "as_of": as_of_date.isoformat(),
+        "unit": "shares",
+        "evidence_class": "public_research_unverified_for_g2",
+    }
 
 
 @dataclass(frozen=True, slots=True)
@@ -225,6 +368,9 @@ def _resolve_shares(
     *,
     ticker: str,
     supplemental: ShareCount | None = None,
+    researcher: ShareCountResearcher | None = None,
+    company_name: str | None = None,
+    exchange: str | None = None,
 ) -> tuple[float, dict[str, Any]]:
     """Resolve shares from verified fundamentals, never from a quote field.
 
@@ -279,6 +425,30 @@ def _resolve_shares(
                     f"{DATA_UNAVAILABLE} (share-count sources disagree)"
                 )
         return float(resolved.shares), resolved.to_dict()
+
+    # Last resort: server-injected research against the official exchange
+    # record. It is identity-, source-, freshness- and integer-checked, still
+    # cross-checked against the quote, and labelled as research (not verified
+    # provider data) so it can never clear G2 on its own.
+    if researcher is not None:
+        researched_shares, provenance = _resolve_researched_shares(
+            ticker.strip().upper(), company_name, exchange, researcher
+        )
+        if quote_shares is not None and quote_shares > 0:
+            relative_delta = abs(researched_shares - quote_shares) / max(
+                researched_shares, quote_shares
+            )
+            if relative_delta > 0.05:
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                )
+        return researched_shares, {
+            **provenance,
+            "source": provenance["source_id"],
+            "source_detail": provenance["source"],
+            "retrieval": "ai_research_fallback",
+            "verified": False,
+        }
 
     # Do not use quote.shares_outstanding here: Upstox is approved for market
     # data only, not as an authoritative fundamental share-count source.
@@ -442,6 +612,7 @@ def load_authenticated_valuation_bundle(
     ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
     share_count_port: ShareCountPort | None = None,
+    research_missing_shares: ShareCountResearcher | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
 
@@ -529,6 +700,9 @@ def load_authenticated_valuation_bundle(
         latest_period,
         ticker=symbol,
         supplemental=supplemental_share_count,
+        researcher=research_missing_shares,
+        company_name=statements.identity.company_name,
+        exchange=exchange or statements.identity.exchange or quote.exchange,
     )
     try:
         assert_eps_share_integrity(latest_period, shares)

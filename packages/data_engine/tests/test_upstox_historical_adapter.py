@@ -69,7 +69,9 @@ def test_historical_secret_leakage_prevention() -> None:
     assert secret not in (adapter.health().detail or "")
 
 
-def test_v3_historical_candle_endpoint_url_and_headers(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_historical_candle_endpoint_url_and_headers(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxHistoricalAdapter(
         access_token="valid_hist_token",
         resolver=test_resolver,
@@ -106,14 +108,18 @@ def test_v3_historical_candle_endpoint_url_and_headers(test_resolver: UpstoxInst
 
     assert len(captured_req) == 1
     req = captured_req[0]
-    expected_path = "/v3/historical-candle/NSE_EQ%7CINE848E01016/days/1/2026-04-18/2026-04-01"
+    expected_path = (
+        "/v3/historical-candle/NSE_EQ%7CINE848E01016/days/1/2026-04-18/2026-04-01"
+    )
     assert expected_path in req.full_url
     assert req.headers["Authorization"] == "Bearer valid_hist_token"
     assert req.headers["Accept"] == "application/json"
     assert len(candles) == 2
 
 
-def test_v3_historical_candle_parsing_and_sorting(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_historical_candle_parsing_and_sorting(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxHistoricalAdapter(access_token="tok", resolver=test_resolver)
 
     # API returns newest first (reverse chronological)
@@ -207,7 +213,9 @@ def test_v3_historical_candle_window_limit_validation() -> None:
     assert "exceeds maximum retrieval window" in str(exc.value)
 
 
-def test_v3_historical_candle_401_authentication_failure(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_historical_candle_401_authentication_failure(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxHistoricalAdapter(access_token="bad_tok", resolver=test_resolver)
     http_error = urllib.error.HTTPError(
         url="https://api.upstox.com/v3/historical-candle/...",
@@ -228,7 +236,9 @@ def test_v3_historical_candle_401_authentication_failure(test_resolver: UpstoxIn
         assert "authentication failed" in str(exc.value)
 
 
-def test_v3_historical_candle_404_empty_return(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_historical_candle_404_empty_return(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxHistoricalAdapter(access_token="tok", resolver=test_resolver)
     http_error = urllib.error.HTTPError(
         url="https://api.upstox.com/v3/historical-candle/...",
@@ -248,7 +258,9 @@ def test_v3_historical_candle_404_empty_return(test_resolver: UpstoxInstrumentRe
     assert res == []
 
 
-def test_v3_historical_series_bundle_construction(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_historical_series_bundle_construction(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxHistoricalAdapter(
         access_token="valid_hist_token",
         resolver=test_resolver,
@@ -297,7 +309,9 @@ def test_v3_historical_series_bundle_construction(test_resolver: UpstoxInstrumen
     assert bundle.provenance.auth_mode == "oauth_bearer"
 
 
-def test_factory_historical_selection_with_upstox_token(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_factory_historical_selection_with_upstox_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("UPSTOX_ACCESS_TOKEN", "mock_server_token_456")
     monkeypatch.delenv("DSP_HISTORICAL_SERIES_API_KEY", raising=False)
     monkeypatch.delenv("DSP_HISTORICAL_SERIES_BASE_URL", raising=False)

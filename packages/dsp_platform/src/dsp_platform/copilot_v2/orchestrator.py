@@ -23,12 +23,14 @@ from persistence.research_session import (
 _IDEMPOTENCY_LOCKS_GUARD = threading.Lock()
 _IDEMPOTENCY_LOCKS: dict[tuple[str, str, str], threading.Lock] = {}
 
+
 def _get_idempotency_lock(user_id: str, session_id: str, key: str) -> threading.Lock:
     lock_key = (user_id, session_id, key)
     with _IDEMPOTENCY_LOCKS_GUARD:
         if lock_key not in _IDEMPOTENCY_LOCKS:
             _IDEMPOTENCY_LOCKS[lock_key] = threading.Lock()
         return _IDEMPOTENCY_LOCKS[lock_key]
+
 
 UNAVAILABLE_MESSAGE = "Data unavailable."
 COPILOT_V2_SCHEMA_VERSION = "2.0.0"
@@ -129,16 +131,18 @@ def run_copilot_v2(
             hydrated: list[dict[str, Any]] = []
             for dt in durable_turns:
                 meta = dt.get("metadata") or {}
-                hydrated.append({
-                    "turn_id": dt.get("turn_id"),
-                    "role": dt.get("role"),
-                    "message": dt.get("content"),
-                    "created_at": dt.get("created_at"),
-                    "intent": meta.get("intent", "chat"),
-                    "unavailable": meta.get("unavailable", False),
-                    "sources": meta.get("sources", []),
-                    "idempotency_key": meta.get("idempotency_key"),
-                })
+                hydrated.append(
+                    {
+                        "turn_id": dt.get("turn_id"),
+                        "role": dt.get("role"),
+                        "message": dt.get("content"),
+                        "created_at": dt.get("created_at"),
+                        "intent": meta.get("intent", "chat"),
+                        "unavailable": meta.get("unavailable", False),
+                        "sources": meta.get("sources", []),
+                        "idempotency_key": meta.get("idempotency_key"),
+                    }
+                )
             store._turns[cid] = hydrated
     else:
         cid = store.ensure(conversation_id)
@@ -169,7 +173,11 @@ def run_copilot_v2(
     ctx = store.update_context(cid, context_patch)
 
     clean_idem = str(idempotency_key or "").strip() or None
-    lock = _get_idempotency_lock(clean_user or "anon", cid, clean_idem) if (durable and clean_idem) else None
+    lock = (
+        _get_idempotency_lock(clean_user or "anon", cid, clean_idem)
+        if (durable and clean_idem)
+        else None
+    )
 
     if lock:
         lock.acquire()
@@ -197,7 +205,9 @@ def run_copilot_v2(
                             "sources": meta.get("sources") or [],
                             "context": ctx,
                             "engine_payload": None,
-                            "suggested_questions": _suggested_for(intent, resolved_symbols),
+                            "suggested_questions": _suggested_for(
+                                intent, resolved_symbols
+                            ),
                             "provenance": {
                                 "schema_version": COPILOT_V2_SCHEMA_VERSION,
                                 "service_version": COPILOT_V2_SERVICE_VERSION,
@@ -211,7 +221,10 @@ def run_copilot_v2(
             # Prior failed attempt for this key (user turn followed by a failure event):
             # allow a retry to regenerate; the failure event must never replay as success.
             for idx, t in enumerate(turns):
-                if t.get("role") == "user" and (t.get("metadata") or {}).get("idempotency_key") == clean_idem:
+                if (
+                    t.get("role") == "user"
+                    and (t.get("metadata") or {}).get("idempotency_key") == clean_idem
+                ):
                     if idx + 1 < len(turns):
                         nxt = turns[idx + 1]
                         nxt_meta = nxt.get("metadata") or {}
@@ -366,6 +379,7 @@ def run_copilot_v2(
         if lock:
             lock.release()
 
+
 def _generate_ai_copilot_response(
     *,
     message: str,
@@ -418,7 +432,7 @@ def _generate_ai_copilot_response(
 
     req = LanguageModelRequest(
         request_id=str(uuid.uuid4()),
-        intent_class=resolved_intent_class,
+        intent_class=cast(Any, resolved_intent_class),
         prompt_parts=tuple(prompt_parts),
         context_digest_ids=tuple(symbols) if symbols else (),
         provenance=("copilot_v2.ai_orchestration", "dsp.ai_copilot.v1"),
@@ -439,7 +453,8 @@ def _generate_ai_copilot_response(
             res = language_model.invoke(req)
             if (
                 res
-                and getattr(res, "status", None) in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+                and getattr(res, "status", None)
+                in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
                 and getattr(res, "narrative_text", None)
             ):
                 lm_result = res
@@ -462,7 +477,9 @@ def _generate_ai_copilot_response(
         if reg is not None:
             preferred = getattr(reg.config, "default_provider", "gemini")
             candidates: list[str] = []
-            if preferred != "deterministic" and preferred in getattr(reg, "_adapters", {}):
+            if preferred != "deterministic" and preferred in getattr(
+                reg, "_adapters", {}
+            ):
                 candidates.append(preferred)
             else:
                 candidates.append("gemini")
@@ -482,7 +499,11 @@ def _generate_ai_copilot_response(
                         res = adapter.invoke(req)
                         if (
                             res
-                            and getattr(res, "status", None) in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+                            and getattr(res, "status", None)
+                            in (
+                                LanguageModelStatus.COMPLETE,
+                                LanguageModelStatus.PARTIAL,
+                            )
                             and getattr(res, "narrative_text", None)
                         ):
                             lm_result = res
@@ -494,12 +515,20 @@ def _generate_ai_copilot_response(
 
                 # Direct fallback if gateway provider failed
                 direct_adapter = reg.direct_fallback(p_name)
-                if direct_adapter and direct_adapter is not adapter and direct_adapter.is_configured():
+                if (
+                    direct_adapter
+                    and direct_adapter is not adapter
+                    and direct_adapter.is_configured()
+                ):
                     try:
                         res = direct_adapter.invoke(req)
                         if (
                             res
-                            and getattr(res, "status", None) in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+                            and getattr(res, "status", None)
+                            in (
+                                LanguageModelStatus.COMPLETE,
+                                LanguageModelStatus.PARTIAL,
+                            )
                             and getattr(res, "narrative_text", None)
                         ):
                             lm_result = res
@@ -518,11 +547,19 @@ def _generate_ai_copilot_response(
             None,
         )
 
-    narrative = lm_result.narrative_text.strip()
+    narrative = (lm_result.narrative_text or "").strip()
 
     # 4. DSP Authority Reconciliation: deterministic values must override AI text
-    valuation_map = _from_mapping(evidence_payload, "analyse_response", "valuation") or _from_mapping(evidence_payload, "valuation") or {}
-    summary_map = _from_mapping(evidence_payload, "analyse_response", "recommendation_summary") or _from_mapping(evidence_payload, "recommendation_summary") or {}
+    valuation_map = (
+        _from_mapping(evidence_payload, "analyse_response", "valuation")
+        or _from_mapping(evidence_payload, "valuation")
+        or {}
+    )
+    summary_map = (
+        _from_mapping(evidence_payload, "analyse_response", "recommendation_summary")
+        or _from_mapping(evidence_payload, "recommendation_summary")
+        or {}
+    )
 
     dsp_decision = _fmt(
         _from_mapping(summary_map, "label")
@@ -541,7 +578,9 @@ def _generate_ai_copilot_response(
     if dsp_decision:
         for conflicting_rec in ("Strong Buy", "Buy", "Hold", "Sell", "Strong Sell"):
             if conflicting_rec.lower() != dsp_decision.lower():
-                pattern = re.compile(rf"\b{re.escape(conflicting_rec)}\b", re.IGNORECASE)
+                pattern = re.compile(
+                    rf"\b{re.escape(conflicting_rec)}\b", re.IGNORECASE
+                )
                 narrative = pattern.sub(dsp_decision, narrative)
 
     auth_lines = []
@@ -554,10 +593,20 @@ def _generate_ai_copilot_response(
 
     if auth_lines:
         auth_block = "\n".join(auth_lines)
-        if dsp_decision and f"**Authoritative Recommendation:** {dsp_decision}" not in narrative or dsp_iv and f"**Valuation:** {dsp_iv}" not in narrative:
+        if (
+            dsp_decision
+            and f"**Authoritative Recommendation:** {dsp_decision}" not in narrative
+            or dsp_iv
+            and f"**Valuation:** {dsp_iv}" not in narrative
+        ):
             narrative = f"{narrative}\n\n{auth_block}"
 
-    sources = [*evidence_sources, source_ref("ai_provider", f"{provider_used or 'gemini'}:{model_used or 'default'}")]
+    sources = [
+        *evidence_sources,
+        source_ref(
+            "ai_provider", f"{provider_used or 'gemini'}:{model_used or 'default'}"
+        ),
+    ]
     return (narrative, sources, False, evidence_payload)
 
 
@@ -629,7 +678,11 @@ def _dispatch(
         sources = [*sources, source_ref("explain_like_buffett", "plain_language_wrap")]
 
     if require_ai:
-        if (unavailable and payload is None) or answer.strip() == UNAVAILABLE_MESSAGE or not answer.strip():
+        if (
+            (unavailable and payload is None)
+            or answer.strip() == UNAVAILABLE_MESSAGE
+            or not answer.strip()
+        ):
             return answer, sources, True, payload
         combined_payload = dict(payload) if isinstance(payload, dict) else {}
         if analyse_response and isinstance(analyse_response, (dict, Mapping)):

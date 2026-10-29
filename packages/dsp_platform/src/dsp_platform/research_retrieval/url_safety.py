@@ -143,7 +143,9 @@ def validate_url_safety(url: str, policy: UrlSafetyPolicy | None = None) -> None
 
     scheme = parsed.scheme.lower()
     if scheme not in pol.allowed_schemes:
-        raise UrlSafetyError(f"Prohibited URL scheme '{scheme}'; only {sorted(pol.allowed_schemes)} allowed")
+        raise UrlSafetyError(
+            f"Prohibited URL scheme '{scheme}'; only {sorted(pol.allowed_schemes)} allowed"
+        )
 
     if parsed.username or parsed.password:
         raise UrlSafetyError("Embedded user credentials in URLs are prohibited")
@@ -154,11 +156,15 @@ def validate_url_safety(url: str, policy: UrlSafetyPolicy | None = None) -> None
 
     host_lower = host.lower()
     if host_lower in FORBIDDEN_HOSTNAMES or host_lower.endswith(".internal"):
-        raise UrlSafetyError(f"Hostname '{host}' is prohibited as an internal/metadata address")
+        raise UrlSafetyError(
+            f"Hostname '{host}' is prohibited as an internal/metadata address"
+        )
 
     port = parsed.port
     if port is not None and port not in pol.allowed_ports:
-        raise UrlSafetyError(f"Port {port} is not in allowed secure ports {sorted(pol.allowed_ports)}")
+        raise UrlSafetyError(
+            f"Port {port} is not in allowed secure ports {sorted(pol.allowed_ports)}"
+        )
 
     # If host is an IP literal, validate it directly
     is_ip = False
@@ -191,8 +197,7 @@ def validate_url_safety(url: str, policy: UrlSafetyPolicy | None = None) -> None
 class DnsResolver(Protocol):
     """Protocol for resolving hostnames to IP addresses."""
 
-    def resolve(self, hostname: str) -> tuple[str, ...]:
-        ...
+    def resolve(self, hostname: str) -> tuple[str, ...]: ...
 
 
 class SystemDnsResolver:
@@ -200,20 +205,30 @@ class SystemDnsResolver:
 
     def resolve(self, hostname: str) -> tuple[str, ...]:
         try:
-            results = socket.getaddrinfo(hostname, 443, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM)
+            results = socket.getaddrinfo(
+                hostname, 443, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
+            )
             ips = {res[4][0] for res in results}
             if not ips:
-                raise DnsResolutionError(f"No IP addresses resolved for hostname '{hostname}'")
-            return tuple(sorted(ips))
+                raise DnsResolutionError(
+                    f"No IP addresses resolved for hostname '{hostname}'"
+                )
+            return tuple(sorted(str(ip) for ip in ips))
         except socket.gaierror as exc:
-            raise DnsResolutionError(f"DNS resolution failed for '{hostname}': {exc}") from exc
+            raise DnsResolutionError(
+                f"DNS resolution failed for '{hostname}': {exc}"
+            ) from exc
 
 
 class SafeHttpFetcher(Protocol):
     """Protocol for secure document fetching."""
 
-    def fetch(self, url: str) -> FetchedDocument:
-        ...
+    def fetch(self, url: str) -> FetchedDocument: ...
+
+
+def _connect_pinned_ip(ip: str, port: int, timeout: float) -> socket.socket:
+    """Open TCP to an already-validated IP (create_connection takes a tuple)."""
+    return socket.create_connection((ip, port), timeout=timeout)
 
 
 class DefaultSafeHttpFetcher:
@@ -227,7 +242,7 @@ class DefaultSafeHttpFetcher:
     ) -> None:
         self.policy = policy or UrlSafetyPolicy()
         self.dns_resolver = dns_resolver or SystemDnsResolver()
-        self._socket_connector = socket_connector or socket.create_connection
+        self._socket_connector = socket_connector or _connect_pinned_ip
 
     def _validate_and_resolve_destination(self, url: str) -> tuple[str, str]:
         """Validate URL safety and resolve host to a validated safe IP."""
@@ -280,29 +295,45 @@ class DefaultSafeHttpFetcher:
             if status_code in {301, 302, 303, 307, 308}:
                 hops += 1
                 if hops > self.policy.max_redirects:
-                    raise UrlSafetyError(f"Exceeded max redirects ({self.policy.max_redirects})")
+                    raise UrlSafetyError(
+                        f"Exceeded max redirects ({self.policy.max_redirects})"
+                    )
 
                 location = headers.get("location")
                 if not location:
-                    raise UrlSafetyError(f"Redirect status {status_code} missing Location header")
+                    raise UrlSafetyError(
+                        f"Redirect status {status_code} missing Location header"
+                    )
 
                 next_url = urljoin(current_url, location)
                 redirect_chain.append(current_url)
 
                 # Check for redirect loops
                 if next_url in redirect_chain:
-                    raise UrlSafetyError(f"Redirect loop detected targeting '{next_url}'")
+                    raise UrlSafetyError(
+                        f"Redirect loop detected targeting '{next_url}'"
+                    )
 
                 # Verify new scheme is HTTPS (prevent downgrade to HTTP)
                 if not next_url.lower().startswith("https://"):
-                    raise UrlSafetyError(f"Prohibited protocol downgrade in redirect to '{next_url}'")
+                    raise UrlSafetyError(
+                        f"Prohibited protocol downgrade in redirect to '{next_url}'"
+                    )
 
                 current_url = next_url
                 continue
 
             # Non-redirect response
-            content_type = headers.get("content-type", "application/octet-stream").split(";")[0].strip().lower()
-            if self.policy.allowed_content_types and content_type not in self.policy.allowed_content_types:
+            content_type = (
+                headers.get("content-type", "application/octet-stream")
+                .split(";")[0]
+                .strip()
+                .lower()
+            )
+            if (
+                self.policy.allowed_content_types
+                and content_type not in self.policy.allowed_content_types
+            ):
                 raise UrlSafetyError(
                     f"Prohibited content-type '{content_type}'; allowed: {sorted(self.policy.allowed_content_types)}"
                 )
@@ -332,7 +363,9 @@ class DefaultSafeHttpFetcher:
     ) -> tuple[int, dict[str, str], bytes]:
         """Perform raw HTTPS request connected directly to pinned target IP with SNI hostname."""
         # Connecting to the pinned IP prevents DNS rebinding
-        plain_sock = self._socket_connector(target_ip, port, self.policy.timeout_seconds)
+        plain_sock = self._socket_connector(
+            target_ip, port, self.policy.timeout_seconds
+        )
         plain_sock.settimeout(self.policy.timeout_seconds)
         try:
             tls_sock = ssl_ctx.wrap_socket(plain_sock, server_hostname=hostname)
@@ -357,14 +390,18 @@ class DefaultSafeHttpFetcher:
                     break
                 response_data.extend(chunk)
                 if len(response_data) > self.policy.max_body_bytes:
-                    raise UrlSafetyError(f"Response exceeded maximum size of {self.policy.max_body_bytes} bytes")
+                    raise UrlSafetyError(
+                        f"Response exceeded maximum size of {self.policy.max_body_bytes} bytes"
+                    )
         finally:
             tls_sock.close()
 
         # Parse HTTP response
         header_end = response_data.find(b"\r\n\r\n")
         if header_end == -1:
-            raise UrlSafetyError("Malformed HTTP response: headers terminator not found")
+            raise UrlSafetyError(
+                "Malformed HTTP response: headers terminator not found"
+            )
 
         header_bytes = response_data[:header_end]
         body_bytes = bytes(response_data[header_end + 4 :])

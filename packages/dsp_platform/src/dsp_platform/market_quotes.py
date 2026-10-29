@@ -67,7 +67,11 @@ def get_authenticated_market_quote(
     """Fetch authenticated quote as a public dict, or ``None`` if unavailable."""
     eff_currency = currency
     if not eff_currency:
-        eff_currency = "INR" if exchange and str(exchange).strip().upper() in ("NSE", "BSE") else "USD"
+        eff_currency = (
+            "INR"
+            if exchange and str(exchange).strip().upper() in ("NSE", "BSE")
+            else "USD"
+        )
     instrument = Instrument(
         symbol=symbol.strip().upper(),
         asset_class=AssetClass.EQUITY,

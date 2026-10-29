@@ -5,6 +5,7 @@ are resolved before requests; raw symbols are never converted by string
 concatenation in the quote adapter. Credentials are read only from the server
 environment and are never returned or logged.
 """
+
 from __future__ import annotations
 
 import json
@@ -89,12 +90,16 @@ class UpstoxQuoteAdapter(MarketQuotePort):
     """Optional Upstox V3 Full Market Quote provider."""
 
     base_url: str = field(
-        default_factory=lambda: os.environ.get("UPSTOX_BASE_URL", DEFAULT_UPSTOX_BASE_URL)
+        default_factory=lambda: os.environ.get(
+            "UPSTOX_BASE_URL", DEFAULT_UPSTOX_BASE_URL
+        )
     )
     access_token: str | None = field(
         default_factory=lambda: os.environ.get(
             "UPSTOX_ACCESS_TOKEN",
-            os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN")),
+            os.environ.get(
+                "DSP_UPSTOX_ACCESS_TOKEN", os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN")
+            ),
         ),
         repr=False,
     )
@@ -116,7 +121,11 @@ class UpstoxQuoteAdapter(MarketQuotePort):
             provider_id=self.provider_id,
             healthy=self.is_configured(),
             authenticated=self.is_configured(),
-            detail="configured" if self.is_configured() else "optional provider unavailable: UPSTOX_ACCESS_TOKEN not set",
+            detail=(
+                "configured"
+                if self.is_configured()
+                else "optional provider unavailable: UPSTOX_ACCESS_TOKEN not set"
+            ),
         )
 
     def format_instrument_key(self, instrument: Instrument) -> str:
@@ -125,7 +134,9 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         if result.status == "ambiguous":
             raise ProviderRequestError("Upstox instrument identity is ambiguous")
         if not result.is_resolved or not result.instrument_key:
-            raise ProviderRequestError("Upstox instrument identity could not be resolved")
+            raise ProviderRequestError(
+                "Upstox instrument identity could not be resolved"
+            )
         if not _UPSTOX_KEY_RE.fullmatch(result.instrument_key):
             raise ProviderRequestError("Resolved Upstox instrument key is invalid")
         return result.instrument_key
@@ -138,20 +149,33 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         exchange: str | None = None,
     ) -> Mapping[str, Any] | None:
         if not isinstance(payload, Mapping):
-            raise InvalidProviderDataError("Upstox quote response must be a JSON object")
+            raise InvalidProviderDataError(
+                "Upstox quote response must be a JSON object"
+            )
         if payload.get("status") != "success":
             msg = payload.get("message")
-            if not msg and isinstance(payload.get("errors"), list) and payload["errors"]:
+            if (
+                not msg
+                and isinstance(payload.get("errors"), list)
+                and payload["errors"]
+            ):
                 msg = payload["errors"][0].get("message")
-            raise ProviderRequestError(msg or "Upstox quote response status not success")
+            raise ProviderRequestError(
+                msg or "Upstox quote response status not success"
+            )
 
         data = payload.get("data")
         if not isinstance(data, Mapping):
-            raise InvalidProviderDataError("Upstox quote response data must be an object")
+            raise InvalidProviderDataError(
+                "Upstox quote response data must be an object"
+            )
 
         # 1. Match by instrument_token
         for value in data.values():
-            if isinstance(value, Mapping) and str(value.get("instrument_token", "")).strip() == instrument_key:
+            if (
+                isinstance(value, Mapping)
+                and str(value.get("instrument_token", "")).strip() == instrument_key
+            ):
                 return value
 
         # 2. Direct key lookup
@@ -193,7 +217,9 @@ class UpstoxQuoteAdapter(MarketQuotePort):
             return None
         instrument_key = res.instrument_key
         if not _UPSTOX_KEY_RE.fullmatch(instrument_key):
-            raise ProviderRequestError(f"Resolved Upstox instrument key is invalid: {instrument_key}")
+            raise ProviderRequestError(
+                f"Resolved Upstox instrument key is invalid: {instrument_key}"
+            )
         query = urllib.parse.urlencode({"instrument_key": instrument_key})
         url = f"{self.base_url.rstrip('/')}/v3/market-quote/quotes?{query}"
         headers = {
@@ -206,7 +232,9 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         for attempt in range(self.max_retries + 1):
             request = urllib.request.Request(url, headers=headers, method="GET")
             try:
-                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                with urllib.request.urlopen(
+                    request, timeout=self.timeout_seconds
+                ) as response:
                     raw = response.read().decode("utf-8")
                 break
             except urllib.error.HTTPError as exc:
@@ -216,8 +244,12 @@ class UpstoxQuoteAdapter(MarketQuotePort):
                     time.sleep(min(0.5 * (attempt + 1), 2.0))
                     continue
                 if exc.code in (401, 403):
-                    raise ProviderRequestError(f"Upstox authentication failed: HTTP {exc.code}") from exc
-                raise ProviderRequestError(f"Upstox quote request failed: HTTP {exc.code}") from exc
+                    raise ProviderRequestError(
+                        f"Upstox authentication failed: HTTP {exc.code}"
+                    ) from exc
+                raise ProviderRequestError(
+                    f"Upstox quote request failed: HTTP {exc.code}"
+                ) from exc
             except TimeoutError as exc:
                 last_error = exc
                 if attempt < self.max_retries:
@@ -230,12 +262,16 @@ class UpstoxQuoteAdapter(MarketQuotePort):
                 raise ProviderRequestError("Upstox quote request failed") from exc
         if raw is None:
             if last_error:
-                raise ProviderRequestError("Upstox quote request failed") from last_error
+                raise ProviderRequestError(
+                    "Upstox quote request failed"
+                ) from last_error
             return None
         try:
             payload = json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise InvalidProviderDataError("Upstox quote response is not valid JSON") from exc
+            raise InvalidProviderDataError(
+                "Upstox quote response is not valid JSON"
+            ) from exc
         quote_data = self._quote_data(
             payload,
             instrument_key,
@@ -252,13 +288,17 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         if raw_ts is not None:
             as_of = _parse_timestamp(raw_ts)
             if as_of is None:
-                raise InvalidProviderDataError(f"malformed timestamp in quote: {raw_ts!r}")
+                raise InvalidProviderDataError(
+                    f"malformed timestamp in quote: {raw_ts!r}"
+                )
         else:
             raw_ohlc_ts = ohlc.get("ts")
             if raw_ohlc_ts is not None:
                 as_of = _parse_timestamp(raw_ohlc_ts)
                 if as_of is None:
-                    raise InvalidProviderDataError(f"malformed ohlc.ts in quote: {raw_ohlc_ts!r}")
+                    raise InvalidProviderDataError(
+                        f"malformed ohlc.ts in quote: {raw_ohlc_ts!r}"
+                    )
             else:
                 as_of = None
         ret_token = quote_data.get("instrument_token")
@@ -308,6 +348,7 @@ class UpstoxQuoteAdapter(MarketQuotePort):
             auth_mode="oauth_bearer",
             metadata=meta,
         )
+
         def first(*keys: str) -> Any:
             for key in keys:
                 if key in quote_data and quote_data[key] is not None:
@@ -337,7 +378,9 @@ class UpstoxQuoteAdapter(MarketQuotePort):
             previous_close=_field(prev_close_val),
             week_52_high=_field(quote_data.get("year_high")),
             week_52_low=_field(quote_data.get("year_low")),
-            volume=_field(first("volume") if first("volume") is not None else ohlc.get("volume")),
+            volume=_field(
+                first("volume") if first("volume") is not None else ohlc.get("volume")
+            ),
             average_volume=QuoteField.missing(),
             market_cap=QuoteField.missing(),
             enterprise_value=QuoteField.missing(),

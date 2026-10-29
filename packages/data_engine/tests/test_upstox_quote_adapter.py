@@ -87,7 +87,9 @@ def test_secret_leakage_prevention() -> None:
     assert secret_token not in health_detail
 
 
-def test_v3_quote_url_headers_and_params(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_url_headers_and_params(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_test_token",
         resolver=test_resolver,
@@ -130,7 +132,10 @@ def test_v3_quote_url_headers_and_params(test_resolver: UpstoxInstrumentResolver
     # Verify official V3 endpoint
     assert req.full_url.startswith("https://api.upstox.com/v3/market-quote/quotes")
     # Verify query parameter format
-    assert "instrument_key=NSE_EQ%7CINE848E01016" in req.full_url or "instrument_key=NSE_EQ|INE848E01016" in req.full_url
+    assert (
+        "instrument_key=NSE_EQ%7CINE848E01016" in req.full_url
+        or "instrument_key=NSE_EQ|INE848E01016" in req.full_url
+    )
     # Verify authentication and headers
     assert req.headers["Authorization"] == "Bearer valid_test_token"
     assert req.headers["Accept"] == "application/json"
@@ -139,7 +144,9 @@ def test_v3_quote_url_headers_and_params(test_resolver: UpstoxInstrumentResolver
     assert quote.current_price.value == 95.5
 
 
-def test_v3_quote_full_response_parsing(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_full_response_parsing(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_test_token",
         resolver=test_resolver,
@@ -264,7 +271,9 @@ def test_v3_quote_response_key_mapping(test_resolver: UpstoxInstrumentResolver) 
     assert float(quote.previous_close.value) == 93.0
 
 
-def test_v3_quote_optional_fields_no_zero_substitution(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_optional_fields_no_zero_substitution(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_token",
         resolver=test_resolver,
@@ -308,7 +317,9 @@ def test_v3_quote_optional_fields_no_zero_substitution(test_resolver: UpstoxInst
     assert not quote.week_52_low.available and quote.week_52_low.value is None
 
 
-def test_v3_quote_401_authentication_error(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_401_authentication_error(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(access_token="bad_token", resolver=test_resolver)
     inst = Instrument(
         symbol="NHPC",
@@ -371,7 +382,9 @@ def test_v3_quote_429_rate_limiting(test_resolver: UpstoxInstrumentResolver) -> 
     with patch("urllib.request.urlopen", side_effect=http_error):
         with pytest.raises(ProviderRequestError) as exc_info:
             adapter.get_quote(inst)
-        assert "rate limited" in str(exc_info.value) or "HTTP 429" in str(exc_info.value)
+        assert "rate limited" in str(exc_info.value) or "HTTP 429" in str(
+            exc_info.value
+        )
 
 
 def test_v3_quote_malformed_json(test_resolver: UpstoxInstrumentResolver) -> None:
@@ -402,7 +415,9 @@ def test_v3_quote_non_success_status(test_resolver: UpstoxInstrumentResolver) ->
         currency="INR",
     )
     resp = MagicMock()
-    resp.read.return_value = json.dumps({"status": "error", "message": "Symbol not active"}).encode("utf-8")
+    resp.read.return_value = json.dumps(
+        {"status": "error", "message": "Symbol not active"}
+    ).encode("utf-8")
     resp.status = 200
     resp.__enter__.return_value = resp
     resp.__exit__.return_value = False
@@ -425,7 +440,9 @@ def test_v3_quote_unresolved_instrument_returns_none() -> None:
     assert adapter.get_quote(inst) is None
 
 
-def test_factory_selection_with_upstox_access_token(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_factory_selection_with_upstox_access_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("UPSTOX_ACCESS_TOKEN", "mock_server_token_123")
     monkeypatch.delenv("DSP_MARKET_QUOTE_API_KEY", raising=False)
@@ -437,7 +454,10 @@ def test_factory_selection_with_upstox_access_token(monkeypatch: pytest.MonkeyPa
     assert adapter.is_configured()
     assert adapter.provider_id == "upstox"
 
-def test_v3_quote_malformed_timestamp_raises_error(test_resolver: UpstoxInstrumentResolver) -> None:
+
+def test_v3_quote_malformed_timestamp_raises_error(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_token",
         resolver=test_resolver,
@@ -456,7 +476,7 @@ def test_v3_quote_malformed_timestamp_raises_error(test_resolver: UpstoxInstrume
                 "last_price": 94.2,
                 "timestamp": "not-a-valid-timestamp",
             }
-        }
+        },
     }
     resp = MagicMock()
     resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
@@ -470,7 +490,9 @@ def test_v3_quote_malformed_timestamp_raises_error(test_resolver: UpstoxInstrume
         assert "malformed timestamp" in str(exc.value)
 
 
-def test_v3_quote_symbol_mismatch_raises_error(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_symbol_mismatch_raises_error(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_token",
         resolver=test_resolver,
@@ -489,7 +511,7 @@ def test_v3_quote_symbol_mismatch_raises_error(test_resolver: UpstoxInstrumentRe
                 "symbol": "NSE_EQ:INFY",
                 "last_price": 94.2,
             }
-        }
+        },
     }
     resp = MagicMock()
     resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
@@ -503,7 +525,9 @@ def test_v3_quote_symbol_mismatch_raises_error(test_resolver: UpstoxInstrumentRe
         assert "mismatch" in str(exc.value)
 
 
-def test_v3_quote_single_item_unrelated_not_accepted(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_single_item_unrelated_not_accepted(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_token",
         resolver=test_resolver,
@@ -524,7 +548,7 @@ def test_v3_quote_single_item_unrelated_not_accepted(test_resolver: UpstoxInstru
                 "instrument_token": "NSE_EQ|INE002A01018",
                 "last_price": 2500.0,
             }
-        }
+        },
     }
     resp = MagicMock()
     resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
@@ -538,7 +562,9 @@ def test_v3_quote_single_item_unrelated_not_accepted(test_resolver: UpstoxInstru
         assert quote is None
 
 
-def test_v3_quote_token_mismatch_raises_error(test_resolver: UpstoxInstrumentResolver) -> None:
+def test_v3_quote_token_mismatch_raises_error(
+    test_resolver: UpstoxInstrumentResolver,
+) -> None:
     adapter = UpstoxQuoteAdapter(
         access_token="valid_token",
         resolver=test_resolver,
@@ -559,7 +585,7 @@ def test_v3_quote_token_mismatch_raises_error(test_resolver: UpstoxInstrumentRes
                 "instrument_token": "BSE_EQ|INE848E01016",
                 "last_price": 95.0,
             }
-        }
+        },
     }
     resp = MagicMock()
     resp.read.return_value = json.dumps(v3_payload).encode("utf-8")

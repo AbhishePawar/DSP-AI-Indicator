@@ -271,9 +271,7 @@ class TestProductionFailClosed:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
-        monkeypatch.setenv(
-            "DSP_FINANCIAL_STATEMENT_API_KEY", "test-statement-key"
-        )
+        monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_API_KEY", "test-statement-key")
         monkeypatch.setenv(
             "DSP_FINANCIAL_STATEMENT_BASE_URL",
             "https://statements.example.test",
@@ -284,9 +282,7 @@ class TestProductionFailClosed:
         selected = assert_production_investment_connectors_configured()
 
         assert selected["market_quote"] == "UpstoxQuoteAdapter"
-        assert (
-            selected["financial_statement"] == "ConfiguredHttpStatementAdapter"
-        )
+        assert selected["financial_statement"] == "ConfiguredHttpStatementAdapter"
 
     def test_no_in_memory_analysis_fallback_in_production(
         self, monkeypatch: pytest.MonkeyPatch

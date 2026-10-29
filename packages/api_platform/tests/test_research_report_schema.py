@@ -70,7 +70,9 @@ def test_recommendation_case_normalization(input_rec: str, expected_rec: str):
     assert dto_dict["recommendation"] == expected_rec
 
 
-@pytest.mark.parametrize("bad_rec", ["STRONG_BUY", "UNDERPERFORM", "OUTPERFORM", "UNKNOWN", "random"])
+@pytest.mark.parametrize(
+    "bad_rec", ["STRONG_BUY", "UNDERPERFORM", "OUTPERFORM", "UNKNOWN", "random"]
+)
 def test_unknown_recommendations_rejected(bad_rec: str):
     data = _valid_report_dict()
     data["recommendation"] = bad_rec
@@ -214,7 +216,13 @@ def test_malformed_evidence_citations_rejected():
 
 def test_private_fields_and_canaries_rejected():
     # Private field in top-level
-    for priv in ["chain_of_thought", "internal_prompt", "raw_ai_response", "api_key", "scratchpad"]:
+    for priv in [
+        "chain_of_thought",
+        "internal_prompt",
+        "raw_ai_response",
+        "api_key",
+        "scratchpad",
+    ]:
         data = _valid_report_dict()
         data[priv] = "secret_value"
         dto_dict, err = validate_public_research_report(data)

@@ -63,7 +63,6 @@ __all__ = [
     "compute_session_id",
     "get_research_session_service",
     "reset_research_session_service_for_tests",
-
     "__version__",
     "ENTITY_KINDS",
     "PERSISTENCE_SCHEMA_VERSION",

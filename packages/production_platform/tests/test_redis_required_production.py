@@ -71,6 +71,7 @@ class TestRedisAdapterAndStack:
         mock_redis.Redis.from_url.return_value = mock_client
 
         from production_platform.adapters import redis_stack
+
         monkeypatch.setattr(redis_stack, "_load_redis", lambda: mock_redis)
 
         cache = RedisCachePort("redis://127.0.0.1:6379/0", key_prefix="test")
@@ -87,6 +88,7 @@ class TestRedisAdapterAndStack:
         mock_redis.Redis.from_url.return_value = mock_client
 
         from production_platform.adapters import redis_stack
+
         monkeypatch.setattr(redis_stack, "_load_redis", lambda: mock_redis)
 
         stack = try_build_redis_stack("redis://127.0.0.1:6379/0")
@@ -100,10 +102,14 @@ class TestRedisAdapterAndStack:
         assert try_build_redis_stack(None) is None
         assert try_build_redis_stack("") is None
 
-    def test_try_build_redis_stack_logs_and_returns_none_on_failure(self, monkeypatch) -> None:
+    def test_try_build_redis_stack_logs_and_returns_none_on_failure(
+        self, monkeypatch
+    ) -> None:
         from production_platform.adapters import redis_stack
+
         def _fail():
             raise ImportError("No module named redis")
+
         monkeypatch.setattr(redis_stack, "_load_redis", _fail)
 
         stack = try_build_redis_stack("redis://127.0.0.1:6379/0")

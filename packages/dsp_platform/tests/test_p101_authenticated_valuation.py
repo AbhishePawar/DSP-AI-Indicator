@@ -206,8 +206,7 @@ def test_load_bundle_positive(seeded_services) -> None:
     assert bundle.current_market_price == pytest.approx(8.0)
     assert bundle.shares_outstanding == pytest.approx(100.0)
     assert (
-        bundle.share_count_provenance["source"]
-        == "authenticated_financial_statement"
+        bundle.share_count_provenance["source"] == "authenticated_financial_statement"
     )
     assert bundle.share_count_provenance["verified"] is True
     assert bundle.reporting_currency == "USD"
@@ -459,7 +458,5 @@ def test_quote_share_count_is_not_promoted_to_valuation_authority() -> None:
         shares_outstanding=StatementField.missing(),
     )
 
-    with pytest.raises(
-        AuthenticatedValuationError, match="verified primary-source"
-    ):
+    with pytest.raises(AuthenticatedValuationError, match="verified primary-source"):
         _resolve_shares(_seed_quote(), latest, ticker=TICKER)

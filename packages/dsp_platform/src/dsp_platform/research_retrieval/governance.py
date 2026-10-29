@@ -154,7 +154,12 @@ class RetrievalGovernance:
                 source_tier=SourceTier.PRIMARY,
                 is_approved=True,
                 status=EvidenceStatus.VERIFIED,
-                permitted_roles=("fundamental", "share_count", "cross_check", "verification"),
+                permitted_roles=(
+                    "fundamental",
+                    "share_count",
+                    "cross_check",
+                    "verification",
+                ),
             )
 
         # 4. Secondary Sources

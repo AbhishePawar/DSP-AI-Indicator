@@ -34,9 +34,7 @@ def _output(
         risk=section(risk),
         buffett_analysis=section("Buffett framework evidence reviewed."),
         evidence=[
-            EvidenceItem(
-                id=evidence_id, source="dsp.business_quality", claim=business
-            )
+            EvidenceItem(id=evidence_id, source="dsp.business_quality", claim=business)
         ],
         decision_brief=brief,
         limitations=[],

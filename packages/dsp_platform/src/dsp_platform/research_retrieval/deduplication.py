@@ -134,8 +134,12 @@ class DeduplicationEngine:
                 continue
 
             # Separate into primary and secondary
-            primaries = [r for r in group if r.provenance.source_tier is SourceTier.PRIMARY]
-            secondaries = [r for r in group if r.provenance.source_tier is SourceTier.SECONDARY]
+            primaries = [
+                r for r in group if r.provenance.source_tier is SourceTier.PRIMARY
+            ]
+            secondaries = [
+                r for r in group if r.provenance.source_tier is SourceTier.SECONDARY
+            ]
 
             base = primaries[0] if primaries else group[0]
             for other in group:
@@ -184,7 +188,10 @@ class DeduplicationEngine:
                             raw_excerpt=base.raw_excerpt,
                             document_location=base.document_location,
                             rejection_reason=base.rejection_reason,
-                            corroborated_by=(*current.corroborated_by, other.evidence_id),
+                            corroborated_by=(
+                                *current.corroborated_by,
+                                other.evidence_id,
+                            ),
                             conflicts_with=base.conflicts_with,
                         )
                         unique_map[base_key] = updated_base

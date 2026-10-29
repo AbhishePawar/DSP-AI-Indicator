@@ -105,7 +105,9 @@ class ResearchRetrievalService:
 
         for candidate in sources:
             canon_url = canonicalize_url(candidate.url)
-            norm_source = normalize_source_name(candidate.publisher or candidate.discovered_by)
+            norm_source = normalize_source_name(
+                candidate.publisher or candidate.discovered_by
+            )
 
             # 1. URL Safety Check
             try:
@@ -113,7 +115,9 @@ class ResearchRetrievalService:
             except UrlSafetyError as err:
                 evidence_records.append(
                     ResearchEvidenceRecord(
-                        evidence_id=generate_stable_evidence_id(symbol, norm_source, canon_url, candidate.title),
+                        evidence_id=generate_stable_evidence_id(
+                            symbol, norm_source, canon_url, candidate.title
+                        ),
                         ticker=symbol,
                         claim=candidate.title or "Discovered source",
                         status=EvidenceStatus.REJECTED,
@@ -129,7 +133,9 @@ class ResearchRetrievalService:
                         rejection_reason=f"URL safety validation failed: {err}",
                     )
                 )
-                warnings.append(f"Blocked unsafe source destination: {candidate.url} ({err})")
+                warnings.append(
+                    f"Blocked unsafe source destination: {candidate.url} ({err})"
+                )
                 continue
 
             # 2. Central Governance Policy Check
@@ -143,7 +149,9 @@ class ResearchRetrievalService:
             if not gov_decision.is_approved:
                 evidence_records.append(
                     ResearchEvidenceRecord(
-                        evidence_id=generate_stable_evidence_id(symbol, norm_source, canon_url, candidate.title),
+                        evidence_id=generate_stable_evidence_id(
+                            symbol, norm_source, canon_url, candidate.title
+                        ),
                         ticker=symbol,
                         claim=candidate.title or "Discovered source",
                         status=EvidenceStatus.REJECTED,
@@ -156,7 +164,8 @@ class ResearchRetrievalService:
                             canonical_url=canon_url,
                             original_url=candidate.url,
                         ),
-                        rejection_reason=gov_decision.rejection_reason or "Source not approved",
+                        rejection_reason=gov_decision.rejection_reason
+                        or "Source not approved",
                     )
                 )
                 continue
@@ -167,7 +176,9 @@ class ResearchRetrievalService:
             except Exception as exc:
                 evidence_records.append(
                     ResearchEvidenceRecord(
-                        evidence_id=generate_stable_evidence_id(symbol, norm_source, canon_url, candidate.title),
+                        evidence_id=generate_stable_evidence_id(
+                            symbol, norm_source, canon_url, candidate.title
+                        ),
                         ticker=symbol,
                         claim=candidate.title or "Discovered source",
                         status=EvidenceStatus.UNAVAILABLE,
@@ -183,15 +194,21 @@ class ResearchRetrievalService:
                         rejection_reason=f"Retrieval error: {exc}",
                     )
                 )
-                limitations.append(f"Failed to retrieve source '{candidate.url}': {exc}")
+                limitations.append(
+                    f"Failed to retrieve source '{candidate.url}': {exc}"
+                )
                 continue
 
             # 4. Document Content Validation
-            claimed_value, value_error = _parse_metric_value(candidate.metadata.get("metric_value"))
+            claimed_value, value_error = _parse_metric_value(
+                candidate.metadata.get("metric_value")
+            )
             if value_error:
                 evidence_records.append(
                     ResearchEvidenceRecord(
-                        evidence_id=generate_stable_evidence_id(symbol, norm_source, canon_url, candidate.title),
+                        evidence_id=generate_stable_evidence_id(
+                            symbol, norm_source, canon_url, candidate.title
+                        ),
                         ticker=symbol,
                         claim=candidate.title or "Discovered source",
                         status=EvidenceStatus.REJECTED,
@@ -231,7 +248,10 @@ class ResearchRetrievalService:
                 rec_reason = None
             else:
                 rec_status = EvidenceStatus.UNVERIFIED
-                rec_reason = gov_decision.rejection_reason or "Source not approved as primary authority"
+                rec_reason = (
+                    gov_decision.rejection_reason
+                    or "Source not approved as primary authority"
+                )
             evidence_records.append(
                 ResearchEvidenceRecord(
                     evidence_id=generate_stable_evidence_id(
@@ -276,12 +296,28 @@ class ResearchRetrievalService:
         share_evidence = self.share_resolver.resolve(symbol, share_candidates)
 
         # 7. Categorization
-        verified_items = tuple(r for r in dedup_res.unique_evidence if r.status is EvidenceStatus.VERIFIED)
-        rejected_items = tuple(r for r in dedup_res.unique_evidence if r.status is EvidenceStatus.REJECTED)
-        unverified_items = tuple(r for r in dedup_res.unique_evidence if r.status is EvidenceStatus.UNVERIFIED)
-        stale_items = tuple(r for r in dedup_res.unique_evidence if r.freshness is EvidenceFreshness.STALE)
+        verified_items = tuple(
+            r for r in dedup_res.unique_evidence if r.status is EvidenceStatus.VERIFIED
+        )
+        rejected_items = tuple(
+            r for r in dedup_res.unique_evidence if r.status is EvidenceStatus.REJECTED
+        )
+        unverified_items = tuple(
+            r
+            for r in dedup_res.unique_evidence
+            if r.status is EvidenceStatus.UNVERIFIED
+        )
+        stale_items = tuple(
+            r
+            for r in dedup_res.unique_evidence
+            if r.freshness is EvidenceFreshness.STALE
+        )
 
-        overall_status = "success" if verified_items else ("empty" if not dedup_res.unique_evidence else "partial")
+        overall_status = (
+            "success"
+            if verified_items
+            else ("empty" if not dedup_res.unique_evidence else "partial")
+        )
 
         outcome = RetrievalOutcome(
             status=overall_status,

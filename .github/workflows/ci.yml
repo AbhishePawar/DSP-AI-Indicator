@@ -30,8 +30,8 @@ jobs:
         with:
           node-version: "22"
       - run: npm ci
-      - run: yarn lint
-      - run: yarn tsc --noEmit
+      - run: npm run lint
+      - run: npx tsc --noEmit
 
   quality:
     name: Quality gates (Python ${{ matrix.python-version }})

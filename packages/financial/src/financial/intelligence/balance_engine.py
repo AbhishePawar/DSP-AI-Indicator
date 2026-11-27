@@ -422,13 +422,14 @@ class BalanceSheetEngine:
         intang = _safe_div(bs.intangibles, ta)
         # Asset quality: prefer tangible / liquid — penalize goodwill+intangibles
         soft = None
-        if gw is not None or intang is not None:
-            soft = (gw or 0.0) + (intang or 0.0)
-        quality = None
-        if soft is not None:
-            quality = _clip01(1.0 - soft)
-        elif ca_comp is not None:
-            quality = _clip01(0.5 + 0.5 * ca_comp)
+        if gw is not None and intang is not None:
+            soft = gw + intang
+
+        quality = (
+            _clip01(1.0 - soft)
+            if soft is not None
+            else None
+        )
 
         for name, formula, result, inputs in (
             (
@@ -580,9 +581,15 @@ class BalanceSheetEngine:
     ) -> EquityMetrics:
         bs = balances[-1]
         book = _equity(bs)
-        gw = bs.goodwill or 0.0
-        intang = bs.intangibles or 0.0
-        tangible = None if book is None else book - gw - intang
+        gw = bs.goodwill
+        intang = bs.intangibles
+        tangible = (
+            book - gw - intang
+            if book is not None
+            and gw is not None
+            and intang is not None
+            else None
+        )
         re_ratio = _safe_div(bs.retained_earnings, book)
         treasury_impact = _safe_div(bs.treasury_shares, book)
         # treasury shares often negative on BS — use abs for impact magnitude
@@ -597,10 +604,10 @@ class BalanceSheetEngine:
         eq_ratio = _safe_div(book, bs.total_assets)
         tang_share = _safe_div(tangible, book) if book and book != 0 else None
         capital_quality = None
-        if eq_ratio is not None:
-            capital_quality = eq_ratio
-            if tang_share is not None:
-                capital_quality = _clip01(eq_ratio * max(0.0, tang_share))
+        if eq_ratio is not None and tang_share is not None:
+            capital_quality = _clip01(
+                eq_ratio * max(0.0, tang_share)
+            )
 
         for name, formula, result, inputs in (
             (
@@ -710,10 +717,11 @@ class BalanceSheetEngine:
         # Flexibility: high equity, low net debt/equity, strong liquidity
         flex = None
         parts = [p for p in (solvency, cap_q, asset_q) if p is not None]
-        if parts:
+        if len(parts) == 3 and debt_burden is not None:
             flex = sum(parts) / len(parts)
-            if debt_burden is not None:
-                flex = _clip01(flex * (1.0 - 0.5 * debt_burden))
+            flex = _clip01(
+                flex * (1.0 - 0.5 * debt_burden)
+            )
 
         strength_parts = [p for p in (liq_q, cap_q, asset_q, flex) if p is not None]
         strength = sum(strength_parts) / len(strength_parts) if strength_parts else None

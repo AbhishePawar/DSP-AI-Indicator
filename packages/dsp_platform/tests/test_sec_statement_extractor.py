@@ -12,6 +12,8 @@ from dsp_platform.research_retrieval.models import (
 
 from dsp_platform.research_retrieval.sec_statement_extractor import (
     EXPECTED_HASH,
+    EXPECTED_TEXT_HASH,
+    extract_row,
     EXPECTED_URL,
     StatementExtractionError,
     extract_infosys_fy2025,
@@ -208,7 +210,7 @@ def test_duplicate_revenue_rejected(document):
 
     with pytest.raises(
         StatementExtractionError,
-        match="Ambiguous financial row",
+        match="Extracted filing text integrity mismatch",
     ):
 
         extract_infosys_fy2025(changed)
@@ -258,7 +260,62 @@ def test_duplicate_lease_rows_rejected(document):
 
     with pytest.raises(
         StatementExtractionError,
-        match="Ambiguous financial row",
+        match="Extracted filing text integrity mismatch",
     ):
 
         extract_infosys_fy2025(changed)
+
+
+
+def test_extracted_text_hash_preserved(document):
+
+    result = extract_infosys_fy2025(document)
+
+    assert (
+        result["extracted_text_hash"]
+        == EXPECTED_TEXT_HASH
+    )
+
+
+def test_modified_financial_value_rejected(document):
+
+    modified = document.text_content.replace(
+        "162,990",
+        "999,999",
+        1,
+    )
+
+    assert modified != document.text_content
+
+    with pytest.raises(
+        StatementExtractionError,
+        match="Extracted filing text integrity mismatch",
+    ):
+
+        extract_infosys_fy2025(
+            replace(
+                document,
+                text_content=modified,
+            )
+        )
+
+
+def test_duplicate_row_parser_rejection():
+
+    section = chr(10).join([
+        "| Revenue | 100 | 90 |",
+        "| Revenue | 100 | 90 |",
+    ])
+
+    assert len(section.splitlines()) == 2
+
+    with pytest.raises(
+        StatementExtractionError,
+        match="Ambiguous financial row",
+    ):
+
+        extract_row(
+            section,
+            "Revenue",
+            2,
+        )

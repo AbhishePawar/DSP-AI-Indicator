@@ -493,7 +493,7 @@ class TestAnalysis:
         )
         assert result.leverage.capital_structure_summary == "insufficient_data"
 
-    def test_asset_quality_without_soft(self) -> None:
+    def test_asset_quality_requires_intangible_evidence(self) -> None:
         eng = BalanceSheetEngine()
         result = eng.analyze(
             BalanceSheet(
@@ -505,7 +505,15 @@ class TestAnalysis:
                 current_liabilities=200.0,
             )
         )
-        assert result.assets.asset_quality_score is not None
+        # Missing goodwill and intangibles must not
+        # produce a proxy asset-quality score.
+        assert result.assets.goodwill_pct is None
+        assert result.assets.intangible_asset_pct is None
+        assert result.assets.asset_quality_score is None
+
+        # Supported financial ratios remain available.
+        assert result.assets.current_asset_composition == pytest.approx(0.4)
+        assert result.assets.non_current_asset_composition == pytest.approx(0.6)
 
     def test_equity_fallback_field(self) -> None:
         eng = BalanceSheetEngine()

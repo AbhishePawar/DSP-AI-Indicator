@@ -8,6 +8,7 @@ commercial-provider data.
 from __future__ import annotations
 
 import re
+from hashlib import sha256
 from decimal import Decimal
 
 from dsp_platform.research_retrieval.statement_integrity import (
@@ -23,6 +24,9 @@ EXPECTED_HASH = (
     "1ec5c267c3524581a15e27876df70ec8c"
     "672b6373ec00aa7f9832a131f2d0cbd"
 )
+
+EXPECTED_TEXT_HASH = "29c41ac0ae73157f3772ad32334f2242cfc0915926aa5bc6b9cad360ff9e0e7d"
+
 
 EXPECTED_URL = (
     "https://www.sec.gov/Archives/edgar/data/"
@@ -124,6 +128,16 @@ def extract_infosys_fy2025(document):
         raise StatementExtractionError("Filing unavailable")
 
     text = document.text_content
+
+    extracted_text_hash = sha256(
+        text.encode("utf-8")
+    ).hexdigest()
+
+    if extracted_text_hash != EXPECTED_TEXT_HASH:
+        raise StatementExtractionError(
+            "Extracted filing text integrity mismatch"
+        )
+
     lower = text.casefold()
 
     required = (
@@ -362,6 +376,7 @@ def extract_infosys_fy2025(document):
         "statement_basis": "consolidated",
         "source_url": document.final_url,
         "content_hash": document.content_hash,
+        "extracted_text_hash": extracted_text_hash,
         "retrieved_at": document.fetched_at,
         "evidence_class": "public_filing_extraction",
         "authenticated_provider": False,

@@ -439,8 +439,8 @@ class CashFlowEngine:
         owner = primary.owner_earnings
         # Cash surplus: FCF after dividends (and optionally buybacks)
         surplus = None
-        if fcf is not None:
-            surplus = fcf - abs(primary.dividends_paid or 0.0)
+        if fcf is not None and primary.dividends_paid is not None:
+            surplus = fcf - abs(primary.dividends_paid)
 
         out.append(
             build_explanation(
@@ -529,7 +529,7 @@ class CashFlowEngine:
             for p in (op_q, fcf.fcf_stability, operating.cash_flow_stability)
             if p is not None
         ]
-        if parts:
+        if len(parts) == 3:
             cash_sust = sum(parts) / len(parts)
 
         div_sust = None

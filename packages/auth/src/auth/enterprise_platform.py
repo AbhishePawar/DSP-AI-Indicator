@@ -305,7 +305,7 @@ class EnterpriseAuthPlatform:
             )
 
     def ensure_dev_admin_seed(self) -> None:
-        """Seed admin@dspai.local / admin / Admin@123 only when no Super Admin / Administrator exists."""
+        """Seed a development administrator only with an explicitly supplied password."""
         users = self.auth.users.list_users()
         if any("super_admin" in u.roles or "administrator" in u.roles for u in users):
             return
@@ -315,7 +315,14 @@ class EnterpriseAuthPlatform:
             and os.environ.get("DSP_FORCE_ADMIN_SEED") != "1"
         ):
             return
-        password = os.environ.get("DSP_SEED_ADMIN_PASSWORD") or "Admin@123"
+        password = (os.environ.get("DSP_SEED_ADMIN_PASSWORD") or "").strip()
+        if not password:
+            if env in {"production", "prod"}:
+                raise RuntimeError(
+                    "DSP_SEED_ADMIN_PASSWORD is required when "
+                    "DSP_FORCE_ADMIN_SEED=1 in production"
+                )
+            return
         meta = freeze_mapping(
             {
                 "auth_entity": "user",

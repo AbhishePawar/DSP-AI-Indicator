@@ -88,8 +88,8 @@ jobs:
           command -v pg_isready
           command -v gzip
           command -v bash
-          pg_dump --version | grep -E 'PostgreSQL\\) 16\\.'
-          psql --version | grep -E 'PostgreSQL\\) 16\\.'
+          pg_dump --version | grep -E 'PostgreSQL\) 16\.'
+          psql --version | grep -E 'PostgreSQL\) 16\.'
 
       - name: Install monorepo + psycopg
         run: |

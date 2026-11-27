@@ -24,7 +24,6 @@ __all__ = [
     "classify_provider_id",
     "adapter_is_production_unsafe",
     "adapter_is_production_unsafe_name",
-    "assert_production_investment_connectors_configured",
 ]
 
 P = TypeVar("P")
@@ -128,39 +127,6 @@ def finalize_provider_registry(
     return registry
 
 
-def assert_production_investment_connectors_configured() -> dict[str, str]:
-    """Validate investment-critical connectors (quote + statements) for production.
-
-    Intended for investment use paths, health/composition checks, and explicit
-    ops certification — **not** for FastAPI ``create_app`` boot. Client auth
-    must remain available when investment credentials are absent.
-
-    Returns a map of connector → selected provider class name. Raises
-    :class:`ConnectorConfigurationError` when production would select Null/memory.
-    No-op outside ``DSP_ENVIRONMENT=production``.
-    """
-    if not is_production_environment():
-        return {}
-
-    from data_engine.financial_statement.adapters import (
-        build_default_statement_adapter_from_env,
-    )
-    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
-
-    quote = build_default_quote_adapter_from_env()
-    statements = build_default_statement_adapter_from_env()
-    selected = {
-        "market_quote": type(quote).__name__,
-        "financial_statement": type(statements).__name__,
-    }
-    for name, cls_name in selected.items():
-        if adapter_is_production_unsafe_name(cls_name):
-            raise ConnectorConfigurationError(
-                f"P1-03: production selected unsafe {name} adapter {cls_name}"
-            )
-    return selected
-
-
 def adapter_is_production_unsafe_name(class_name: str) -> bool:
     name = str(class_name or "").lower()
     return any(
@@ -175,7 +141,9 @@ def adapter_is_production_unsafe(adapter: Any) -> bool:
 
 
 def assert_production_investment_connectors_configured() -> dict[str, str]:
-    """Fail closed unless both investment data adapters are real and configured."""
+    """Validate investment adapters at investment use, not application boot."""
+    if not is_production_environment():
+        return {}
     from data_engine.investment_data_provider import resolve_investment_data_provider
 
     # Raises ConnectorConfigurationError for anything other than auto/http/upstox.

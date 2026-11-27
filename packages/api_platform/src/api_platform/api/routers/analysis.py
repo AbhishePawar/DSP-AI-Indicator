@@ -5,7 +5,14 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+from threading import BoundedSemaphore
+
+from dsp_platform.public_financial_research import (
+    PublicFinancialResearchError,
+    PublicFinancialResearchService,
+)
 
 from api_platform.api.dependencies import (
     ApiState,
@@ -172,3 +179,73 @@ def _serialize_payload(payload: object) -> object:
                     out[key] = repr(value)
         return out
     return repr(payload)
+
+
+_HISTORICAL_RESEARCH_CAPACITY = BoundedSemaphore(2)
+
+
+class HistoricalFinancialResearchRequest(BaseModel):
+
+    ticker: str = Field(min_length=1, max_length=32)
+    exchange: str = Field(min_length=1, max_length=8)
+    fiscal_year: int = Field(ge=1990, le=2100, strict=True)
+
+
+@router.post("/analyze/company/historical-financials")
+def analyze_historical_financials(
+    body: HistoricalFinancialResearchRequest,
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
+) -> dict[str, Any]:
+    """Historical public research; never authorizes valuation."""
+
+    owner = str(auth.get("user_id") or "").strip()
+
+    if not owner:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+        )
+
+    acquired = _HISTORICAL_RESEARCH_CAPACITY.acquire(
+        blocking=False
+    )
+
+    if not acquired:
+        raise HTTPException(
+            status_code=429,
+            detail="Historical research capacity exhausted",
+        )
+
+    try:
+
+        result = PublicFinancialResearchService().analyze(
+            body.ticker.strip().upper(),
+            exchange=body.exchange.strip().upper(),
+            fiscal_year=body.fiscal_year,
+        )
+
+    except PublicFinancialResearchError:
+
+        raise HTTPException(
+            status_code=422,
+            detail="Unsupported or unverified historical financial research",
+        ) from None
+
+    except (ValueError, OSError):
+
+        raise HTTPException(
+            status_code=503,
+            detail="Verified historical financial evidence unavailable",
+        ) from None
+
+    finally:
+
+        _HISTORICAL_RESEARCH_CAPACITY.release()
+
+    return {
+        "ok": True,
+        "capability": "historical_public_financial_research",
+        "payload": result,
+        "limitations": result["limitations"],
+        "errors": [],
+    }

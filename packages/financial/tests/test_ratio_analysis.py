@@ -1126,3 +1126,92 @@ class TestF25FinalMigration:
         )
         assert relabeled.status is FinancialValueStatus.UNAVAILABLE
         assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
+
+
+@pytest.mark.parametrize(
+    "capex,ocf,expected",
+    [
+        (0.0, 100.0, 1.0),
+        (-20.0, 100.0, 0.8),
+        (-100.0, 100.0, 0.0),
+        (None, 100.0, None),
+        (-20.0, 0.0, None),
+    ],
+)
+def test_capex_discipline_evidence(capex, ocf, expected):
+
+    result = FinancialRatioEngine().analyze(
+        _full(
+            cash=CashFlowStatement(
+                operating_cash_flow=ocf,
+                capex=capex,
+                dividends_paid=0.0,
+                share_buybacks=0.0,
+                debt_issued=0.0,
+                debt_repaid=0.0,
+            )
+        )
+    )
+
+    actual = result.capital_allocation.capex_discipline
+
+    if expected is None:
+        assert actual is None
+    else:
+        assert actual == pytest.approx(expected)
+
+
+def test_partial_borrowing_blocks_debt_reduction_score():
+
+    result = FinancialRatioEngine().analyze(
+        _full(
+            cash=CashFlowStatement(
+                operating_cash_flow=100.0,
+                capex=-20.0,
+                debt_issued=50.0,
+                debt_repaid=None,
+            )
+        )
+    )
+
+    assert result.capital_allocation.debt_reduction_quality is None
+    assert result.capital_allocation.capital_allocation_score is None
+
+
+def test_complete_capital_allocation_score():
+
+    result = FinancialRatioEngine().analyze(
+        _full(
+            cash=CashFlowStatement(
+                operating_cash_flow=100.0,
+                capex=-20.0,
+                dividends_paid=0.0,
+                share_buybacks=0.0,
+                debt_issued=0.0,
+                debt_repaid=0.0,
+            )
+        )
+    )
+
+    assert (
+        result.capital_allocation.capital_allocation_score
+        == pytest.approx(0.95)
+    )
+
+
+def test_unknown_buyback_blocks_composite_score():
+
+    result = FinancialRatioEngine().analyze(
+        _full(
+            cash=CashFlowStatement(
+                operating_cash_flow=100.0,
+                capex=-20.0,
+                dividends_paid=0.0,
+                share_buybacks=None,
+                debt_issued=0.0,
+                debt_repaid=0.0,
+            )
+        )
+    )
+
+    assert result.capital_allocation.capital_allocation_score is None

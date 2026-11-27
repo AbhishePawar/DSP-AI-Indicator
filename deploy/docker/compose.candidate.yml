@@ -51,6 +51,7 @@ services:
       - ../../.env.candidate
     environment:
       DSP_UPSTOX_ENABLED: "${DSP_UPSTOX_ENABLED:-false}"
+      DEFAULT_AI_PROVIDER: "${DEFAULT_AI_PROVIDER:-openai}"
       DSP_ENVIRONMENT: staging
       DSP_REGION: ${DSP_REGION:?DSP_REGION required}
       DSP_OBJECT_STORAGE_PROVIDER: local

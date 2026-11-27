@@ -1,5 +1,7 @@
 # Gitleaks false-positive register
 
+**Tracking:** Master remediation checklist, [issue #36](https://github.com/AbhishePawar/DSP-AI-Indicator/issues/36).
+
 **Purpose:** Document the exact historical Gitleaks findings suppressed by the repository-root `.gitleaksignore`.
 
 **Evidence source:** GitHub Actions Secret scan and Secret scan (Gitleaks), PR #34 head `e664bf992b88f2fabbee333c640671e3b4980b8f`, run 40942609211, 29 October 2026.

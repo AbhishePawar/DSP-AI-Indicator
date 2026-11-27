@@ -60,7 +60,7 @@ Dev seed (only if no Super Admin / Administrator exists):
 
 - Email: `admin@dspai.local`
 - Username: `admin`
-- Password: `Admin@123` (override `DSP_SEED_ADMIN_PASSWORD`)
+- Password source: `DSP_SEED_ADMIN_PASSWORD` (required to seed; no checked-in default)
 - Role: `super_admin`
 
 ## Security controls

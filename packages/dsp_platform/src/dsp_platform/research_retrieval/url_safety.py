@@ -266,7 +266,19 @@ class DefaultSafeHttpFetcher:
         return hostname, resolved_ips[0]
 
     def fetch(self, url: str) -> FetchedDocument:
-        """Fetch document following redirects manually with safety re-checks at each hop."""
+        document, _ = self._fetch_document(url)
+        return document
+
+    def fetch_with_raw(
+        self, url: str
+    ) -> tuple[FetchedDocument, bytes]:
+        """Return validated document and original response bytes."""
+        return self._fetch_document(url)
+
+    def _fetch_document(
+        self, url: str
+    ) -> tuple[FetchedDocument, bytes]:
+        """Fetch document with existing destination and response safeguards."""
         current_url = url
         redirect_chain: list[str] = []
         hops = 0
@@ -386,7 +398,7 @@ class DefaultSafeHttpFetcher:
                 )
             content_hash = hashlib.sha256(body_bytes).hexdigest()
 
-            return FetchedDocument(
+            document = FetchedDocument(
                 url=url,
                 final_url=current_url,
                 status_code=status_code,
@@ -397,6 +409,7 @@ class DefaultSafeHttpFetcher:
                 redirect_chain=tuple(redirect_chain),
                 headers=headers,
             )
+            return document, body_bytes
 
     def _execute_request(
         self,

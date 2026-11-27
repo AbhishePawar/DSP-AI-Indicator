@@ -173,7 +173,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dsp}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dsp_change_me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-dsp}
       TZ: Asia/Kolkata
     volumes:
@@ -262,7 +262,7 @@ services:
     restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-CHANGE_ME_GRAFANA_ADMIN}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
       GF_AUTH_ANONYMOUS_ENABLED: "false"
@@ -282,7 +282,7 @@ services:
     image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
     restart: unless-stopped
     environment:
-      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER:-dsp}:${POSTGRES_PASSWORD:-dsp_change_me}@postgres:5432/${POSTGRES_DB:-dsp}?sslmode=disable
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER:-dsp}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-dsp}?sslmode=disable
     networks:
       - dsp_prod
     expose:

@@ -39,4 +39,4 @@ jobs:
           cp .env.production.example .env.production
           docker compose -f docker/docker-compose.yml config
           docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config
-          docker compose -f docker/docker-compose.production.yml config
+          docker compose --env-file .env.production -f docker/docker-compose.production.yml config --quiet

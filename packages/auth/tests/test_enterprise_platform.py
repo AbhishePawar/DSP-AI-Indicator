@@ -35,6 +35,7 @@ from persistence import (
 @pytest.fixture(autouse=True)
 def _reset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    monkeypatch.setenv("DSP_SEED_ADMIN_PASSWORD", "unit-test-fixture-value")
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_ID", raising=False)
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_SECRET", raising=False)
     monkeypatch.setenv("DSP_AUTH_PROVIDER_GOOGLE", "auto")
@@ -273,6 +274,6 @@ def test_mfa_gateway_additive_stable() -> None:
     # Login must not require MFA fields today
     login = platform.login_password(
         identifier="admin",
-        password=os.environ.get("DSP_SEED_ADMIN_PASSWORD") or "Admin@123",
+        password=os.environ["DSP_SEED_ADMIN_PASSWORD"],
     )
     assert "mfa_required" not in login

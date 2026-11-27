@@ -17,6 +17,24 @@ from data_engine import (
     ProviderRegistry,
     register_fred,
 )
+from data_engine.providers import (
+    AuthenticationType,
+    ProviderCapabilities,
+    ProviderMetadata,
+    RateLimitPolicy,
+)
+
+from dsp_platform.world_bank_adapter import (
+    WorldBankEconomicAdapter,
+)
+from dsp_platform.research_retrieval.world_bank_data import (
+    WorldBankDataService,
+)
+from dsp_platform.research_retrieval.url_safety import (
+    DefaultSafeHttpFetcher,
+    UrlSafetyPolicy,
+)
+
 from dsp_platform.config import Environment, PlatformConfig
 from dsp_platform.exceptions import PlatformError
 from orchestration import InvestmentAnalysisService
@@ -52,25 +70,64 @@ def build_analysis_components(
                 "Use the verified-source composition API or inject a data service."
             )
         if config.providers.enable_economic:
-            # Allow missing key only in TEST (unit tests inject fakes).
-            # DEVELOPMENT/PRODUCTION require an injected key for live FRED.
-            if (
-                config.secrets.fred_api_key is None
-                and config.environment is not Environment.TEST
-            ):
-                msg = (
-                    "fred_api_key is required when enable_economic is "
-                    "True outside Environment.TEST"
+            provider_id = config.providers.economic_provider_id
+
+            if provider_id == "world_bank":
+
+                adapter = WorldBankEconomicAdapter(
+                    service=WorldBankDataService(
+                        fetcher=DefaultSafeHttpFetcher(
+                            policy=UrlSafetyPolicy(
+                                timeout_seconds=timeout,
+                                max_redirects=0,
+                                max_body_bytes=2_000_000,
+                            )
+                        )
+                    )
                 )
-                raise PlatformError(msg)
-            register_fred(
-                factory,
-                registry,
-                {
-                    "timeout_seconds": timeout,
-                    "api_key": config.secrets.fred_api_key,
-                },
-            )
+
+                registry.register(
+                    adapter,
+                    ProviderMetadata(
+                        provider_id="world_bank",
+                        name="World Bank",
+                        version="1.0.0",
+                        description="Public annual Indian economic indicators",
+                        homepage="https://data.worldbank.org",
+                        capabilities=ProviderCapabilities.from_flags(
+                            economic_data=True
+                        ),
+                        rate_limit=RateLimitPolicy(),
+                        auth_type=AuthenticationType.NONE,
+                        priority=1,
+                    ),
+                )
+
+            elif provider_id == "fred":
+
+                if (
+                    config.secrets.fred_api_key is None
+                    and config.environment is not Environment.TEST
+                ):
+                    raise PlatformError(
+                        "fred_api_key is required when enable_economic is "
+                        "True outside Environment.TEST"
+                    )
+
+                register_fred(
+                    factory,
+                    registry,
+                    {
+                        "timeout_seconds": timeout,
+                        "api_key": config.secrets.fred_api_key,
+                    },
+                )
+
+            else:
+
+                raise PlatformError(
+                    "Unsupported configured economic provider"
+                )
 
         cache_ttl = config.cache.ttl_seconds
         market = MarketDataService(

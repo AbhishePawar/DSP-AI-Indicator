@@ -21,6 +21,8 @@ __all__ = ["EconomicSnapshotBuilder"]
 
 _CODE_ALIASES: dict[str, str] = {
     "GDP": "GDP",
+    "GDP_GROWTH": "GDP_GROWTH",
+    "INFLATION_RATE": "INFLATION_RATE",
     "CPI": "CPI",
     "INFLATION": "CPI",
     "INTEREST_RATE": "INTEREST_RATE",
@@ -55,6 +57,20 @@ def _latest_level(series: EconomicSeries | None) -> float | None:
     if series is None or not series.points:
         return None
     return series.points[-1].value
+
+
+def _reported_percentage(series):
+    if series is None:
+        return None
+
+    if series.unit != "percent":
+        raise SnapshotBridgeError(
+            "Reported economic rate must use percent units"
+        )
+
+    return percent_level_to_decimal(
+        _latest_level(series)
+    )
 
 
 class EconomicSnapshotBuilder:
@@ -100,6 +116,22 @@ class EconomicSnapshotBuilder:
             SnapshotBridgeError: If ``as_of`` cannot be determined or
                 the engine rejects the constructed snapshot.
         """
+        for series in series_by_code.values():
+
+            if series.country.strip().upper() != country.strip().upper():
+                raise SnapshotBridgeError(
+                    "Economic series country mismatch"
+                )
+
+            if as_of is not None and any(
+                point.observation_date > as_of
+                for point in series.points
+            ):
+                raise SnapshotBridgeError(
+                    "Economic series contains observations "
+                    "after requested analysis date"
+                )
+
         indexed = _index_series(series_by_code)
         resolved_as_of = as_of or latest_as_of(list(indexed.values()))
         if resolved_as_of is None:
@@ -110,6 +142,8 @@ class EconomicSnapshotBuilder:
             raise SnapshotBridgeError(msg)
 
         gdp = indexed.get("GDP")
+        reported_growth = indexed.get("GDP_GROWTH")
+        reported_inflation = indexed.get("INFLATION_RATE")
         cpi = indexed.get("CPI")
         rates = indexed.get("INTEREST_RATE")
         unemployment = indexed.get("UNEMPLOYMENT")
@@ -125,8 +159,16 @@ class EconomicSnapshotBuilder:
         try:
             return EconomicSnapshot(
                 as_of=resolved_as_of,
-                gdp_growth=yoy_growth(gdp),
-                cpi_inflation=yoy_growth(cpi),
+                gdp_growth=(
+                    _reported_percentage(reported_growth)
+                    if reported_growth is not None
+                    else yoy_growth(gdp)
+                ),
+                cpi_inflation=(
+                    _reported_percentage(reported_inflation)
+                    if reported_inflation is not None
+                    else yoy_growth(cpi)
+                ),
                 interest_rate=rate_level,
                 interest_rate_change=rate_change,
                 unemployment=percent_level_to_decimal(_latest_level(unemployment)),

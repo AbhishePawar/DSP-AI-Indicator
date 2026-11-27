@@ -66,11 +66,13 @@ class FailoverGroup(Generic[TService, TQuery, TResult]):
         domain: str,
         operation: str,
         audit: ProviderAuditPort | None = None,
+        validate_result: Callable[[TResult], bool] | None = None,
     ) -> None:
         self._services = tuple(services)
         self._call = call
         self._domain = domain
         self._operation = operation
+        self._validate_result = validate_result
         self._audit = audit or LoggingProviderAuditPort()
 
     @property
@@ -150,6 +152,22 @@ class FailoverGroup(Generic[TService, TQuery, TResult]):
                     symbol=symbol,
                 )
                 continue
+
+            if self._validate_result is not None:
+                try:
+                    eligible = self._validate_result(result) is True
+                except Exception:
+                    eligible = False
+
+                if not eligible:
+                    self._audit.record(
+                        "insufficient_evidence",
+                        domain=self._domain,
+                        provider_id=provider_id,
+                        operation=self._operation,
+                        symbol=symbol,
+                    )
+                    continue
 
             self._audit.record(
                 "success",

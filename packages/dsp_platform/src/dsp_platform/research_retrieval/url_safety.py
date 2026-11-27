@@ -42,6 +42,8 @@ class UrlSafetyPolicy:
     max_redirects: int = 3
     timeout_seconds: float = 10.0
     max_body_bytes: int = 5_000_000  # 5 MB
+    max_html_input_bytes: int = 5 * 1024 * 1024
+    max_html_text_chars: int = 2_000_000
     allowed_content_types: frozenset[str] = frozenset(
         {
             "text/html",
@@ -365,7 +367,15 @@ class DefaultSafeHttpFetcher:
                 )
 
                 try:
-                    text_content = extract_html_text(body_bytes)
+                    text_content = extract_html_text(
+                        body_bytes,
+                        max_input_bytes=(
+                            self.policy.max_html_input_bytes
+                        ),
+                        max_text_chars=(
+                            self.policy.max_html_text_chars
+                        ),
+                    )
                 except HtmlExtractionError as exc:
                     raise UrlSafetyError(
                         "Unable to extract HTML financial evidence"

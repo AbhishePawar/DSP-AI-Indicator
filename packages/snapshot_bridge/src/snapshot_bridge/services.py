@@ -47,6 +47,23 @@ class FinancialBridgeService:
         return FinancialSnapshotBuilder.build(request.instrument, statements)
 
 
+_INDIA_ECONOMIC_CODES = (
+    "GDP_GROWTH",
+    "INFLATION_RATE",
+    "INTEREST_RATE",
+    "UNEMPLOYMENT",
+    "PMI",
+    "M2",
+)
+
+
+def economic_codes_for_country(country: str):
+    if country.strip().upper() == "IN":
+        return _INDIA_ECONOMIC_CODES
+
+    return _DEFAULT_ECONOMIC_CODES
+
+
 class EconomicBridgeService:
     """Fetch economic series and bridge them to ``EconomicSnapshot``."""
 
@@ -58,7 +75,7 @@ class EconomicBridgeService:
         self,
         *,
         country: str = "US",
-        indicator_codes: Sequence[str] = _DEFAULT_ECONOMIC_CODES,
+        indicator_codes: Sequence[str] | None = None,
         as_of: date | None = None,
         limit: int | None = None,
         provider_name: str | None = None,
@@ -68,8 +85,14 @@ class EconomicBridgeService:
         Uses ``get_available_series`` so missing indicators degrade
         gracefully instead of aborting the whole snapshot.
         """
+        selected_codes = (
+            economic_codes_for_country(country)
+            if indicator_codes is None
+            else indicator_codes
+        )
+
         available = self._economic.get_available_series(
-            indicator_codes=tuple(indicator_codes),
+            indicator_codes=tuple(selected_codes),
             country=country,
             provider_name=provider_name,
             limit=limit,

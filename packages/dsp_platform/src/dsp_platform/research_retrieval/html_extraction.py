@@ -19,16 +19,17 @@ class FinancialHtmlParser(HTMLParser):
         "li", "br", "tr", "table",
     }
 
-    def __init__(self):
+    def __init__(self, *, max_text_chars=2_000_000):
         super().__init__(convert_charrefs=True)
         self.parts = []
         self.ignored = []
         self.length = 0
+        self.max_text_chars = max_text_chars
 
     def append_text(self, text):
         self.length += len(text)
 
-        if self.length > 2_000_000:
+        if self.length > self.max_text_chars:
             raise HtmlExtractionError(
                 "Extracted HTML exceeds text limit"
             )
@@ -83,13 +84,31 @@ class FinancialHtmlParser(HTMLParser):
                 self.append_text(text + " ")
 
 
-def extract_html_text(raw: bytes) -> str:
-    if len(raw) > 5 * 1024 * 1024:
+def extract_html_text(
+    raw: bytes,
+    *,
+    max_input_bytes=5 * 1024 * 1024,
+    max_text_chars=2_000_000,
+) -> str:
+
+    if (
+        type(max_input_bytes) is not int
+        or not 1 <= max_input_bytes <= 30_000_000
+        or type(max_text_chars) is not int
+        or not 1 <= max_text_chars <= 8_000_000
+    ):
+        raise HtmlExtractionError(
+            "Invalid HTML extraction limits"
+        )
+
+    if len(raw) > max_input_bytes:
         raise HtmlExtractionError(
             "HTML exceeds input size limit"
         )
 
-    parser = FinancialHtmlParser()
+    parser = FinancialHtmlParser(
+        max_text_chars=max_text_chars
+    )
     parser.feed(raw.decode("utf-8", errors="replace"))
     parser.close()
 

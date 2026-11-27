@@ -1810,20 +1810,14 @@ class FinancialRatioEngine:
     ) -> CapitalAllocationMetrics:
         cf = cur.cash_flow
         ocf = cf.operating_cash_flow
-        capex_disc = (
-            _clip01(
-                1.0
-                - min(
-                    1.0,
-                    (
-                        _safe_div(abs(cf.capex), abs(ocf))
-                        if cf.capex is not None and ocf
-                        else None
-                    )
-                    or 1.0,
-                )
-            )
+        capex_intensity = (
+            _safe_div(abs(cf.capex), abs(ocf))
             if cf.capex is not None and ocf is not None
+            else None
+        )
+        capex_disc = (
+            _clip01(1.0 - min(1.0, capex_intensity))
+            if capex_intensity is not None
             else None
         )
         # Prefer sibling cash quality when present — never invent perfect
@@ -1832,23 +1826,28 @@ class FinancialRatioEngine:
         bb_sust = cash_an.quality.buyback_sustainability
 
         net_raise = None
-        if cf.debt_issued is not None or cf.debt_repaid is not None:
-            net_raise = (cf.debt_issued or 0.0) - abs(cf.debt_repaid or 0.0)
+        if cf.debt_issued is not None and cf.debt_repaid is not None:
+            net_raise = cf.debt_issued - abs(cf.debt_repaid)
+
         debt_red = None
         if net_raise is not None:
-            debt_red = (
-                1.0
-                if net_raise < 0
-                else _clip01(1.0 - min(1.0, abs(net_raise) / max(abs(ocf or 1.0), 1.0)))
-            )
+            if net_raise < 0:
+                debt_red = 1.0
+            elif ocf is not None and ocf != 0:
+                debt_red = _clip01(
+                    1.0 - min(1.0, abs(net_raise) / abs(ocf))
+                )
 
         # True share dilution from income intelligence (weighted_shares history).
         # Not aliased from buybacks / debt reduction.
         share_dilution = getattr(income_an.profitability, "share_dilution_rate", None)
         dilution_disc = getattr(income_an.profitability, "dilution_discipline", None)
 
-        parts = [p for p in (capex_disc, div_sust, bb_sust, debt_red) if p is not None]
-        score = sum(parts) / len(parts) if parts else None
+        parts = [
+            p for p in (capex_disc, div_sust, bb_sust, debt_red)
+            if p is not None
+        ]
+        score = sum(parts) / len(parts) if len(parts) == 4 else None
         out.append(
             build_explanation(
                 name="capital_allocation_score",
@@ -1868,9 +1867,8 @@ class FinancialRatioEngine:
                     else f"Capital allocation score = {score:.4f}."
                 ),
                 limitations=(
-                    "Composed from cash-flow intelligence sustainability metrics where "
-                    "available. Share dilution is exposed separately and not folded into "
-                    "this mean without an architecture decision."
+                    "Requires all four capital allocation components. "
+                    "Share dilution is exposed separately."
                 ),
             )
         )

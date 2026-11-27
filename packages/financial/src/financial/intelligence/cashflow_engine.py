@@ -298,8 +298,10 @@ class CashFlowEngine:
         inv_activity = cf.investing_cash_flow
         if inv_activity is None:
             parts = [cf.capex, cf.acquisitions, cf.investments, cf.asset_sales]
-            if any(p is not None for p in parts):
-                inv_activity = sum(p or 0.0 for p in parts)
+            if all(p is not None for p in parts):
+                inv_activity = sum(
+                    p for p in parts if p is not None
+                )
 
         # Discipline: lower intensity + limited acquisitions vs OCF
         acq_intensity = _safe_div(
@@ -363,8 +365,8 @@ class CashFlowEngine:
         debt_issued = cf.debt_issued
         # Dependence: net debt raise / |OCF|
         net_debt_raise = None
-        if debt_issued is not None or cf.debt_repaid is not None:
-            net_debt_raise = (debt_issued or 0.0) - abs(cf.debt_repaid or 0.0)
+        if debt_issued is not None and cf.debt_repaid is not None:
+            net_debt_raise = debt_issued - abs(cf.debt_repaid)
         dependence = _safe_div(
             max(0.0, net_debt_raise) if net_debt_raise is not None else None,
             abs(ocf) if ocf is not None else None,
@@ -372,15 +374,21 @@ class CashFlowEngine:
 
         # Capital allocation quality: prefer FCF funding of dividends/buybacks
         fcf_val, _ = _resolve_fcf(cf)
-        shareholder = abs(cf.dividends_paid or 0.0) + abs(cf.share_buybacks or 0.0)
+        shareholder = (
+            abs(cf.dividends_paid) + abs(cf.share_buybacks)
+            if cf.dividends_paid is not None
+            and cf.share_buybacks is not None
+            else None
+        )
         alloc_q = None
-        if fcf_val is not None and fcf_val > 0 and shareholder > 0:
-            cover = _safe_div(fcf_val, shareholder)
-            alloc_q = _clip01(cover)
-        elif fcf_val is not None and fcf_val > 0 and shareholder == 0:
-            alloc_q = 0.7  # retained flexibility
-        elif fcf_val is not None and fcf_val <= 0 and shareholder > 0:
-            alloc_q = 0.2
+        if shareholder is not None and fcf_val is not None:
+            if fcf_val > 0 and shareholder > 0:
+                cover = _safe_div(fcf_val, shareholder)
+                alloc_q = _clip01(cover)
+            elif fcf_val > 0 and shareholder == 0:
+                alloc_q = 0.7
+            elif fcf_val <= 0 and shareholder > 0:
+                alloc_q = 0.2
 
         out.append(
             build_explanation(
@@ -683,21 +691,33 @@ class CashFlowEngine:
         # Capital allocation: improvement if allocation quality rises
         prior = flows[-2]
         prior_fcf, _ = _resolve_fcf(prior)
-        prior_shareholder = abs(prior.dividends_paid or 0.0) + abs(
-            prior.share_buybacks or 0.0
+        prior_shareholder = (
+            abs(prior.dividends_paid) + abs(prior.share_buybacks)
+            if prior.dividends_paid is not None
+            and prior.share_buybacks is not None
+            else None
         )
-        cur_shareholder = abs(financing.dividends_paid or 0.0) + abs(
-            financing.share_buybacks or 0.0
+        cur_shareholder = (
+            abs(financing.dividends_paid) + abs(financing.share_buybacks)
+            if financing.dividends_paid is not None
+            and financing.share_buybacks is not None
+            else None
         )
         prior_alloc = None
-        if prior_fcf is not None and prior_fcf > 0 and prior_shareholder > 0:
+        if (
+            prior_fcf is not None
+            and prior_fcf > 0
+            and prior_shareholder is not None
+            and prior_shareholder > 0
+        ):
             prior_alloc = _clip01(_safe_div(prior_fcf, prior_shareholder))
         cur_alloc = financing.capital_allocation_quality
         alloc_delta = None
         if cur_alloc is not None and prior_alloc is not None:
             alloc_delta = cur_alloc - prior_alloc
         elif (
-            cur_shareholder > 0
+            cur_shareholder is not None
+            and cur_shareholder > 0
             and prior_shareholder == 0
             and (fcf.free_cash_flow or 0) > 0
         ):
@@ -706,9 +726,9 @@ class CashFlowEngine:
 
         # Debt activity: improving when net debt raise declines
         def _net_raise(c: CashFlowStatement) -> float | None:
-            if c.debt_issued is None and c.debt_repaid is None:
+            if c.debt_issued is None or c.debt_repaid is None:
                 return None
-            return (c.debt_issued or 0.0) - abs(c.debt_repaid or 0.0)
+            return c.debt_issued - abs(c.debt_repaid)
 
         cur_raise = _net_raise(flows[-1])
         prior_raise = _net_raise(prior)

@@ -340,6 +340,8 @@ class TestAnalysis:
                 free_cash_flow=-70.0,
                 dividends_paid=-40.0,
                 debt_issued=200.0,
+                debt_repaid=0.0,
+                share_buybacks=0.0,
             ),
         )
         result = eng.analyze(weak)

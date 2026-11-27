@@ -324,6 +324,8 @@ class TestAnalysis:
                 operating_cash_flow=120.0,
                 capex=-30.0,
                 acquisitions=-5.0,
+                investments=0.0,
+                asset_sales=0.0,
                 free_cash_flow=90.0,
             ),
             history=[
@@ -390,6 +392,7 @@ class TestAnalysis:
                 free_cash_flow=80.0,
                 capex=-20.0,
                 debt_repaid=-50.0,
+                debt_issued=0.0,
             )
         )
         # Net debt raise <= 0 → dependence 0 → sustainability 1.0
@@ -399,7 +402,11 @@ class TestAnalysis:
         eng = CashFlowEngine()
         retain = eng.analyze(
             CashFlowStatement(
-                operating_cash_flow=100.0, capex=-20.0, free_cash_flow=80.0
+                operating_cash_flow=100.0,
+                capex=-20.0,
+                free_cash_flow=80.0,
+                dividends_paid=0.0,
+                share_buybacks=0.0,
             )
         )
         assert retain.financing.capital_allocation_quality == pytest.approx(0.7)
@@ -409,6 +416,7 @@ class TestAnalysis:
                 capex=-80.0,
                 free_cash_flow=-30.0,
                 dividends_paid=-30.0,
+                share_buybacks=0.0,
             )
         )
         assert weak.financing.capital_allocation_quality == pytest.approx(0.2)

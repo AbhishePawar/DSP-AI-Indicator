@@ -1,6 +1,6 @@
 # Gitleaks false-positive register
 
-**Tracking:** Master remediation checklist, [issue #36](https://github.com/AbhishePawar/DSP-AI-Indicator/issues/36).
+**Tracking:** Master remediation checklist, [issue #36](https://github.com/AbhishePawar/DSP-AI-Indicator/issues/36). The independent hardcoded administrator-seed correction is tracked in [PR #37](https://github.com/AbhishePawar/DSP-AI-Indicator/pull/37).
 
 **Purpose:** Document the exact historical Gitleaks findings suppressed by the repository-root `.gitleaksignore`.
 

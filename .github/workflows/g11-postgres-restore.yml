@@ -73,7 +73,7 @@ jobs:
           #!/usr/bin/env bash
           set -euo pipefail
           tool="$(basename "$0")"
-          exec docker run --rm --network host \
+          exec docker run --rm --interactive --network host \
             -e PGPASSWORD="${PGPASSWORD:-dsp_g11_ci_only}" \
             -v "${GITHUB_WORKSPACE:?}:${GITHUB_WORKSPACE:?}" \
             -w "${GITHUB_WORKSPACE:?}" \

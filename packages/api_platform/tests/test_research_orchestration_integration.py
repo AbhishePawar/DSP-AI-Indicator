@@ -252,7 +252,7 @@ def test_analyse_research_report_preserves_privacy_boundary():
     assert "upstox_access_token" not in raw_text
 
 
-def test_end_to_end_upstox_to_research_report_flow():
+def test_end_to_end_upstox_to_research_report_flow(monkeypatch):
     """End-to-end mocked test following an asset query through:
 
     1. Upstox dynamic instrument resolution
@@ -262,6 +262,7 @@ def test_end_to_end_upstox_to_research_report_flow():
     5. Research Orchestrator AI synthesis
     6. Final verified research report
     """
+    monkeypatch.setenv("DSP_UPSTOX_ENABLED", "true")
     # 1. Asset Query & Upstox Instrument Resolution
     query_ticker = "TATAMOTORS"
     query_exchange = "NSE"
@@ -593,8 +594,9 @@ def test_metrics_registry_prometheus_rendering_has_bounded_labels():
     assert "canary" not in rendered
 
 
-def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
+def test_route_fetches_verified_upstox_quote_in_ticker_only_mode(monkeypatch):
     """Verify Upstox quote endpoint output and its handoff to deterministic composition."""
+    monkeypatch.setenv("DSP_UPSTOX_ENABLED", "true")
     from datetime import datetime
 
     from data_engine import (

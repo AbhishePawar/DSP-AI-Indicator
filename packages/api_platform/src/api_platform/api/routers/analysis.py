@@ -101,7 +101,7 @@ def analyze_company(
             state.research_orchestrator,
             ticker=instrument.symbol,
             company=instrument.symbol,
-            exchange=instrument.asset_class.value,
+            exchange=instrument.exchange or "",
             correlation_id=report_id,
         )
         limitations.extend(research_limitations)

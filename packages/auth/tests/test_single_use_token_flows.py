@@ -56,6 +56,7 @@ def email_adapter() -> _CapturingEmailAdapter:
 @pytest.fixture(autouse=True)
 def _reset(monkeypatch: pytest.MonkeyPatch, email_adapter: _CapturingEmailAdapter):
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    monkeypatch.setenv("DSP_SEED_ADMIN_PASSWORD", "unit-test-fixture-value")
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
     store = InMemoryStorageProvider()
     registry = RepositoryRegistry(storage=store)

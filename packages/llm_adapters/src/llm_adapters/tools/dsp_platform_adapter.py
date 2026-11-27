@@ -47,6 +47,12 @@ from typing import Any
 
 from llm_adapters.tools.contract import DSPToolBackend
 
+from llm_adapters.tools.financial_pack_cache import (
+    _get_cached_pack,
+    _set_cached_pack,
+    reset_pack_cache,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class ToolHealthState:
@@ -246,8 +252,6 @@ class DSPPlatformToolAdapter(DSPToolBackend):
 
     def _decision_pack(self, symbol: str) -> Any | None:
         """Return the cached DecisionPack for ``symbol`` or compose one."""
-        from llm_adapters.tools.dsp_platform_adapter import _get_cached_pack
-
         cached = _get_cached_pack(self, symbol)
         if cached is not None:
             return cached
@@ -292,26 +296,6 @@ class DSPPlatformToolAdapter(DSPToolBackend):
 
 
 # --- module-level pack cache (per-adapter) --------------------------------
-
-
-_PACK_CACHE: dict[int, dict[str, Any]] = {}
-
-
-def _get_cached_pack(adapter: DSPPlatformToolAdapter, symbol: str) -> Any:
-    cache = _PACK_CACHE.get(id(adapter), {})
-    return cache.get(symbol)
-
-
-def _set_cached_pack(adapter: DSPPlatformToolAdapter, symbol: str, pack: Any) -> None:
-    _PACK_CACHE.setdefault(id(adapter), {})[symbol] = pack
-
-
-def reset_pack_cache(adapter: DSPPlatformToolAdapter | None = None) -> None:
-    """Reset the per-adapter pack cache. Useful for tests."""
-    if adapter is None:
-        _PACK_CACHE.clear()
-    else:
-        _PACK_CACHE.pop(id(adapter), None)
 
 
 # --- pack-flattening helpers ----------------------------------------------

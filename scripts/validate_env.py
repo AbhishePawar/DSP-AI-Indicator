@@ -215,27 +215,33 @@ def main(argv: list[str] | None = None) -> int:
                 "(expected Asia/Kolkata for India posture)",
             )
 
-        seed = os.environ.get("DSP_SEED_ADMIN_PASSWORD", "")
-        if seed and (
-            seed.startswith("CHANGE_ME") or seed in {"admin", "password", "dsp"}
-        ):
+        if os.environ.get("DSP_FORCE_ADMIN_SEED") == "1" and not (
+            os.environ.get("DSP_SEED_ADMIN_PASSWORD") or ""
+        ).strip():
             print(
-                "[production] DSP_SEED_ADMIN_PASSWORD looks like a template "
-                "or weak password",
+                "[production] DSP_SEED_ADMIN_PASSWORD is required for forced seeding",
                 file=sys.stderr,
             )
             return 1
 
-        pg_pass = os.environ.get("POSTGRES_PASSWORD", "")
-        if pg_pass and (
-            pg_pass.startswith("CHANGE_ME") or pg_pass in {"dsp", "password"}
+        for key in (
+            "DSP_SEED_ADMIN_PASSWORD",
+            "POSTGRES_PASSWORD",
+            "GRAFANA_ADMIN_PASSWORD",
         ):
-            print(
-                "[production] POSTGRES_PASSWORD looks like a template "
-                "or weak password",
-                file=sys.stderr,
-            )
-            return 1
+            value = (os.environ.get(key) or "").strip().lower()
+            if value and (
+                value.startswith(("change_me", "change-me"))
+                or value in {
+                    "admin", "password", "dsp", "admin@123",
+                    "dsp_change_me", "grafana", "secret",
+                }
+            ):
+                print(
+                    f"[production] {key} looks like a template or weak password",
+                    file=sys.stderr,
+                )
+                return 1
 
     absent = [k for k in spec["recommended"] if not os.environ.get(k)]
     if absent:

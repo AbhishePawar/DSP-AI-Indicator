@@ -298,6 +298,8 @@ class TestAnalysis:
     def test_composed_current_assets(self) -> None:
         eng = BalanceSheetEngine()
         bs = BalanceSheet(
+            short_term_investments=0.0,
+            other_current_assets=0.0,
             cash=100.0,
             accounts_receivable=50.0,
             inventory=50.0,
@@ -553,6 +555,10 @@ class TestHelpers:
         eng = BalanceSheetEngine()
         result = eng.analyze(
             BalanceSheet(
+                short_term_investments=0.0,
+                accounts_receivable=0.0,
+                inventory=0.0,
+                other_current_assets=0.0,
                 current_liabilities=100.0,
                 total_assets=500.0,
                 total_liabilities=200.0,

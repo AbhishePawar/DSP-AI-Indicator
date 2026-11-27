@@ -1735,7 +1735,11 @@ class FinancialRatioEngine:
         eq = _equity(bs)
         bvps = _safe_div(eq, shares)
         tangible = (
-            None if eq is None else eq - (bs.goodwill or 0.0) - (bs.intangibles or 0.0)
+            eq - bs.goodwill - bs.intangibles
+            if eq is not None
+            and bs.goodwill is not None
+            and bs.intangibles is not None
+            else None
         )
         tbvps = _safe_div(tangible, shares)
         re_ratio = _safe_div(bs.retained_earnings, eq)

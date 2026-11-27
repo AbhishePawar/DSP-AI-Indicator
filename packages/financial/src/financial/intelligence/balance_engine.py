@@ -86,9 +86,9 @@ def _equity(bs: BalanceSheet) -> float | None:
 
 def _total_debt(bs: BalanceSheet) -> float | None:
     parts = [bs.short_term_debt, bs.long_term_debt]
-    if all(p is None for p in parts):
+    if any(p is None for p in parts):
         return None
-    return sum(p or 0.0 for p in parts)
+    return sum(p for p in parts if p is not None)
 
 
 def _current_assets(bs: BalanceSheet) -> float | None:
@@ -101,9 +101,9 @@ def _current_assets(bs: BalanceSheet) -> float | None:
         bs.inventory,
         bs.other_current_assets,
     ]
-    if all(p is None for p in parts):
+    if any(p is None for p in parts):
         return None
-    return sum(p or 0.0 for p in parts)
+    return sum(p for p in parts if p is not None)
 
 
 def _confidence(n: int, *, has_value: bool) -> str:
@@ -215,13 +215,12 @@ class BalanceSheetEngine:
 
         current_ratio = _safe_div(ca, cl)
         quick_numer = None
-        if ca is not None:
-            inv = bs.inventory or 0.0
-            quick_numer = ca - inv
+        if ca is not None and bs.inventory is not None:
+            quick_numer = ca - bs.inventory
         quick_ratio = _safe_div(quick_numer, cl)
         cash_numer = None
-        if cash is not None:
-            cash_numer = cash + (bs.short_term_investments or 0.0)
+        if cash is not None and bs.short_term_investments is not None:
+            cash_numer = cash + bs.short_term_investments
         cash_ratio = _safe_div(cash_numer, cl)
 
         working_capital = None
@@ -229,8 +228,12 @@ class BalanceSheetEngine:
             working_capital = ca - cl
         # Net working capital: CA - inventory - CL (stricter)
         net_wc = None
-        if ca is not None and cl is not None:
-            net_wc = ca - (bs.inventory or 0.0) - cl
+        if (
+            ca is not None
+            and cl is not None
+            and bs.inventory is not None
+        ):
+            net_wc = ca - bs.inventory - cl
 
         wc_trend = None
         if len(balances) >= 2:
@@ -335,8 +338,12 @@ class BalanceSheetEngine:
         equity = _equity(bs)
         assets = bs.total_assets
         debt = _total_debt(bs)
-        cash = bs.cash or 0.0
-        net_debt = None if debt is None else debt - cash
+        cash = bs.cash
+        net_debt = (
+            debt - cash
+            if debt is not None and cash is not None
+            else None
+        )
 
         dte = _safe_div(debt, equity)
         dta = _safe_div(debt, assets)

@@ -6,10 +6,7 @@
 
 import { useEffect } from "react";
 
-import {
-  applyAppearanceToDocument,
-  useSettingsPrefsStore,
-} from "@/lib/settings";
+import { applyAppearanceToDocument, useSettingsPrefsStore } from "@/lib/settings";
 
 export function AppearanceApplicator() {
   const density = useSettingsPrefsStore((s) => s.density);
@@ -26,13 +23,7 @@ export function AppearanceApplicator() {
       contrastPreference,
       focusVisible,
     });
-  }, [
-    density,
-    fontSize,
-    motionPreference,
-    contrastPreference,
-    focusVisible,
-  ]);
+  }, [density, fontSize, motionPreference, contrastPreference, focusVisible]);
 
   return null;
 }

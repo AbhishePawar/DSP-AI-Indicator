@@ -33,8 +33,8 @@ export function FriendlyErrorPage({
             </p>
           ) : null}
           <p className="text-xs text-[var(--muted)]">
-            Research engines and API contracts were not modified. No investment
-            data was changed by this error.
+            Research engines and API contracts were not modified. No investment data was
+            changed by this error.
           </p>
           <div className="flex flex-wrap gap-2">
             {onRetry ? (

@@ -1,11 +1,7 @@
 /** RC1 Milestone 6 — role dashboard registry (presentation only). */
 
 export type EnterpriseDashboardRole =
-  | "research"
-  | "portfolio-manager"
-  | "wealth-advisor"
-  | "family-office"
-  | "executive";
+  "research" | "portfolio-manager" | "wealth-advisor" | "family-office" | "executive";
 
 export type RoleDashboardMeta = {
   role: EnterpriseDashboardRole;
@@ -53,8 +49,7 @@ export const ENTERPRISE_DASHBOARD_ROLES: readonly RoleDashboardMeta[] = [
   {
     role: "wealth-advisor",
     title: "Wealth Advisor Dashboard",
-    description:
-      "Client portfolios, risk warnings, and workflow notifications.",
+    description: "Client portfolios, risk warnings, and workflow notifications.",
     href: "/dashboards/wealth-advisor",
     widgetKeys: [
       "client_portfolios",
@@ -84,8 +79,7 @@ export const ENTERPRISE_DASHBOARD_ROLES: readonly RoleDashboardMeta[] = [
   {
     role: "executive",
     title: "Executive Dashboard",
-    description:
-      "Platform KPIs, coverage, workflow status, and system health.",
+    description: "Platform KPIs, coverage, workflow status, and system health.",
     href: "/dashboards/executive",
     widgetKeys: [
       "platform_kpis",
@@ -99,9 +93,7 @@ export const ENTERPRISE_DASHBOARD_ROLES: readonly RoleDashboardMeta[] = [
   },
 ] as const;
 
-export function metaForRole(
-  role: string,
-): RoleDashboardMeta | undefined {
+export function metaForRole(role: string): RoleDashboardMeta | undefined {
   return ENTERPRISE_DASHBOARD_ROLES.find((r) => r.role === role);
 }
 

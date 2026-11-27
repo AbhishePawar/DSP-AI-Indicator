@@ -67,9 +67,7 @@ export default function ContactPage() {
           >
             Contact channels are not yet publicly available.
           </p>
-          <p className="text-[var(--muted)]">
-            {SUPPORT_CONTACT.unpublishedNote}
-          </p>
+          <p className="text-[var(--muted)]">{SUPPORT_CONTACT.unpublishedNote}</p>
           <dl className="grid gap-4">
             <div>
               <dt className="font-medium text-[var(--fg)]">Platform access</dt>

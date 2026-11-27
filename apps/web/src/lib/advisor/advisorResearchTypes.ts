@@ -21,12 +21,7 @@ export type ResearchCollectionTheme =
 
 export type CollectionLifecycle = "active" | "archived";
 
-export type ResearchNoteKind =
-  | "pinned"
-  | "private"
-  | "client"
-  | "meeting"
-  | "finding";
+export type ResearchNoteKind = "pinned" | "private" | "client" | "meeting" | "finding";
 
 export type TimelineKind =
   | "analysis_created"

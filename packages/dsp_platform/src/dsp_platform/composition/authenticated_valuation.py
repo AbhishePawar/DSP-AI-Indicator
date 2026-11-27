@@ -9,16 +9,21 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
-from data_engine import is_approved_source
+from data_engine import (
+    InvalidProviderDataError,
+    ShareCount,
+    ShareCountPort,
+    is_approved_source,
+    resolve_verified_share_count,
+)
 from data_engine.connector_framework.production_profile import (
-    assert_production_investment_connectors_configured,
     is_production_environment,
 )
 from data_engine.financial_statement.models import (
@@ -65,7 +70,6 @@ __all__ = [
     "ShareCountResearchEvidence",
     "DATA_UNAVAILABLE",
     "load_authenticated_valuation_bundle",
-    "production_investment_connectors",
     "signals_from_assessment",
     "to_financial_statements",
 ]
@@ -165,8 +169,12 @@ def _resolve_researched_shares(
         )
     evidence_company = _normalise_research_company_name(evidence.company_name)
     requested_company = _normalise_research_company_name(company_name)
-    if not evidence_company or (
-        requested_company and evidence_company != requested_company
+    # Exact identity is mandatory: without a requested company name the
+    # research cannot be tied to this issuer, so it fails closed.
+    if (
+        not evidence_company
+        or not requested_company
+        or evidence_company != requested_company
     ):
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (researched share-count company identity mismatch)"
@@ -251,6 +259,7 @@ class AuthenticatedValuationBundle:
     statement_basis: str
     unit_scale: str
     company_name: str | None = None
+    share_count_provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_trace_dict(self) -> dict[str, Any]:
         latest = self.financial_snapshot.latest
@@ -262,6 +271,7 @@ class AuthenticatedValuationBundle:
             "unit_scale": self.unit_scale,
             "current_market_price": self.current_market_price,
             "shares_outstanding": self.shares_outstanding,
+            "share_count_provenance": dict(self.share_count_provenance),
             "market_cap": self.market_snapshot.market_cap,
             "company_name": self.company_name,
             "revenue": latest.revenue,
@@ -360,24 +370,132 @@ def _validate_currency_set(
 def _resolve_shares(
     quote: AuthenticatedMarketQuote,
     latest: AuthenticatedStatementPeriod,
-) -> float:
-    """Require authenticated quote shares — never invent from NI/EPS."""
-    _ = latest  # EPS integrity checked separately against quote shares
-    shares = _qf(quote.shares_outstanding)
-    # A malformed provider value such as +inf must not bypass the missing-share
-    # fallback and poison market-cap / per-share valuation arithmetic.
-    if shares is not None and math.isfinite(shares) and shares > 0:
-        return float(shares)
+    *,
+    ticker: str,
+    supplemental: ShareCount | None = None,
+    researcher: ShareCountResearcher | None = None,
+    company_name: str | None = None,
+    exchange: str | None = None,
+) -> tuple[float, dict[str, Any]]:
+    """Resolve shares from verified fundamentals, never from a quote field.
+
+    The authenticated statement is authoritative when it contains the metric.
+    A separately injected ShareCountPort can supply an approved, verified
+    primary-source filing when statements omit it. Quote shares are only a
+    cross-check and can never become the valuation denominator.
+    """
+    statement_shares = _sf(
+        getattr(latest, "shares_outstanding", StatementField.missing())
+    )
+    quote_shares = _qf(quote.shares_outstanding)
+
+    if statement_shares is not None and (
+        not math.isfinite(statement_shares)
+        or statement_shares <= 0
+        or not float(statement_shares).is_integer()
+    ):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (invalid statement shares outstanding)"
+        )
+
+    if quote_shares is not None and (
+        not math.isfinite(quote_shares)
+        or quote_shares <= 0
+    ):
+        quote_shares = None
+
+    from data_engine import is_share_count_current
+
+    if supplemental is not None and not is_share_count_current(supplemental):
+        supplemental = None
+
+    if supplemental is not None and (
+        not math.isfinite(supplemental.shares)
+        or supplemental.shares <= 0
+    ):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (invalid supplemental shares outstanding)"
+        )
+
+    if supplemental is not None:
+        if supplemental.ticker.strip().upper() != ticker.strip().upper():
+            raise AuthenticatedValuationError(
+                f"{DATA_UNAVAILABLE} (share-count identity mismatch)"
+            )
+        if not supplemental.verified or not is_approved_source(
+            supplemental.source, purpose=supplemental.purpose
+        ):
+            supplemental = None
+
+    if statement_shares is not None and statement_shares > 0:
+        for other_shares in (
+            quote_shares,
+            supplemental.shares if supplemental is not None else None,
+        ):
+            if other_shares is not None and other_shares > 0:
+                relative_delta = abs(statement_shares - other_shares) / max(
+                    statement_shares, other_shares
+                )
+                if relative_delta > 0.05:
+                    raise AuthenticatedValuationError(
+                        f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                    )
+        return float(statement_shares), {
+            "source": "authenticated_financial_statement",
+            "as_of": latest.period_end.isoformat(),
+            "verified": True,
+        }
+
+    resolved = resolve_verified_share_count(
+        ticker, (supplemental,) if supplemental is not None else ()
+    )
+    if resolved is not None:
+        if quote_shares is not None and quote_shares > 0:
+            relative_delta = abs(resolved.shares - quote_shares) / max(
+                resolved.shares, quote_shares
+            )
+            if relative_delta > 0.05:
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                )
+        return float(resolved.shares), resolved.to_dict()
+
+    # Last resort: server-injected research against the official exchange
+    # record. It is identity-, source-, freshness- and integer-checked, still
+    # cross-checked against the quote, and labelled as research (not verified
+    # provider data) so it can never clear G2 on its own.
+    if researcher is not None:
+        researched_shares, provenance = _resolve_researched_shares(
+            ticker.strip().upper(), company_name, exchange, researcher
+        )
+        if quote_shares is not None and quote_shares > 0:
+            relative_delta = abs(researched_shares - quote_shares) / max(
+                researched_shares, quote_shares
+            )
+            if relative_delta > 0.05:
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                )
+        return researched_shares, {
+            **provenance,
+            "source": provenance["source_id"],
+            "source_detail": provenance["source"],
+            "retrieval": "ai_research_fallback",
+            "verified": False,
+        }
+
+    # Do not use quote.shares_outstanding here: Upstox is approved for market
+    # data only, not as an authoritative fundamental share-count source.
     raise AuthenticatedValuationError(
-        f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
+        f"{DATA_UNAVAILABLE} (verified primary-source shares outstanding unavailable)"
     )
 
 
 def _resolve_price(quote: AuthenticatedMarketQuote) -> float:
     price = _qf(quote.current_price)
-    if price is None:
+    if price is None or not math.isfinite(price) or price <= 0:
         price = _qf(quote.previous_close)
-    if price is None or price <= 0:
+    if price is None or not math.isfinite(price) or price <= 0:
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (authenticated market price unavailable)"
         )
@@ -527,6 +645,7 @@ def load_authenticated_valuation_bundle(
         Callable[[str], AuthenticatedFinancialStatements | None] | None
     ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
+    share_count_port: ShareCountPort | None = None,
     research_missing_shares: ShareCountResearcher | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
@@ -545,10 +664,15 @@ def load_authenticated_valuation_bundle(
         statement_service=statement_service,
         get_statements=get_statements,
     )
+    quote_currency = (
+        getattr(statements.identity, "currency", None)
+        or getattr(statements, "reporting_currency", None)
+        or currency
+    )
     quote = _fetch_quote(
         symbol,
         exchange=exchange,
-        currency=currency,
+        currency=quote_currency,
         quote_service=quote_service,
         get_quote=get_quote,
     )
@@ -606,29 +730,39 @@ def load_authenticated_valuation_bundle(
     except FinancialIntegrityError as exc:
         raise AuthenticatedValuationError(str(exc)) from exc
 
-    shares_research_provenance: dict[str, Any] | None = None
-    try:
-        shares = _resolve_shares(quote, latest_period)
-    except AuthenticatedValuationError:
-        # Trigger the explicit research fallback only when the quote source
-        # does not provide a usable share count. The fallback must be sourced
-        # and identity-checked; it is not promoted to authenticated-provider
-        # evidence and cannot clear G2 by itself.
-        shares, shares_research_provenance = _resolve_researched_shares(
-            symbol,
-            statements.identity.company_name,
-            exchange or statements.identity.exchange or quote.exchange,
-            research_missing_shares,
-        )
+    supplemental_share_count = (
+        share_count_port.get_outstanding_shares(symbol)
+        if share_count_port is not None
+        else None
+    )
+    shares, share_count_provenance = _resolve_shares(
+        quote,
+        latest_period,
+        ticker=symbol,
+        supplemental=supplemental_share_count,
+        researcher=research_missing_shares,
+        company_name=statements.identity.company_name,
+        exchange=exchange or statements.identity.exchange or quote.exchange,
+    )
     try:
         assert_eps_share_integrity(latest_period, shares)
     except FinancialIntegrityError as exc:
         raise AuthenticatedValuationError(str(exc)) from exc
 
     market_cap = _qf(quote.market_cap)
-    if market_cap is None or market_cap <= 0:
+    if (
+        market_cap is None
+        or not math.isfinite(market_cap)
+        or market_cap <= 0
+    ):
         market_cap = price * shares
-    elif shares > 0:
+
+    if not math.isfinite(market_cap) or market_cap <= 0:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (invalid market capitalization)"
+        )
+
+    if shares > 0:
         # Check market cap against the resolved count, including researched fallback.
         implied_shares = float(market_cap) / price
         try:
@@ -672,14 +806,8 @@ def load_authenticated_valuation_bundle(
         shares_outstanding=shares,
         reporting_currency=reporting_currency,
         statement_provenance=statements.provenance.to_dict(),
-        quote_provenance={
-            **quote.provenance.to_dict(),
-            **(
-                {"shares_research_fallback": shares_research_provenance}
-                if shares_research_provenance is not None
-                else {}
-            ),
-        },
+        quote_provenance=quote.provenance.to_dict(),
+        share_count_provenance=share_count_provenance,
         period_kind=selected[0].period_type,
         statement_basis=statement_basis,
         unit_scale="actual",
@@ -755,7 +883,12 @@ def _fetch_quote(
             currency=currency,
             exchange=exchange,
         )
-        quote = service.get_quote(instrument)
+        try:
+            quote = service.get_quote(instrument)
+        except InvalidProviderDataError as exc:
+            # Keep connector validation failures inside the valuation boundary.
+            # Callers depend on a single domain exception and a fail-closed result.
+            raise AuthenticatedValuationError(str(exc)) from exc
     if quote is None:
         raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
     if not quote.has_any_price():
@@ -766,14 +899,3 @@ def _fetch_quote(
 def production_requires_authenticated_bundle() -> bool:
     """True when missing authenticated valuation inputs must fail closed."""
     return is_production_environment()
-
-
-def production_investment_connectors() -> dict[str, str]:
-    """Adapter class names the P1-03 production gate selects for this bundle.
-
-    Empty outside production. Constructed offline — no provider I/O — so
-    readiness probes can assert the authenticated quote/statement connectors
-    without contacting external providers. Raises when production would select an unsafe
-    (Null/memory/demo) adapter.
-    """
-    return assert_production_investment_connectors_configured()

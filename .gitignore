@@ -60,6 +60,9 @@ out/
 .env.staging
 !.env.production.example
 !.env.example
+# Deploy release records (image IDs for rollback) — server-local
+.dsp_production_releases/
+.dsp_production_previous_tags*
 backups/
 *.sql.gz
 

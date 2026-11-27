@@ -115,6 +115,9 @@ def build_p109_statements(*, symbol: str = P109_FIXTURE_TICKER) -> Any:
                         "total_equity": 600_000_000.0,
                         "total_debt": 250_000_000.0,
                         "long_term_debt": 200_000_000.0,
+                        # Verified statement share count (Phase 7 never uses
+                        # quote shares as the valuation denominator).
+                        "shares_outstanding": 100_000_000.0,
                     },
                     "cash_flow": {
                         "operating_cash_flow": 250_000_000.0,

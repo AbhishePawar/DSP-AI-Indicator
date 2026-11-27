@@ -79,9 +79,7 @@ export function AnalysisForm({
     setTicker(sample.ticker);
     setExchange(sample.exchange ?? "");
     setCompany(sample.company ?? "");
-    setIntrinsic(
-      String(sample.valuation_signals?.intrinsic_value_per_share ?? ""),
-    );
+    setIntrinsic(String(sample.valuation_signals?.intrinsic_value_per_share ?? ""));
     setPrice(String(sample.valuation_signals?.current_market_price ?? ""));
     setConfidence(String(sample.valuation_signals?.confidence ?? 0.7));
     setStatementsJson(JSON.stringify(sample.financial_statements, null, 2));

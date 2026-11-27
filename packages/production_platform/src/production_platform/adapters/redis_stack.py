@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import importlib
 import json
+import logging
+import re
 import time
 from typing import Any
 
@@ -19,6 +21,8 @@ __all__ = [
     "RedisSessionPort",
     "try_build_redis_stack",
 ]
+
+_logger = logging.getLogger(__name__)
 
 
 def _load_redis() -> Any:
@@ -226,5 +230,13 @@ def try_build_redis_stack(
                 url, key_prefix=key_prefix, socket_timeout=socket_timeout
             ),
         }
-    except (ConfigurationError, ProviderError, ImportError):
+    except (ConfigurationError, ProviderError, ImportError) as exc:
+        err_msg = str(exc)
+        if "@" in err_msg and "://" in err_msg:
+            err_msg = re.sub(r"://[^@]+@", "://***@", err_msg)
+        _logger.warning(
+            "Redis stack initialization failed (%s): %s",
+            type(exc).__name__,
+            err_msg,
+        )
         return None

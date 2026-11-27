@@ -41,7 +41,11 @@ function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function pushLog(level: LogLevel, message: string, context?: Record<string, unknown>): LogEntry {
+function pushLog(
+  level: LogLevel,
+  message: string,
+  context?: Record<string, unknown>,
+): LogEntry {
   const entry: LogEntry = {
     id: createId("log"),
     level,

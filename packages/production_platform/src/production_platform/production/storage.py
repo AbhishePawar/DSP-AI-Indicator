@@ -66,7 +66,7 @@ class LocalFilesystemStoragePort:
         if ".." in cleaned.split("/"):
             raise ProviderError("invalid object key")
         target = (self._root / cleaned).resolve()
-        if not str(target).startswith(str(self._root)):
+        if not target.is_relative_to(self._root):
             raise ProviderError("object key escapes storage root")
         return target
 

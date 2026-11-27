@@ -35,15 +35,11 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
         }
     stmt = dict(trace.get("statement_provenance") or {})
     quote = dict(trace.get("quote_provenance") or {})
+    share_count = dict(trace.get("share_count_provenance") or {})
     authenticated = bool(trace.get("authenticated"))
     # A researched share count is public research, not authenticated-provider
     # evidence. Surface that at the top level so it cannot be mistaken for a
     # fully authenticated denominator.
-    raw_research = quote.get("shares_research_fallback")
-    shares_research: Mapping[str, Any] = (
-        raw_research if isinstance(raw_research, Mapping) else {}
-    )
-    research_used = bool(shares_research)
     return dict(
         redact_secrets(
             {
@@ -56,12 +52,22 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
                 "unit_scale": trace.get("unit_scale"),
                 "current_market_price": trace.get("current_market_price"),
                 "shares_outstanding": trace.get("shares_outstanding"),
+                "share_count_source": share_count.get("source"),
+                "share_count_as_of": share_count.get("as_of"),
+                "share_count_verified": share_count.get("verified", False),
+                "share_count_provenance": share_count,
+                # Research-derived counts are public research, not verified
+                # provider data; label them explicitly at the top level.
                 "shares_source": (
-                    "research_fallback" if research_used else "authenticated_quote"
+                    "research_fallback"
+                    if share_count.get("retrieval") == "ai_research_fallback"
+                    else (
+                        "verified_source"
+                        if share_count.get("verified") is True
+                        else ("unverified_source" if share_count else None)
+                    )
                 ),
-                "shares_evidence_class": (
-                    shares_research.get("evidence_class") if research_used else None
-                ),
+                "shares_evidence_class": share_count.get("evidence_class"),
                 "statement_provider": stmt.get("provider_id")
                 or stmt.get("provider_name")
                 or stmt.get("provider")
@@ -184,6 +190,7 @@ def build_investment_provenance(
                     "shares_outstanding",
                     "statement_provenance",
                     "quote_provenance",
+                    "share_count_provenance",
                 )
                 if auth_trace
             }
@@ -201,6 +208,10 @@ def build_investment_provenance(
                     "shares_outstanding",
                     "statement_provider",
                     "quote_provider",
+                    "share_count_provenance",
+                    "share_count_verified",
+                    "shares_source",
+                    "shares_evidence_class",
                 )
             },
         }

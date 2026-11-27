@@ -119,10 +119,7 @@ describe("copilot navigation", () => {
   });
 
   it("builds breadcrumbs for /copilot", () => {
-    expect(breadcrumbsFor("/copilot").map((c) => c.label)).toEqual([
-      "Home",
-      "Copilot",
-    ]);
+    expect(breadcrumbsFor("/copilot").map((c) => c.label)).toEqual(["Home", "Copilot"]);
   });
 
   it("exposes the expected suggested questions", () => {

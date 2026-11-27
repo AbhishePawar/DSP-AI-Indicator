@@ -11,6 +11,12 @@ PRIMARY_SOURCES = frozenset(
 )
 SECONDARY_SOURCES = frozenset({"SCREENER", "YAHOO_FINANCE"})
 APPROVED_SOURCES = PRIMARY_SOURCES | SECONDARY_SOURCES
+# Market-data licensing is purpose-specific. Upstox is permitted for quotes and
+# historical market series only; it is not an approved financial-statement source.
+MARKET_DATA_SOURCES = frozenset({"UPSTOX"})
+MARKET_DATA_PURPOSES = frozenset(
+    {"market_quote", "historical_series", "historical_market_data"}
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,6 +42,9 @@ class DataProvenance:
 
 def is_approved_source(source: str, *, purpose: str = "") -> bool:
     normalized = source.strip().upper()
+    normalized_purpose = purpose.strip().lower()
+    if normalized in MARKET_DATA_SOURCES:
+        return normalized_purpose in MARKET_DATA_PURPOSES
     if normalized not in APPROVED_SOURCES:
         return False
     if normalized in SECONDARY_SOURCES and purpose.strip().lower() not in {
@@ -49,6 +58,8 @@ def is_approved_source(source: str, *, purpose: str = "") -> bool:
 
 __all__ = [
     "APPROVED_SOURCES",
+    "MARKET_DATA_PURPOSES",
+    "MARKET_DATA_SOURCES",
     "PRIMARY_SOURCES",
     "SECONDARY_SOURCES",
     "DataProvenance",

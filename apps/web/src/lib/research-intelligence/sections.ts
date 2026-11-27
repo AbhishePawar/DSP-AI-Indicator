@@ -38,7 +38,5 @@ export function asRiSectionId(value: string | null | undefined): RiSectionId {
 
 export function asRiWindow(value: string | null | undefined): RiWindowMonths {
   const n = Number(value);
-  return (RI_WINDOWS as readonly number[]).includes(n)
-    ? (n as RiWindowMonths)
-    : 12;
+  return (RI_WINDOWS as readonly number[]).includes(n) ? (n as RiWindowMonths) : 12;
 }

@@ -8,10 +8,7 @@
 
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import type { BuffettMatrixState } from "@/lib/buffett-indicator";
-import {
-  BUFFETT_FRAMEWORK_PREFIX,
-  DATA_UNAVAILABLE,
-} from "./constants";
+import { BUFFETT_FRAMEWORK_PREFIX, DATA_UNAVAILABLE } from "./constants";
 import { isUnavailableDisplay } from "./ranking";
 import type {
   BuffettAlignment,
@@ -44,20 +41,14 @@ function matrixState(
   return hit?.state;
 }
 
-function matrixEvidence(
-  view: ResearchView,
-  criterionIncludes: string,
-): string {
+function matrixEvidence(view: ResearchView, criterionIncludes: string): string {
   const hit = view.buffett.decisionMatrix.find((m) =>
     m.criterion.toLowerCase().includes(criterionIncludes.toLowerCase()),
   );
   return hit?.evidence ?? DATA_UNAVAILABLE;
 }
 
-function scorecardGrade(
-  view: ResearchView,
-  dimensionIncludes: string,
-): string {
+function scorecardGrade(view: ResearchView, dimensionIncludes: string): string {
   const hit = view.buffett.scorecard.find((r) =>
     r.dimension.toLowerCase().includes(dimensionIncludes.toLowerCase()),
   );
@@ -92,9 +83,10 @@ const DIMENSIONS: DimSpec[] = [
               ? "unavailable"
               : "partial",
         reason: `${BUFFETT_FRAMEWORK_PREFIX}, understandability is assessed from the existing Circle of Competence synthesis: ${sub.verdict}.`,
-        evidence: matrixEvidence(v, "circle") !== DATA_UNAVAILABLE
-          ? matrixEvidence(v, "circle")
-          : sub.bullets[0] ?? DATA_UNAVAILABLE,
+        evidence:
+          matrixEvidence(v, "circle") !== DATA_UNAVAILABLE
+            ? matrixEvidence(v, "circle")
+            : (sub.bullets[0] ?? DATA_UNAVAILABLE),
         confidence: v.buffett.confidence,
       };
     },
@@ -127,8 +119,7 @@ const DIMENSIONS: DimSpec[] = [
         alignment,
         reason: `${BUFFETT_FRAMEWORK_PREFIX}, management preference uses the existing management_quality stage (label ${v.management.label}).`,
         evidence:
-          v.buffett.managementQuality.bullets[0] ??
-          matrixEvidence(v, "management"),
+          v.buffett.managementQuality.bullets[0] ?? matrixEvidence(v, "management"),
         confidence: honestConf(v.management.confidence, v.buffett.confidence),
       };
     },
@@ -144,7 +135,8 @@ const DIMENSIONS: DimSpec[] = [
       return {
         alignment,
         reason: `${BUFFETT_FRAMEWORK_PREFIX}, capital-allocation alignment remaps existing capital allocation / management outputs (grade ${mod.grade}).`,
-        evidence: mod.evidence[0] ?? v.buffett.capitalAllocation.bullets[0] ?? DATA_UNAVAILABLE,
+        evidence:
+          mod.evidence[0] ?? v.buffett.capitalAllocation.bullets[0] ?? DATA_UNAVAILABLE,
         confidence: honestConf(mod.confidence, v.buffett.confidence),
       };
     },
@@ -166,9 +158,11 @@ const DIMENSIONS: DimSpec[] = [
       const fortress = v.buffett.financialFortress;
       const alignment = isUnavailableDisplay(fortress.verdict)
         ? "unavailable"
-        : gradeToAlignment(scorecardGrade(v, "financial") !== DATA_UNAVAILABLE
-            ? scorecardGrade(v, "financial")
-            : v.financialStrength.score);
+        : gradeToAlignment(
+            scorecardGrade(v, "financial") !== DATA_UNAVAILABLE
+              ? scorecardGrade(v, "financial")
+              : v.financialStrength.score,
+          );
       return {
         alignment,
         reason: `${BUFFETT_FRAMEWORK_PREFIX}, debt discipline is inferred only from existing financial fortress / financial_strength synthesis: ${fortress.verdict}.`,
@@ -212,8 +206,7 @@ const DIMENSIONS: DimSpec[] = [
       // toSection maps unused metric slots to "Unavailable" — honour that.
       if (!metric || isUnavailableDisplay(metric.value)) {
         const growthOk =
-          v.growth.status === "succeeded" &&
-          !isUnavailableDisplay(v.growth.score);
+          v.growth.status === "succeeded" && !isUnavailableDisplay(v.growth.score);
         if (!growthOk) {
           return {
             alignment: "unavailable",
@@ -286,9 +279,7 @@ const DIMENSIONS: DimSpec[] = [
       }
       return {
         alignment:
-          moatAligned !== "unavailable"
-            ? moatAligned
-            : gradeToAlignment(v.moat.score),
+          moatAligned !== "unavailable" ? moatAligned : gradeToAlignment(v.moat.score),
         reason: `${BUFFETT_FRAMEWORK_PREFIX}, durability alignment combines existing moat and long-term risk synthesis (${risks.verdict}).`,
         evidence: risks.bullets[0] ?? `moat=${v.moat.label}`,
         confidence: honestConf(v.moat.confidence, v.buffett.confidence),
@@ -338,9 +329,7 @@ export function containsForbiddenBuffettCopy(text: string): boolean {
   return FORBIDDEN_BUFFETT_PHRASES.some((p) => lower.includes(p));
 }
 
-export function mapBuffettPreference(
-  views: ResearchView[],
-): BuffettPreferenceRow[] {
+export function mapBuffettPreference(views: ResearchView[]): BuffettPreferenceRow[] {
   return DIMENSIONS.map((dim) => {
     const cells = views.map((v) => {
       const c = dim.cell(v);

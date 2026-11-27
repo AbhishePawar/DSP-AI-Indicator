@@ -60,7 +60,9 @@ const collections = seedSharedPortfolioCollections();
 let pinnedIds = ["mp-lib-growth", "mp-lib-balanced"];
 let favoriteIds = ["mp-lib-growth", "mp-lib-quality", "mp-lib-income"];
 let recentlyViewed = ["mp-lib-growth", "mp-lib-balanced", "mp-lib-income"];
-let recentlyCompared: string[][] = [["mp-lib-growth", "mp-lib-income", "mp-lib-balanced"]];
+let recentlyCompared: string[][] = [
+  ["mp-lib-growth", "mp-lib-income", "mp-lib-balanced"],
+];
 let compareSelection = ["mp-lib-growth", "mp-lib-income"];
 let filters: SharedPortfolioFilterState = { ...DEFAULT_SHARED_PORTFOLIO_FILTERS };
 let activity = seedSharedPortfolioActivity();
@@ -235,7 +237,11 @@ export function filterPortfolios(
   const q = f.query.trim().toLowerCase();
 
   return seedModelPortfolioLibrary.filter((p) => {
-    if (q && !p.name.toLowerCase().includes(q) && !p.objective.toLowerCase().includes(q)) {
+    if (
+      q &&
+      !p.name.toLowerCase().includes(q) &&
+      !p.objective.toLowerCase().includes(q)
+    ) {
       return false;
     }
     if (f.riskLevel && p.riskLevel !== f.riskLevel) return false;
@@ -307,7 +313,9 @@ export function comparePortfolioFields(ids: string[]) {
     .slice(0, 5);
   if (selected.length < 2) return null;
 
-  const holdingIds = new Set(selected.flatMap((p) => p.holdings.map((h) => h.envelopeId)));
+  const holdingIds = new Set(
+    selected.flatMap((p) => p.holdings.map((h) => h.envelopeId)),
+  );
 
   return {
     portfolios: selected,

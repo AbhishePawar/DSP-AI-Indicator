@@ -143,7 +143,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <FeedbackProvider>
-      <div data-testid="app-shell" className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+      <div
+        data-testid="app-shell"
+        className="min-h-screen bg-[var(--bg)] text-[var(--fg)]"
+      >
         <div className="flex min-h-screen">
           <Sidebar collapsed={sidebarCollapsed} />
           <div className="flex min-w-0 flex-1 flex-col">

@@ -103,9 +103,7 @@ function InviteForm() {
                 disabled={pending}
               />
             </FormField>
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
+            {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Creating…" : "Create password & activate"}
             </Button>

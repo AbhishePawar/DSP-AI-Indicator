@@ -6,11 +6,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { ResearchCoverageView } from "@/lib/analysis/types";
 
 /** Measures DSP research completeness — NOT company quality. */
-export function ResearchCoverageCard({
-  coverage,
-}: {
-  coverage: ResearchCoverageView;
-}) {
+export function ResearchCoverageCard({ coverage }: { coverage: ResearchCoverageView }) {
   return (
     <Card>
       <CardHeader

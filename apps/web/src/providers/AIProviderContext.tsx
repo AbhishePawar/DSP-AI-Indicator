@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 import {
   createAIService,
@@ -27,16 +22,12 @@ export function AIProviderContextProvider({
 }) {
   const value = useMemo(() => {
     if (service) return service;
-    const config = activeProviderId
-      ? { activeProviderId }
-      : resolveAIConfig();
+    const config = activeProviderId ? { activeProviderId } : resolveAIConfig();
     return createAIService(undefined, config);
   }, [service, activeProviderId]);
 
   return (
-    <AIProviderContext.Provider value={value}>
-      {children}
-    </AIProviderContext.Provider>
+    <AIProviderContext.Provider value={value}>{children}</AIProviderContext.Provider>
   );
 }
 

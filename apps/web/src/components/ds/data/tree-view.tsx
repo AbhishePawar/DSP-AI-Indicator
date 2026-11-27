@@ -38,7 +38,11 @@ function TreeNodeItem({
   const isSelected = selectedId === node.id;
 
   return (
-    <li role="treeitem" aria-expanded={hasChildren ? isExpanded : undefined} aria-selected={isSelected}>
+    <li
+      role="treeitem"
+      aria-expanded={hasChildren ? isExpanded : undefined}
+      aria-selected={isSelected}
+    >
       <div
         className={cn(
           "flex items-center gap-1 rounded-[var(--radius-md,0.5rem)] py-1 pr-2 text-sm",
@@ -49,7 +53,11 @@ function TreeNodeItem({
         {hasChildren ? (
           <button
             type="button"
-            aria-label={isExpanded ? `Collapse ${String(node.label)}` : `Expand ${String(node.label)}`}
+            aria-label={
+              isExpanded
+                ? `Collapse ${String(node.label)}`
+                : `Expand ${String(node.label)}`
+            }
             className={cn(
               "inline-flex h-6 w-6 items-center justify-center rounded-sm text-[var(--muted)]",
               "hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",

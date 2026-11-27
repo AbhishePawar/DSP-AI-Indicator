@@ -188,14 +188,8 @@ describe("P2.2 explainability framework", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
-    expect(view.explainability.kind).toBe(
-      "institutional_explainability_framework",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
+    expect(view.explainability.kind).toBe("institutional_explainability_framework");
     expect(view.explainability.version).toBe(EXPLAINABILITY_FRAMEWORK_VERSION);
     expect(view.explainability.modules.length).toBe(10);
     for (const m of view.explainability.modules) {
@@ -214,11 +208,7 @@ describe("P2.2 explainability framework", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     render(
       <InstitutionalRatingsSection
         ratings={view.ratings}
@@ -245,11 +235,7 @@ describe("P2.2 explainability framework", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const json = researchViewToJson(view);
     const html = researchViewToHtml(view);
     const csv = researchViewToCsv(view);

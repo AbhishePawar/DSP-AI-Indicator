@@ -9,14 +9,7 @@ import {
   type TableOptions,
 } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
 
 export interface DataGridProps<TData> {
   columns: ColumnDef<TData, unknown>[];
@@ -66,7 +59,10 @@ function DataGrid<TData>({
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() ? "selected" : undefined}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -76,7 +72,10 @@ function DataGrid<TData>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center text-[var(--muted)]">
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 text-center text-[var(--muted)]"
+              >
                 {emptyMessage}
               </TableCell>
             </TableRow>

@@ -82,10 +82,7 @@ export function PreferenceManager() {
         </div>
 
         <div>
-          <label
-            className="block text-sm text-[var(--muted)]"
-            htmlFor="watchlist-view"
-          >
+          <label className="block text-sm text-[var(--muted)]" htmlFor="watchlist-view">
             Preferred watchlist view (placeholder)
           </label>
           <select

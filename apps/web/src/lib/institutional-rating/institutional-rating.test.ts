@@ -158,11 +158,12 @@ describe("ARCH-002 institutional rating framework", () => {
     expect(ratings.kind).toBe("institutional_rating_framework");
     expect(ratings.scorecard.length).toBeGreaterThanOrEqual(11);
     expect(ratings.modules.riskAssessment.scoreOutOf10).toBe("Unavailable");
-    expect(ratings.modules.financialFortress.dimensions.some((d) => d.label === "ROE")).toBe(
-      true,
-    );
     expect(
-      ratings.modules.financialFortress.dimensions.find((d) => d.label === "ROE")?.value,
+      ratings.modules.financialFortress.dimensions.some((d) => d.label === "ROE"),
+    ).toBe(true);
+    expect(
+      ratings.modules.financialFortress.dimensions.find((d) => d.label === "ROE")
+        ?.value,
     ).toBe("Unavailable");
     expect(ratings.overall.recommendation).toBeTruthy();
     expect(ratings.disclaimer.toLowerCase()).toContain("does not recalculate");

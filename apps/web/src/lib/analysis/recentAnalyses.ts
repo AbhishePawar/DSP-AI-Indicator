@@ -27,9 +27,7 @@ export function loadRecentAnalyses(): RecentAnalysisEntry[] {
   }
 }
 
-export function pushRecentAnalysis(
-  entry: RecentAnalysisEntry,
-): RecentAnalysisEntry[] {
+export function pushRecentAnalysis(entry: RecentAnalysisEntry): RecentAnalysisEntry[] {
   const next = [
     entry,
     ...loadRecentAnalyses().filter(

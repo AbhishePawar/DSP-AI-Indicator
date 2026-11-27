@@ -31,8 +31,9 @@ import {
   extractMfaChallenge,
   navigateAfterLogin,
   persistEnterpriseSession,
+  resolvePostLoginDestination,
 } from "@/lib/auth/finishEnterpriseSession";
-import { isAuthPublicPath, normalizePath } from "@/lib/auth/routeGuards";
+import { normalizePath } from "@/lib/auth/routeGuards";
 import { sessionFromRbacLogin } from "@/lib/auth/sessionStore";
 import type { MfaChallengeInfo } from "@/lib/auth/types";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
@@ -66,21 +67,21 @@ export default function LoginForm() {
   const [pending, setPending] = useState(false);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
 
-  const nextPath = normalizePath(searchParams.get("next") || "/dashboard");
+  const nextPath = normalizePath(searchParams.get("next") || "/");
   const expired = searchParams.get("expired") === "1";
   const verified = searchParams.get("verified") === "1";
 
   const googleProvider = useMemo(
     () =>
-      oauthAvailable.find(
-        (p) => String(p.provider || "").toUpperCase() === "GOOGLE",
-      ) ?? null,
+      oauthAvailable.find((p) => String(p.provider || "").toUpperCase() === "GOOGLE") ??
+      null,
     [oauthAvailable],
   );
 
   useEffect(() => {
     if (status === "authenticated" && session && !mfaChallenge) {
-      router.replace(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
+      const destination = resolvePostLoginDestination(nextPath);
+      router.replace(destination);
     }
   }, [status, session, mfaChallenge, nextPath, router]);
 
@@ -274,8 +275,8 @@ export default function LoginForm() {
           <Stack gap={4}>
             {expired ? (
               <Alert variant="warning" title="Session expired">
-                Your session is no longer valid. Sign in again to continue where
-                you left off.
+                Your session is no longer valid. Sign in again to continue where you
+                left off.
               </Alert>
             ) : null}
             {verified ? (
@@ -283,9 +284,7 @@ export default function LoginForm() {
                 Your email was verified. Choose a sign-in method to continue.
               </Alert>
             ) : null}
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
+            {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
 
             <Button
               type="button"
@@ -342,8 +341,8 @@ export default function LoginForm() {
             />
             {!googleProvider ? (
               <p className="text-center text-xs text-[var(--muted)]">
-                If Google is not configured on the API, you will see an error
-                after clicking Continue with Google.
+                If Google is not configured on the API, you will see an error after
+                clicking Continue with Google.
               </p>
             ) : null}
 
@@ -444,8 +443,7 @@ export default function LoginForm() {
     );
   }
 
-  const otpTitle =
-    step === "mobile-otp" ? "Mobile number and OTP" : "Username and OTP";
+  const otpTitle = step === "mobile-otp" ? "Mobile number and OTP" : "Username and OTP";
   const otpDescription =
     otpPhase === "request"
       ? step === "mobile-otp"
@@ -479,11 +477,7 @@ export default function LoginForm() {
                   />
                 </FormField>
               ) : (
-                <FormField
-                  label="Username"
-                  htmlFor="login-otp-identifier"
-                  required
-                >
+                <FormField label="Username" htmlFor="login-otp-identifier" required>
                   <Input
                     id="login-otp-identifier"
                     value={otpIdentifier}

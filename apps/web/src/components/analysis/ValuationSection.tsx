@@ -45,13 +45,7 @@ export function ValuationSection({ valuation }: { valuation: ValuationView }) {
   );
 }
 
-function Scenario({
-  title,
-  field,
-}: {
-  title: string;
-  field: ValuationView["bull"];
-}) {
+function Scenario({ title, field }: { title: string; field: ValuationView["bull"] }) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4">
       <p className="font-medium">{title}</p>

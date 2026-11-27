@@ -1,0 +1,51 @@
+# Optional internal market-data gateway. This file does not modify the
+# production stack. Start only after building/reviewing the feature branch.
+#
+# Before use, configure:
+#   DSP_MARKET_GATEWAY_API_KEY = same value as DSP_MARKET_QUOTE_API_KEY
+#   UPSTOX_ACCESS_TOKEN        = server-side Upstox access token
+#   DSP_MARKET_GATEWAY_FALLBACK_BASE_URL / _API_KEY = approved fallback source
+#
+# The API's existing P1-03 variables should point to:
+#   DSP_MARKET_QUOTE_BASE_URL=http://market-data-gateway:8081/quote
+#   DSP_MARKET_QUOTE_API_KEY=<same gateway API key>
+# Those API settings are intentionally NOT changed by this file.
+#
+# By default this joins the network created by docker/docker-compose.production.yml.
+services:
+  market-data-gateway:
+    image: dsp-market-data-gateway:dev
+    build:
+      context: ..
+      dockerfile: docker/market-data-gateway.Dockerfile
+    restart: unless-stopped
+    environment:
+      DSP_MARKET_GATEWAY_API_KEY: ${DSP_MARKET_GATEWAY_API_KEY:?Set a private gateway API key}
+      UPSTOX_ACCESS_TOKEN: ${UPSTOX_ACCESS_TOKEN:-}
+      UPSTOX_BASE_URL: ${UPSTOX_BASE_URL:-https://api.upstox.com}
+      DSP_MARKET_GATEWAY_FALLBACK_BASE_URL: ${DSP_MARKET_GATEWAY_FALLBACK_BASE_URL:-}
+      DSP_MARKET_GATEWAY_FALLBACK_API_KEY: ${DSP_MARKET_GATEWAY_FALLBACK_API_KEY:-}
+    expose:
+      - "8081"
+    networks:
+      dsp_prod:
+        aliases:
+          - market-data-gateway
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  dsp_prod:
+    external: true
+    name: ${DSP_MARKET_DATA_GATEWAY_NETWORK:-dsp-production_dsp_prod}

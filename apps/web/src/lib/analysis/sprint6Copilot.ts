@@ -24,11 +24,7 @@ export type CopilotAction =
   | "free_text";
 
 export type CopilotCitationKind =
-  | "decision_trace"
-  | "evidence"
-  | "knowledge_graph"
-  | "methodology"
-  | "confidence";
+  "decision_trace" | "evidence" | "knowledge_graph" | "methodology" | "confidence";
 
 export type CopilotCitation = {
   id: string;
@@ -144,17 +140,17 @@ function unavailableAnswer(
     nextSuggestedQuestion: followUps[0] ?? "What information is missing?",
     followUps,
     citations: BASE_CITATIONS,
-    sourceNote: "DSP Research workspace (presentation map) — not an independent AI opinion",
-    methodologyNote: "Explainability assistant · Research Mode · no Buy/Sell/Target Price",
+    sourceNote:
+      "DSP Research workspace (presentation map) — not an independent AI opinion",
+    methodologyNote:
+      "Explainability assistant · Research Mode · no Buy/Sell/Target Price",
     isUnavailable: true,
   };
 }
 
 function companyLabel(view: AnalysisWorkspaceView): string {
   return (
-    view.snapshot.companyName.value ??
-    view.snapshot.ticker.value ??
-    "this company"
+    view.snapshot.companyName.value ?? view.snapshot.ticker.value ?? "this company"
   );
 }
 
@@ -185,8 +181,7 @@ function detectAction(text: string): CopilotAction {
     return "highlight_missing";
   if (t.includes("risk")) return "summarize_risks";
   if (t.includes("growth")) return "summarize_growth";
-  if (t.includes("valuation") || t.includes("intrinsic"))
-    return "summarize_valuation";
+  if (t.includes("valuation") || t.includes("intrinsic")) return "summarize_valuation";
   if (t.includes("timeline")) return "show_timeline";
   if (t.includes("graph") || t.includes("knowledge")) return "show_graph";
   if (t.includes("compare") || t.includes("street") || t.includes("vs"))
@@ -222,7 +217,12 @@ export function buildCopilotAnswer(
     "Answers cite DSP Research artifacts only. AI opinion is never presented as fact.";
   const methodologyNote = `${meth.analysisVersion} · ${meth.presentationVersion}`;
 
-  const base = (partial: Omit<CopilotAnswer, "citations" | "sourceNote" | "methodologyNote" | "confidenceLabel">): CopilotAnswer => ({
+  const base = (
+    partial: Omit<
+      CopilotAnswer,
+      "citations" | "sourceNote" | "methodologyNote" | "confidenceLabel"
+    >,
+  ): CopilotAnswer => ({
     ...partial,
     confidenceLabel: CONFIDENCE_LABELS[partial.confidence],
     citations: BASE_CITATIONS,
@@ -235,9 +235,17 @@ export function buildCopilotAnswer(
       const conclusion = view.conclusion.conclusion.value;
       const has = view.conclusion.conclusion.presence === "available";
       if (!has && !view.apiOk) {
-        return unavailableAnswer(`A company summary for ${name}`, [
-          { id: "company_snapshot", title: "Company Snapshot", href: "#company_snapshot" },
-        ], followUps);
+        return unavailableAnswer(
+          `A company summary for ${name}`,
+          [
+            {
+              id: "company_snapshot",
+              title: "Company Snapshot",
+              href: "#company_snapshot",
+            },
+          ],
+          followUps,
+        );
       }
       return base({
         shortAnswer: has
@@ -261,9 +269,21 @@ export function buildCopilotAnswer(
           "This is an explanation of DSP Research — not a Buy/Sell recommendation",
         ],
         relatedSections: [
-          { id: "research_conclusion", title: "Research Conclusion", href: "#research_conclusion" },
-          { id: "executive_summary", title: "Executive Summary", href: "#executive_summary" },
-          { id: "decision_dashboard", title: "Decision Dashboard", href: "#decision_dashboard" },
+          {
+            id: "research_conclusion",
+            title: "Research Conclusion",
+            href: "#research_conclusion",
+          },
+          {
+            id: "executive_summary",
+            title: "Executive Summary",
+            href: "#executive_summary",
+          },
+          {
+            id: "decision_dashboard",
+            title: "Decision Dashboard",
+            href: "#decision_dashboard",
+          },
         ],
         nextSuggestedQuestion: followUps[0],
         followUps,
@@ -282,9 +302,17 @@ export function buildCopilotAnswer(
         ) ??
         metrics[0];
       if (!metric) {
-        return unavailableAnswer("Metric explanation", [
-          { id: "business_quality", title: "Business Quality", href: "#business_quality" },
-        ], followUps);
+        return unavailableAnswer(
+          "Metric explanation",
+          [
+            {
+              id: "business_quality",
+              title: "Business Quality",
+              href: "#business_quality",
+            },
+          ],
+          followUps,
+        );
       }
       return base({
         shortAnswer: metric.available
@@ -302,12 +330,26 @@ export function buildCopilotAnswer(
         confidence: metric.available ? "low" : "insufficient_evidence",
         limitations: [
           "Thin client performs no investment math",
-          metric.available ? "Value depends on backend envelope fidelity" : "Unavailable until fundamentals load",
+          metric.available
+            ? "Value depends on backend envelope fidelity"
+            : "Unavailable until fundamentals load",
         ],
         relatedSections: [
-          { id: "business_quality", title: "Business Quality", href: "#business_quality" },
-          { id: "financial_strength", title: "Financial Strength", href: "#financial_strength" },
-          { id: "evidence_explorer", title: "Evidence Explorer", href: "#evidence_explorer" },
+          {
+            id: "business_quality",
+            title: "Business Quality",
+            href: "#business_quality",
+          },
+          {
+            id: "financial_strength",
+            title: "Financial Strength",
+            href: "#financial_strength",
+          },
+          {
+            id: "evidence_explorer",
+            title: "Evidence Explorer",
+            href: "#evidence_explorer",
+          },
         ],
         nextSuggestedQuestion: "Show supporting evidence for this research",
         followUps: [
@@ -322,8 +364,7 @@ export function buildCopilotAnswer(
 
     case "explain_section": {
       const section = ctx.sectionId ?? "research_conclusion";
-      const title =
-        section.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const title = section.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       return base({
         shortAnswer: `Section “${title}” is part of the DSP Company Analysis workspace — open it for the full research presentation.`,
         detailedExplanation: [
@@ -368,9 +409,17 @@ export function buildCopilotAnswer(
           .map((i) => i.title),
       ].filter(Boolean);
       if (!items.length) {
-        return unavailableAnswer("Supporting evidence", [
-          { id: "evidence_explorer", title: "Evidence Explorer", href: "#evidence_explorer" },
-        ], followUps);
+        return unavailableAnswer(
+          "Supporting evidence",
+          [
+            {
+              id: "evidence_explorer",
+              title: "Evidence Explorer",
+              href: "#evidence_explorer",
+            },
+          ],
+          followUps,
+        );
       }
       return base({
         shortAnswer: `Found ${items.length} supporting evidence item(s) already present in DSP Research.`,
@@ -383,7 +432,11 @@ export function buildCopilotAnswer(
           ...view.conclusion.evidence.limitations.slice(0, 2),
         ],
         relatedSections: [
-          { id: "evidence_explorer", title: "Evidence Explorer", href: "#evidence_explorer" },
+          {
+            id: "evidence_explorer",
+            title: "Evidence Explorer",
+            href: "#evidence_explorer",
+          },
           { id: "decision_trace", title: "Decision Trace", href: "#decision_trace" },
           { id: "ai_challenge", title: "AI Challenge", href: "#ai_challenge" },
         ],
@@ -409,7 +462,9 @@ export function buildCopilotAnswer(
           : "No explicit contradicting evidence artifacts are listed — that does not mean the DSP View is proven.",
         detailedExplanation:
           "DSP keeps contradicting evidence separate for honesty. Empty contradicting lists must not be read as bullish confirmation.",
-        supportingEvidence: items.length ? items.slice(0, 8) : ["None listed in envelope"],
+        supportingEvidence: items.length
+          ? items.slice(0, 8)
+          : ["None listed in envelope"],
         confidence: "insufficient_evidence",
         limitations: [
           "Sparse envelopes often omit dissent",
@@ -417,7 +472,11 @@ export function buildCopilotAnswer(
         ],
         relatedSections: [
           { id: "ai_challenge", title: "AI Challenge", href: "#ai_challenge" },
-          { id: "evidence_explorer", title: "Evidence Explorer", href: "#evidence_explorer" },
+          {
+            id: "evidence_explorer",
+            title: "Evidence Explorer",
+            href: "#evidence_explorer",
+          },
         ],
         nextSuggestedQuestion: "What could invalidate this conclusion?",
         followUps: [
@@ -446,8 +505,16 @@ export function buildCopilotAnswer(
           "Copilot does not upgrade confidence without new evidence",
         ],
         relatedSections: [
-          { id: "confidence_breakdown", title: "Confidence Breakdown", href: "#confidence_breakdown" },
-          { id: "confidence_matrix", title: "Confidence Matrix", href: "#confidence_matrix" },
+          {
+            id: "confidence_breakdown",
+            title: "Confidence Breakdown",
+            href: "#confidence_breakdown",
+          },
+          {
+            id: "confidence_matrix",
+            title: "Confidence Matrix",
+            href: "#confidence_matrix",
+          },
         ],
         nextSuggestedQuestion: "Why is valuation confidence low?",
         followUps: [
@@ -474,10 +541,15 @@ export function buildCopilotAnswer(
         confidence: conf,
         limitations: items.map((a) => a.impact).slice(0, 4),
         relatedSections: [
-          { id: "assumption_explorer", title: "Assumption Explorer", href: "#assumption_explorer" },
+          {
+            id: "assumption_explorer",
+            title: "Assumption Explorer",
+            href: "#assumption_explorer",
+          },
           { id: "ai_challenge", title: "AI Challenge", href: "#ai_challenge" },
         ],
-        nextSuggestedQuestion: "What changes if the envelope-completeness assumption is wrong?",
+        nextSuggestedQuestion:
+          "What changes if the envelope-completeness assumption is wrong?",
         followUps: [
           "Highlight missing information",
           "Explain confidence",
@@ -490,7 +562,8 @@ export function buildCopilotAnswer(
 
     case "explain_methodology": {
       return base({
-        shortAnswer: "DSP presents Decision Engine envelopes under Research Mode — the browser does not recalculate valuation.",
+        shortAnswer:
+          "DSP presents Decision Engine envelopes under Research Mode — the browser does not recalculate valuation.",
         detailedExplanation: [
           meth.researchMethodology,
           `Analysis: ${meth.analysisVersion}`,
@@ -525,7 +598,8 @@ export function buildCopilotAnswer(
 
     case "navigate_related": {
       return base({
-        shortAnswer: "Related research surfaces: Decision Trace, Evidence, Knowledge Graph, Confidence, Methodology.",
+        shortAnswer:
+          "Related research surfaces: Decision Trace, Evidence, Knowledge Graph, Confidence, Methodology.",
         detailedExplanation:
           "Use the citations and related section links below. The Copilot navigates research — it does not replace it.",
         supportingEvidence: BASE_CITATIONS.map((c) => c.label),
@@ -533,7 +607,11 @@ export function buildCopilotAnswer(
         limitations: ["Navigation only — no new analysis generated"],
         relatedSections: [
           { id: "decision_trace", title: "Decision Trace", href: "#decision_trace" },
-          { id: "evidence_explorer", title: "Evidence Explorer", href: "#evidence_explorer" },
+          {
+            id: "evidence_explorer",
+            title: "Evidence Explorer",
+            href: "#evidence_explorer",
+          },
           { id: "knowledge_graph", title: "Knowledge Graph", href: "#knowledge_graph" },
           { id: "reasoning_flow", title: "Reasoning Flow", href: "#reasoning_flow" },
         ],
@@ -561,8 +639,16 @@ export function buildCopilotAnswer(
         confidence: "insufficient_evidence",
         limitations: view.researchLimitations.pendingImprovements.slice(0, 4),
         relatedSections: [
-          { id: "research_limitations", title: "Research Limitations", href: "#research_limitations" },
-          { id: "transparency_panel", title: "Transparency", href: "#transparency_panel" },
+          {
+            id: "research_limitations",
+            title: "Research Limitations",
+            href: "#research_limitations",
+          },
+          {
+            id: "transparency_panel",
+            title: "Transparency",
+            href: "#transparency_panel",
+          },
         ],
         nextSuggestedQuestion: "Explain assumptions behind the DSP View",
         followUps: [
@@ -618,7 +704,9 @@ export function buildCopilotAnswer(
           .slice(0, 6)
           .map((g) => `${g.title}: ${g.meaning}`)
           .join(" "),
-        supportingEvidence: growth.flatMap((g) => g.evidence.supportingEvidence).slice(0, 6),
+        supportingEvidence: growth
+          .flatMap((g) => g.evidence.supportingEvidence)
+          .slice(0, 6),
         confidence: available.length ? "low" : "insufficient_evidence",
         limitations: ["Copilot does not estimate growth rates"],
         relatedSections: [
@@ -695,7 +783,11 @@ export function buildCopilotAnswer(
         ],
         relatedSections: [
           { id: "dsp_vs_street", title: "DSP vs Street", href: "#dsp_vs_street" },
-          { id: "analyst_consensus", title: "Analyst Consensus", href: "#analyst_consensus" },
+          {
+            id: "analyst_consensus",
+            title: "Analyst Consensus",
+            href: "#analyst_consensus",
+          },
         ],
         nextSuggestedQuestion: "Show supporting evidence for the DSP View",
         followUps: [
@@ -715,11 +807,17 @@ export function buildCopilotAnswer(
         detailedExplanation: events
           .map((e) => `${e.label}: ${e.detail}${e.at ? ` (${e.at})` : ""}`)
           .join(" "),
-        supportingEvidence: events.filter((e) => e.at).map((e) => `${e.label}: ${e.at}`),
+        supportingEvidence: events
+          .filter((e) => e.at)
+          .map((e) => `${e.label}: ${e.at}`),
         confidence: conf,
         limitations: ["Future events are placeholders until enrichment jobs run"],
         relatedSections: [
-          { id: "research_timeline", title: "Research Timeline", href: "#research_timeline" },
+          {
+            id: "research_timeline",
+            title: "Research Timeline",
+            href: "#research_timeline",
+          },
         ],
         nextSuggestedQuestion: "Explain methodology version",
         followUps: [
@@ -780,7 +878,9 @@ export function buildCopilotAnswer(
         detailedExplanation: [
           `Current company context: ${name}.`,
           `Overall confidence: ${confLabel}.`,
-          userText ? `You asked: “${userText}”. Try a quick action below for a structured answer.` : "",
+          userText
+            ? `You asked: “${userText}”. Try a quick action below for a structured answer.`
+            : "",
           "Every answer includes evidence, confidence, limitations, and citations back into the workspace.",
         ]
           .filter(Boolean)
@@ -795,7 +895,11 @@ export function buildCopilotAnswer(
           "Session memory only — not persisted",
         ],
         relatedSections: [
-          { id: "decision_dashboard", title: "Decision Dashboard", href: "#decision_dashboard" },
+          {
+            id: "decision_dashboard",
+            title: "Decision Dashboard",
+            href: "#decision_dashboard",
+          },
           { id: "decision_trace", title: "Decision Trace", href: "#decision_trace" },
         ],
         nextSuggestedQuestion: followUps[0],

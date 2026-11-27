@@ -72,10 +72,7 @@ export const useUiStore = create<UiStoreState>()(
             visitedAt: new Date().toISOString(),
           };
           return {
-            favouritePages: [entry, ...s.favouritePages].slice(
-              0,
-              MAX_FAVOURITES,
-            ),
+            favouritePages: [entry, ...s.favouritePages].slice(0, MAX_FAVOURITES),
           };
         }),
       isFavourite: (path) => get().favouritePages.some((p) => p.path === path),

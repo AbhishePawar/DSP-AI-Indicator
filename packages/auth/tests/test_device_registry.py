@@ -232,3 +232,48 @@ def test_production_missing_database_fail_closed(
     finally:
         reset_repository_registry_for_tests(None)
         reset_persistence_service_for_tests(None)
+
+
+def test_staging_default_device_store_uses_shared_a008(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakePostgres(InMemoryStorageProvider):
+        provider_id = "postgres"
+
+    monkeypatch.setenv("DSP_ENVIRONMENT", "staging")
+    monkeypatch.setenv("DSP_DATABASE_URL", "postgresql://test:test@localhost/test")
+    from persistence.registry import reset_repository_registry_for_tests
+    from persistence.service import reset_persistence_service_for_tests
+
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    monkeypatch.setattr(
+        "persistence.postgres_storage.build_postgres_storage",
+        lambda dsn, **kwargs: _FakePostgres(),
+    )
+    try:
+        store = default_device_store()
+        assert store._persistence.registry.storage.provider_id == "postgres"
+    finally:
+        reset_repository_registry_for_tests(None)
+        reset_persistence_service_for_tests(None)
+
+
+def test_staging_missing_database_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "staging")
+    monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    from persistence.exceptions import PersistenceError
+    from persistence.registry import reset_repository_registry_for_tests
+    from persistence.service import reset_persistence_service_for_tests
+
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    try:
+        with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+            default_device_store()
+    finally:
+        reset_repository_registry_for_tests(None)
+        reset_persistence_service_for_tests(None)

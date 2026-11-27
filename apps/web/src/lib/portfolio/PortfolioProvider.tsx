@@ -137,9 +137,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <PortfolioContext.Provider value={value}>
-      {children}
-    </PortfolioContext.Provider>
+    <PortfolioContext.Provider value={value}>{children}</PortfolioContext.Provider>
   );
 }
 

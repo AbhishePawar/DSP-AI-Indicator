@@ -16,8 +16,7 @@ export type PasskeyButtonProps = {
 
 function browserSupportsWebAuthn(): boolean {
   return (
-    typeof window !== "undefined" &&
-    typeof window.PublicKeyCredential !== "undefined"
+    typeof window !== "undefined" && typeof window.PublicKeyCredential !== "undefined"
   );
 }
 

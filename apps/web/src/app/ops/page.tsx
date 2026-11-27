@@ -17,9 +17,7 @@ const OpsPortal = dynamic(
     })),
   {
     ssr: false,
-    loading: () => (
-      <p className="text-sm text-[var(--dsp-text-muted)]">Loading ops…</p>
-    ),
+    loading: () => <p className="text-sm text-[var(--dsp-text-muted)]">Loading ops…</p>,
   },
 );
 
@@ -45,9 +43,7 @@ export default function OpsPage() {
         description="Enterprise health, incident center, services, and collaboration architecture. Honest unavailable states when infra ports are offline."
       />
       <Suspense
-        fallback={
-          <p className="text-sm text-[var(--dsp-text-muted)]">Loading ops…</p>
-        }
+        fallback={<p className="text-sm text-[var(--dsp-text-muted)]">Loading ops…</p>}
       >
         <OpsPortal />
       </Suspense>

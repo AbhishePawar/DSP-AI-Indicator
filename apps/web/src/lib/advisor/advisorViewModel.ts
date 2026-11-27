@@ -65,7 +65,9 @@ export function buildAdvisorOverview(): AdvisorOverviewView {
     (m) => m.status === "scheduled" && m.scheduledAt.startsWith(todayPrefix),
   );
   const pendingTasks = demoTasks.filter((t) => t.status !== "done");
-  const recentResearch = demoResearchCollections.flatMap((c) => c.itemLabels).slice(0, 5);
+  const recentResearch = demoResearchCollections
+    .flatMap((c) => c.itemLabels)
+    .slice(0, 5);
   const clientActivity = [...demoClients]
     .sort((a, b) => b.lastTouchAt.localeCompare(a.lastTouchAt))
     .slice(0, 5)
@@ -125,7 +127,10 @@ export function buildClientProfile(clientId: string): ClientProfileView | null {
   const tasks = demoTasks.filter((t) => t.clientId === clientId);
   const notes = demoNotes
     .filter((n) => n.clientId === clientId)
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt));
+    .sort(
+      (a, b) =>
+        Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt),
+    );
   const researchHistory = demoResearchHistory
     .filter((e) => e.clientId === clientId)
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));

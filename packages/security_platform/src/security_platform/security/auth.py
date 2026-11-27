@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any, Protocol, runtime_checkable
 
 from security_platform.security.api_keys import ApiKeyManager
@@ -91,6 +92,8 @@ class SecuritySettings:
         "/api/v1/health/live",
         "/api/v1/health/ready",
         "/api/v1/metrics",
+        "/auth/session",
+        "/api/v1/auth/session",
         "/auth/login",
         "/api/v1/auth/login",
         "/auth/refresh",
@@ -399,6 +402,21 @@ class AuthenticationManager:
         session_id = None
         if claims.extra and isinstance(claims.extra, dict):
             session_id = claims.extra.get("sid")
+        if session_id and self._identity is not None:
+            session_getter = getattr(self._identity, "get_session", None)
+            if callable(session_getter):
+                session_rec = session_getter(str(session_id))
+                if session_rec is None:
+                    raise AuthenticationError(
+                        f"session revoked or expired: {session_id!r}"
+                    )
+                if (
+                    getattr(session_rec, "user_id", None)
+                    and session_rec.user_id != claims.subject
+                ):
+                    raise AuthenticationError(f"session user mismatch: {session_id!r}")
+                if session_rec.expires_at <= datetime.now(tz=UTC):
+                    raise AuthenticationError(f"session expired: {session_id!r}")
         return UserPrincipal(
             subject=claims.subject,
             role=role,
@@ -470,6 +488,23 @@ class AuthenticationManager:
             if scheme_l == "bearer":
                 try:
                     return self.authenticate_jwt(token)
+                except AuthenticationError as exc:
+                    if any(
+                        msg in str(exc)
+                        for msg in (
+                            "session revoked",
+                            "session expired",
+                            "user inactive",
+                            "session user mismatch",
+                        )
+                    ):
+                        raise
+                    try:
+                        return self.authenticate_api_key_bearer(token)
+                    except Exception:
+                        if self._oauth2 is not None:
+                            return self.authenticate_oauth2(token)
+                        raise exc from None
                 except Exception:
                     try:
                         return self.authenticate_api_key_bearer(token)
@@ -508,7 +543,7 @@ class AuthorizationManager:
         perm = assert_permission(permission)
         if not principal.has_permission(perm):
             raise AuthorizationError(
-                f"permission denied: {perm.value} " f"(role={principal.role.value})"
+                f"permission denied: {perm.value} (role={principal.role.value})"
             )
 
     def is_allowed(

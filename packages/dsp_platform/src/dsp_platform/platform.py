@@ -106,6 +106,7 @@ class PlatformBuilder:
     def __init__(self) -> None:
         self._configuration: PlatformConfiguration | None = None
         self._analysis_service: InvestmentAnalysisService | None = None
+        self._data_provider_registry: Any | None = None
         self._features: FeatureFlags | None = None
         self._registry = ServiceRegistry()
         self._lifecycle = PlatformLifecycle()
@@ -128,6 +129,11 @@ class PlatformBuilder:
     ) -> PlatformBuilder:
         """Inject the frozen orchestration faÃ§ade."""
         self._analysis_service = analysis_service
+        return self
+
+    def with_data_provider_registry(self, registry: Any) -> PlatformBuilder:
+        """Inject the Data Engine provider registry for health inspection."""
+        self._data_provider_registry = registry
         return self
 
     def with_features(self, features: FeatureFlags) -> PlatformBuilder:
@@ -194,6 +200,7 @@ class PlatformBuilder:
             configuration=configuration,
             registry=self._registry,
             lifecycle=self._lifecycle,
+            data_provider_registry=self._data_provider_registry,
         )
         if self._auto_ready:
             self._lifecycle.mark_ready(note="PlatformBuilder.build")
@@ -216,6 +223,7 @@ class DSPPlatform:
         configuration: PlatformConfiguration | None = None,
         registry: ServiceRegistry | None = None,
         lifecycle: PlatformLifecycle | None = None,
+        data_provider_registry: Any | None = None,
     ) -> None:
         """Create a platform faÃ§ade.
 
@@ -228,6 +236,7 @@ class DSPPlatform:
         self._features = features or self._configuration.features
         self._analysis = analysis_service
         self._registry = registry or ServiceRegistry()
+        self._data_provider_registry = data_provider_registry
         self._lifecycle = lifecycle or PlatformLifecycle(
             status=(
                 PlatformStatus.READY
@@ -256,14 +265,15 @@ class DSPPlatform:
         Raises:
             PlatformError: If wiring fails (e.g. missing required secrets).
         """
-        from dsp_platform.wiring import build_analysis_service
+        from dsp_platform.wiring import build_analysis_components
 
-        service = build_analysis_service(config)
+        service, provider_registry = build_analysis_components(config)
         configuration = PlatformConfiguration.from_platform_config(config)
         return (
             PlatformBuilder()
             .with_configuration(configuration)
             .with_analysis_service(service)
+            .with_data_provider_registry(provider_registry)
             .with_features(config.features)
             .build()
         )
@@ -916,7 +926,7 @@ class DSPPlatform:
         symbol: str,
         *,
         exchange: str | None = None,
-        currency: str = "USD",
+        currency: str | None = None,
     ) -> dict[str, object] | None:
         from dsp_platform.market_quotes import get_authenticated_market_quote
 
@@ -961,7 +971,43 @@ class DSPPlatform:
     ) -> dict[str, object] | None:
         from dsp_platform.financial_statements import resolve_company_identity
 
-        return resolve_company_identity(symbol, exchange=exchange, currency=currency)
+        res = resolve_company_identity(symbol, exchange=exchange, currency=currency)
+        if res is not None:
+            return res
+        try:
+            from dsp_platform.asset_resolution import resolve_asset
+
+            asset = resolve_asset(
+                symbol, preferred_exchange=exchange, currency=currency
+            )
+            if asset is not None:
+                return {
+                    "symbol": asset.symbol,
+                    "exchange": asset.exchange,
+                    "company_name": asset.name,
+                    "isin": asset.isin,
+                    "cik": None,
+                    "provider_company_id": asset.bse_code,
+                    "currency": asset.currency,
+                }
+        except Exception:
+            pass
+        return None
+
+    def resolve_asset_identity(
+        self,
+        query: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "INR",
+    ) -> dict[str, object] | None:
+        try:
+            from dsp_platform.asset_resolution import resolve_asset
+
+            asset = resolve_asset(query, preferred_exchange=exchange, currency=currency)
+            return asset.to_dict() if asset is not None else None
+        except Exception:
+            return None
 
     def financial_statement_health(self) -> dict[str, object]:
         from dsp_platform.financial_statements import financial_statement_health
@@ -1933,7 +1979,11 @@ class DSPPlatform:
             from dsp_platform.health import PlatformHealthService
 
             config = self._configuration.to_platform_config()
-            service = PlatformHealthService(config=config, platform=self)
+            service = PlatformHealthService(
+                config=config,
+                platform=self,
+                provider_registry=self._data_provider_registry,
+            )
             report = service.check()
             ok = report.ready and self._lifecycle.status in {
                 PlatformStatus.READY,

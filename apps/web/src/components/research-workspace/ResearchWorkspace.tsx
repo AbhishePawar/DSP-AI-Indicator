@@ -28,14 +28,8 @@ import {
 } from "@/lib/research-workspace";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
-import {
-  mapResearchView,
-  type ResearchView,
-} from "@/lib/research/mapResearchView";
-import {
-  loadResearchSession,
-  saveResearchSession,
-} from "@/lib/research/sessionStore";
+import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
+import { loadResearchSession, saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
 import { ResearchLeftNav } from "./LeftNav";
@@ -53,19 +47,19 @@ import { SectionCard, WorkspaceEmpty, WorkspaceSkeleton } from "./Primitives";
 
 /** RC3-004 — code-split heavy company-analysis overlays. */
 const BuffettIndicatorSection = lazy(() =>
-  import("@/components/company-analysis/BuffettIndicatorSection").then(
-    (m) => ({ default: m.BuffettIndicatorSection }),
-  ),
+  import("@/components/company-analysis/BuffettIndicatorSection").then((m) => ({
+    default: m.BuffettIndicatorSection,
+  })),
 );
 const InstitutionalRatingsSection = lazy(() =>
-  import("@/components/company-analysis/InstitutionalRatingsSection").then(
-    (m) => ({ default: m.InstitutionalRatingsSection }),
-  ),
+  import("@/components/company-analysis/InstitutionalRatingsSection").then((m) => ({
+    default: m.InstitutionalRatingsSection,
+  })),
 );
 const ValuationTransparencySection = lazy(() =>
-  import("@/components/company-analysis/ValuationTransparencySection").then(
-    (m) => ({ default: m.ValuationTransparencySection }),
-  ),
+  import("@/components/company-analysis/ValuationTransparencySection").then((m) => ({
+    default: m.ValuationTransparencySection,
+  })),
 );
 
 function LazySectionFallback() {
@@ -160,9 +154,7 @@ export function ResearchWorkspace() {
   const { success, error: notifyError } = useNotifications();
 
   const activeSection = useResearchWorkspacePrefsStore((s) => s.activeSection);
-  const setActiveSection = useResearchWorkspacePrefsStore(
-    (s) => s.setActiveSection,
-  );
+  const setActiveSection = useResearchWorkspacePrefsStore((s) => s.setActiveSection);
   const leftOpen = useResearchWorkspacePrefsStore((s) => s.leftOpen);
   const rightOpen = useResearchWorkspacePrefsStore((s) => s.rightOpen);
   const toggleLeft = useResearchWorkspacePrefsStore((s) => s.toggleLeft);
@@ -170,17 +162,12 @@ export function ResearchWorkspace() {
   const setLeftOpen = useResearchWorkspacePrefsStore((s) => s.setLeftOpen);
   const setRightOpen = useResearchWorkspacePrefsStore((s) => s.setRightOpen);
   const selectedTicker = useResearchWorkspacePrefsStore((s) => s.selectedTicker);
-  const setSelectedTicker = useResearchWorkspacePrefsStore(
-    (s) => s.setSelectedTicker,
-  );
-  const toggleFavourite = useResearchWorkspacePrefsStore(
-    (s) => s.toggleFavourite,
-  );
+  const setSelectedTicker = useResearchWorkspacePrefsStore((s) => s.setSelectedTicker);
+  const toggleFavourite = useResearchWorkspacePrefsStore((s) => s.toggleFavourite);
   const togglePinned = useResearchWorkspacePrefsStore((s) => s.togglePinned);
   const isFavourite = useResearchWorkspacePrefsStore((s) => s.isFavourite);
   const isPinned = useResearchWorkspacePrefsStore((s) => s.isPinned);
-  const { runWithDisclaimer, gate: disclaimerGate } =
-    useResearchDisclaimerGate();
+  const { runWithDisclaimer, gate: disclaimerGate } = useResearchDisclaimerGate();
 
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
@@ -203,8 +190,7 @@ export function ResearchWorkspace() {
   const loadMutation = useMutation({
     mutationFn: async (ticker: string) => {
       const sym = ticker.trim().toUpperCase();
-      const cached =
-        loadResearchSession(sym) || loadArchivedSession(sym) || null;
+      const cached = loadResearchSession(sym) || loadArchivedSession(sym) || null;
       if (cached) {
         return {
           fromCache: true as const,
@@ -224,8 +210,7 @@ export function ResearchWorkspace() {
             limit: 1,
             exchange: match?.exchange,
           }),
-        loadQuote: () =>
-          api.marketQuote(sym, { token, exchange: match?.exchange }),
+        loadQuote: () => api.marketQuote(sym, { token, exchange: match?.exchange }),
       });
       const response = await api.analyse(body, { token });
       return {
@@ -324,14 +309,7 @@ export function ResearchWorkspace() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [
-    router,
-    runLoad,
-    selectedTicker,
-    setActiveSection,
-    toggleLeft,
-    toggleRight,
-  ]);
+  }, [router, runLoad, selectedTicker, setActiveSection, toggleLeft, toggleRight]);
 
   // Auto-load when URL provides ticker on first paint — gated by disclaimer.
   useEffect(() => {
@@ -344,9 +322,7 @@ export function ResearchWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL hydrate
   }, []);
 
-  const section = isResearchSectionId(activeSection)
-    ? activeSection
-    : "library";
+  const section = isResearchSectionId(activeSection) ? activeSection : "library";
 
   return (
     <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
@@ -415,9 +391,7 @@ export function ResearchWorkspace() {
               title="Trust Ladder"
             />
           </div>
-          {section === "library" ? (
-            <LibrarySection onOpenTicker={openTicker} />
-          ) : null}
+          {section === "library" ? <LibrarySection onOpenTicker={openTicker} /> : null}
           {section === "viewer" ? (
             <ViewerSection
               view={view}
@@ -468,14 +442,11 @@ export function ResearchWorkspace() {
               </SectionCard>
             )
           ) : null}
-          {section === "compliance" ? (
-            <ComplianceSection view={view} />
-          ) : null}
+          {section === "compliance" ? <ComplianceSection view={view} /> : null}
           {section === "export" ? <ExportSection view={view} /> : null}
 
           <p className="mt-4 text-[10px] text-[var(--muted)]">
-            Research tools — not investment advice. No client-side research
-            generation.
+            Research tools — not investment advice. No client-side research generation.
           </p>
         </div>
 

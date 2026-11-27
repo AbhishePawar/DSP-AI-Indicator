@@ -20,13 +20,9 @@ export const CANONICAL_MOAT_DIMENSION_IDS = [
   "efficient_scale",
 ] as const;
 
-export type CanonicalMoatDimensionId =
-  (typeof CANONICAL_MOAT_DIMENSION_IDS)[number];
+export type CanonicalMoatDimensionId = (typeof CANONICAL_MOAT_DIMENSION_IDS)[number];
 
-export const CANONICAL_MOAT_DISPLAY_NAMES: Record<
-  CanonicalMoatDimensionId,
-  string
-> = {
+export const CANONICAL_MOAT_DISPLAY_NAMES: Record<CanonicalMoatDimensionId, string> = {
   brand: "Brand",
   network_effects: "Network Effects",
   switching_costs: "Switching Costs",
@@ -42,8 +38,7 @@ export const PRESENTATION_RATING_STATUSES = [
   "not_implemented",
 ] as const;
 
-export type PresentationRatingStatus =
-  (typeof PRESENTATION_RATING_STATUSES)[number];
+export type PresentationRatingStatus = (typeof PRESENTATION_RATING_STATUSES)[number];
 
 export const MOAT_RATING_UNAVAILABLE_DISPLAY = "N/A";
 
@@ -164,10 +159,7 @@ function projectRow(
       typeof raw.engine_status === "string" && raw.engine_status.trim() !== ""
         ? raw.engine_status
         : "unavailable",
-    displayRating: displayRatingFromContract(
-      status,
-      raw.presentation_rating_10,
-    ),
+    displayRating: displayRatingFromContract(status, raw.presentation_rating_10),
     canonicalScore100: score,
   };
 }
@@ -189,8 +181,7 @@ export function mapCanonicalMoatDimensions(
   const rejectedUnknownIdentifiers: string[] = [];
 
   for (const row of rows) {
-    const identifier =
-      typeof row.identifier === "string" ? row.identifier : "";
+    const identifier = typeof row.identifier === "string" ? row.identifier : "";
     if (!isCanonicalId(identifier)) {
       if (identifier) rejectedUnknownIdentifiers.push(identifier);
       continue;
@@ -208,9 +199,7 @@ export function mapCanonicalMoatDimensions(
   return { dimensions, rejectedUnknownIdentifiers };
 }
 
-export function collectViewKeys(
-  dimensions: CanonicalMoatDimensionView[],
-): string[] {
+export function collectViewKeys(dimensions: CanonicalMoatDimensionView[]): string[] {
   const keys = new Set<string>();
   for (const row of dimensions) {
     for (const key of Object.keys(row)) keys.add(key);

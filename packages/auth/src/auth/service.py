@@ -180,9 +180,10 @@ def get_auth_service(
             jwt_secret = resolve_auth_jwt_secret()
             # P0-05 — fail closed: never mint/validate institutional JWT with
             # a default secret when DSP_ENVIRONMENT=production.
-            if os.environ.get("DSP_ENVIRONMENT", "").lower() == "production" and (
-                auth_jwt_secret_is_default(jwt_secret)
-            ):
+            if os.environ.get("DSP_ENVIRONMENT", "").strip().lower() in {
+                "production",
+                "staging",
+            } and (auth_jwt_secret_is_default(jwt_secret)):
                 raise RuntimeError(
                     f"{AUTH_JWT_SECRET_ENV} must be set to a non-default value "
                     "in production"

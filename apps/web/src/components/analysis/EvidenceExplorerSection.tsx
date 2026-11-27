@@ -46,7 +46,10 @@ export const EvidenceItem = memo(function EvidenceItem({
         </span>
       </button>
       {open ? (
-        <div id={panelId} className="space-y-2 border-t border-[var(--border)] px-3 py-3 text-sm">
+        <div
+          id={panelId}
+          className="space-y-2 border-t border-[var(--border)] px-3 py-3 text-sm"
+        >
           <ValueCategoryBadge category={item.group} />
           <Field label="Source" text={item.source} />
           <Field label="Timestamp" text={item.timestamp ?? "Unavailable"} />
@@ -62,7 +65,9 @@ export const EvidenceItem = memo(function EvidenceItem({
 function Field({ label, text }: { label: string; text: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        {label}
+      </p>
       <p className="mt-1">{text}</p>
     </div>
   );
@@ -92,7 +97,9 @@ export const EvidenceTree = memo(function EvidenceTree({
     <div className="space-y-4" role="tree" aria-label="Evidence by category">
       {grouped.map((g) => (
         <div key={g.group} role="group" aria-label={g.label}>
-          <h3 className="mb-2 font-[family-name:var(--font-display)] text-lg">{g.label}</h3>
+          <h3 className="mb-2 font-[family-name:var(--font-display)] text-lg">
+            {g.label}
+          </h3>
           <ul className="max-h-[28rem] space-y-2 overflow-y-auto overscroll-contain pr-1">
             {g.items.map((item) => (
               <li key={item.id} role="treeitem">

@@ -17,10 +17,7 @@ import type {
   PresentationSectionId,
   PresentationTemplateId,
 } from "./presentationTypes";
-import {
-  DEFAULT_SECTION_ORDER,
-  SECTION_LABELS,
-} from "./presentationTypes";
+import { DEFAULT_SECTION_ORDER, SECTION_LABELS } from "./presentationTypes";
 
 export const PRESENTATION_TRUST =
   "Advisor presentations assemble existing DSP demo research and model portfolios only — conclusions, Evidence, Confidence, Methodology, Limitations, and Decision Trace are never rewritten.";
@@ -235,10 +232,7 @@ export function buildPresentationMarkdown(pres: AdvisorPresentation): string {
 
 export function buildPresentationHtml(pres: AdvisorPresentation): string {
   const md = buildPresentationMarkdown(pres);
-  const escaped = md
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const escaped = md.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>${pres.title}</title></head><body><pre style="font-family:system-ui;white-space:pre-wrap">${escaped}</pre><p><em>HTML preview — demo presentation pack</em></p></body></html>`;
 }
 

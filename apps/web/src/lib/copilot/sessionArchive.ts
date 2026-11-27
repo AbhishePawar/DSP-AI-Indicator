@@ -56,14 +56,9 @@ export function listArchivedSessions(): ArchivedResearchSession[] {
   return readArchive();
 }
 
-export function loadArchivedSession(
-  ticker: string,
-): ArchivedResearchSession | null {
+export function loadArchivedSession(ticker: string): ArchivedResearchSession | null {
   const normalized = ticker.trim().toUpperCase();
-  return (
-    readArchive().find((item) => item.ticker.toUpperCase() === normalized) ??
-    null
-  );
+  return readArchive().find((item) => item.ticker.toUpperCase() === normalized) ?? null;
 }
 
 export function clearResearchArchive(): void {

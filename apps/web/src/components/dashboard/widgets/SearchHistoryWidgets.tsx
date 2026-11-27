@@ -4,10 +4,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ds";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
-import {
-  DashboardWidgetShell,
-  WidgetUnavailable,
-} from "../DashboardWidgetShell";
+import { DashboardWidgetShell, WidgetUnavailable } from "../DashboardWidgetShell";
 
 export function RecentSearchesWidget() {
   const recent = useDashboardPrefsStore((s) => s.recentSearches);
@@ -37,11 +34,7 @@ export function RecentSearchesWidget() {
               >
                 {entry.query}
               </Link>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => saveSearch(entry.query)}
-              >
+              <Button size="sm" variant="ghost" onClick={() => saveSearch(entry.query)}>
                 Save
               </Button>
             </li>

@@ -21,11 +21,7 @@ export type ValueCategory =
   | "unavailable";
 
 export type ConfidenceLevel =
-  | "very_high"
-  | "high"
-  | "moderate"
-  | "low"
-  | "insufficient_evidence";
+  "very_high" | "high" | "moderate" | "low" | "insufficient_evidence";
 
 export const SOURCE_LABELS: Record<SourceKind, string> = {
   verified_financial_statement: "Verified Financial Statement",

@@ -77,18 +77,13 @@ export const useAdminConsolePrefsStore = create<AdminConsolePrefsState>()(
       setSelectedRoleId: (id) => set({ selectedRoleId: id }),
       setAuditFilters: (filters) =>
         set((s) => ({
-          auditQuery:
-            filters.query !== undefined ? filters.query : s.auditQuery,
+          auditQuery: filters.query !== undefined ? filters.query : s.auditQuery,
           auditSubject:
             filters.subject !== undefined ? filters.subject : s.auditSubject,
           auditWorkflowId:
-            filters.workflowId !== undefined
-              ? filters.workflowId
-              : s.auditWorkflowId,
+            filters.workflowId !== undefined ? filters.workflowId : s.auditWorkflowId,
           auditEventType:
-            filters.eventType !== undefined
-              ? filters.eventType
-              : s.auditEventType,
+            filters.eventType !== undefined ? filters.eventType : s.auditEventType,
         })),
       addNote: (resourceKey, text) =>
         set((s) => {
@@ -107,8 +102,7 @@ export const useAdminConsolePrefsStore = create<AdminConsolePrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeNote: (id) =>
-        set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
+      removeNote: (id) => set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
       addTag: (resourceKey, label) =>
         set((s) => {
           const trimmed = label.trim();
@@ -134,8 +128,7 @@ export const useAdminConsolePrefsStore = create<AdminConsolePrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeTag: (id) =>
-        set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
+      removeTag: (id) => set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
     }),
     {
       name: "dsp.admin-console.prefs.v1",

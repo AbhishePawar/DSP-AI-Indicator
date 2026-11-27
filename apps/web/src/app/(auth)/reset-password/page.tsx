@@ -38,10 +38,7 @@ function ResetPasswordForm() {
     }
     setPending(true);
     try {
-      const envelope = await enterpriseAuthApi.resetPassword(
-        token.trim(),
-        password,
-      );
+      const envelope = await enterpriseAuthApi.resetPassword(token.trim(), password);
       if (!envelope.ok) {
         throw new Error(envelope.error || "Reset failed");
       }
@@ -90,9 +87,7 @@ function ResetPasswordForm() {
               />
             </FormField>
             <PasswordStrengthMeter password={password} />
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
+            {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Updating…" : "Update password"}
             </Button>

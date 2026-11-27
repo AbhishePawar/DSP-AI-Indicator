@@ -8,10 +8,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import type {
-  DecisionWorkflowStepId,
-  ReviewModeId,
-} from "./decisionWorkflow";
+import type { DecisionWorkflowStepId, ReviewModeId } from "./decisionWorkflow";
 import type { ComparisonSectionId } from "./sections";
 import type { SavedComparison } from "./types";
 import type { WeightingProfileId } from "./weightingProfiles";
@@ -47,11 +44,7 @@ type ComparisonPrefsState = {
   setSymbols: (symbols: string[]) => void;
   pinSymbol: (symbol: string) => void;
   unpinSymbol: (symbol: string) => void;
-  addNote: (
-    kind: PersonalNote["kind"],
-    text: string,
-    symbols: string[],
-  ) => void;
+  addNote: (kind: PersonalNote["kind"], text: string, symbols: string[]) => void;
   removeNote: (id: string) => void;
   addWatch: (symbol: string) => void;
   removeWatch: (id: string) => void;
@@ -112,8 +105,7 @@ export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
             ].slice(0, 80),
           };
         }),
-      removeNote: (id) =>
-        set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
+      removeNote: (id) => set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
       addWatch: (symbol) =>
         set((s) => {
           const sym = symbol.toUpperCase();
@@ -125,8 +117,7 @@ export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeWatch: (id) =>
-        set((s) => ({ watch: s.watch.filter((w) => w.id !== id) })),
+      removeWatch: (id) => set((s) => ({ watch: s.watch.filter((w) => w.id !== id) })),
       saveComparison: (title, symbols, notes) =>
         set((s) => {
           const trimmed = title.trim() || `Comparison ${new Date().toLocaleString()}`;
@@ -143,8 +134,7 @@ export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
             ].slice(0, 30),
           };
         }),
-      removeSaved: (id) =>
-        set((s) => ({ saved: s.saved.filter((x) => x.id !== id) })),
+      removeSaved: (id) => set((s) => ({ saved: s.saved.filter((x) => x.id !== id) })),
       setWeightingProfileId: (id) => set({ weightingProfileId: id }),
       setReviewMode: (mode) => set({ reviewMode: mode }),
       setWorkflowStep: (step) => set({ workflowStep: step }),

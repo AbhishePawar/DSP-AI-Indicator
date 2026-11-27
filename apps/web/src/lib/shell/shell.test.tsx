@@ -40,12 +40,10 @@ describe("EPIC-F003 navigation registry", () => {
 
   it("supports nested research navigation", () => {
     const research = SHELL_NAV.find((n) => n.id === "research");
-    expect(
-      research?.children?.some((c) => c.href === "/research/institutional"),
-    ).toBe(true);
-    expect(
-      research?.children?.some((c) => c.href === "/research/canvas"),
-    ).toBe(true);
+    expect(research?.children?.some((c) => c.href === "/research/institutional")).toBe(
+      true,
+    );
+    expect(research?.children?.some((c) => c.href === "/research/canvas")).toBe(true);
   });
 
   it("filters admin without permissions", () => {
@@ -61,37 +59,40 @@ describe("EPIC-F003 navigation registry", () => {
 
   it("hides admin for legacy empty claims", () => {
     expect(
-      canAccessNavItem(SHELL_NAV.find((i) => i.id === "admin")!, [], []),
+      canAccessNavItem(
+        SHELL_NAV.find((i) => i.id === "admin")!,
+        [],
+        [],
+      ),
     ).toBe(false);
     expect(
-      canAccessNavItem(SHELL_NAV.find((i) => i.id === "analysis")!, [], []),
+      canAccessNavItem(
+        SHELL_NAV.find((i) => i.id === "analysis")!,
+        [],
+        [],
+      ),
     ).toBe(true);
   });
 
   it("groups sections in order", () => {
     const groups = groupShellNav(filterShellNav([], []));
-    expect(groups.map((g) => g.section)).toEqual([
-      "overview",
-      "research",
-      "account",
-    ]);
+    expect(groups.map((g) => g.section)).toEqual(["overview", "research", "account"]);
   });
 
   it("builds breadcrumbs for nested and ticker routes", () => {
-    expect(
-      breadcrumbsForPath("/research/institutional").map((c) => c.label),
-    ).toEqual(["Home", "Research Workspace", "Research Reports"]);
-    expect(breadcrumbsFor("/research/acm").map((c) => c.label)).toContain(
-      "ACM",
-    );
+    expect(breadcrumbsForPath("/research/institutional").map((c) => c.label)).toEqual([
+      "Home",
+      "Research Workspace",
+      "Research Reports",
+    ]);
+    expect(breadcrumbsFor("/research/acm").map((c) => c.label)).toContain("ACM");
     expect(breadcrumbsForPath("/settings").at(-1)?.label).toBe("Settings");
   });
 
   it("RBAC-filters searchable routes and hides unfinished AUX", () => {
-    const analyst = searchableRoutes(
-      ["read_research"],
-      ["research_analyst"],
-    ).map((r) => r.path);
+    const analyst = searchableRoutes(["read_research"], ["research_analyst"]).map(
+      (r) => r.path,
+    );
     expect(analyst).toEqual(
       expect.arrayContaining([
         "/analysis",
@@ -154,9 +155,7 @@ describe("EPIC-F003 layout primitives", () => {
     const { rerender } = render(<LoadingLayout label="Loading shell…" />);
     expect(screen.getByLabelText("Loading shell…")).toBeTruthy();
 
-    rerender(
-      <EmptyLayout title="Data unavailable." description="Nothing here yet." />,
-    );
+    rerender(<EmptyLayout title="Data unavailable." description="Nothing here yet." />);
     expect(screen.getByText("Data unavailable.")).toBeTruthy();
 
     rerender(<ErrorLayout title="Failed" description="Data unavailable." />);

@@ -9,7 +9,11 @@ export function Tabs({ items, defaultId }: { items: TabItem[]; defaultId?: strin
 
   return (
     <div>
-      <div role="tablist" aria-label="Tabs" className="flex gap-1 border-b border-[var(--border)]">
+      <div
+        role="tablist"
+        aria-label="Tabs"
+        className="flex gap-1 border-b border-[var(--border)]"
+      >
         {items.map((item) => {
           const selected = item.id === active;
           return (

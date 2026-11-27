@@ -51,19 +51,13 @@ function SubsectionBlock({
   );
 }
 
-export function BuffettIndicatorSection({
-  report,
-}: {
-  report: BuffettReportView;
-}) {
+export function BuffettIndicatorSection({ report }: { report: BuffettReportView }) {
   return (
     <div className="space-y-4">
       <SectionCard
         title="Buffett Indicator Analysis"
         description="Presentation synthesis of existing /api/v1/analyse outputs — no recalculation"
-        action={
-          <Badge variant="outline">Overall {report.overallRating}</Badge>
-        }
+        action={<Badge variant="outline">Overall {report.overallRating}</Badge>}
       >
         <p className="mb-3 text-xs text-[var(--muted)]">{report.disclaimer}</p>
         <dl className="mb-4">

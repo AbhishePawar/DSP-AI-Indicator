@@ -301,8 +301,18 @@ from data_engine.services import (
     FundamentalsDataService,
     MarketDataService,
 )
+from data_engine.share_count import (
+    InMemoryShareCountPort,
+    ShareCount,
+    ShareCountPort,
+    resolve_verified_share_count,
+    DEFAULT_SHARE_COUNT_MAX_AGE_DAYS,
+    is_share_count_current,
+)
 from data_engine.source_governance import (
     APPROVED_SOURCES,
+    MARKET_DATA_PURPOSES,
+    MARKET_DATA_SOURCES,
     PRIMARY_SOURCES,
     SECONDARY_SOURCES,
     DataProvenance,
@@ -323,8 +333,18 @@ from data_engine.transcripts import (
     build_transcripts_bundle_from_mapping,
     validate_authenticated_transcripts,
 )
+from data_engine.upstox.instrument_resolver import register_asset_resolver
 
 __all__ = [
+    "register_asset_resolver",
+    "InMemoryShareCountPort",
+    "DEFAULT_SHARE_COUNT_MAX_AGE_DAYS",
+    "is_share_count_current",
+    "ShareCount",
+    "ShareCountPort",
+    "resolve_verified_share_count",
+    "MARKET_DATA_PURPOSES",
+    "MARKET_DATA_SOURCES",
     "APPROVED_SOURCES",
     "PRIMARY_SOURCES",
     "SECONDARY_SOURCES",

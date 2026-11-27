@@ -39,9 +39,7 @@ describe("P8.0 operations engineering", () => {
   });
 
   it("ships monitoring and alerting configs", () => {
-    expect(existsSync(join(repoRoot, "docker", "prometheus", "alerts.yml"))).toBe(
-      true,
-    );
+    expect(existsSync(join(repoRoot, "docker", "prometheus", "alerts.yml"))).toBe(true);
     expect(existsSync(join(repoRoot, "docker", "alertmanager.yml"))).toBe(true);
     expect(
       existsSync(

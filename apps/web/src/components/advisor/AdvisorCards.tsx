@@ -68,8 +68,8 @@ export function AdvisorOverviewCard({ overview }: { overview: AdvisorOverviewVie
           <ul className="mt-2 space-y-1 text-[var(--muted)]">
             {overview.clientActivity.map((c) => (
               <li key={c.alias}>
-                <span className="font-medium text-[var(--fg)]">{c.alias}</span> — {c.segment} ·{" "}
-                {new Date(c.lastTouchAt).toLocaleDateString()}
+                <span className="font-medium text-[var(--fg)]">{c.alias}</span> —{" "}
+                {c.segment} · {new Date(c.lastTouchAt).toLocaleDateString()}
               </li>
             ))}
           </ul>
@@ -91,7 +91,11 @@ export function AdvisorOverviewCard({ overview }: { overview: AdvisorOverviewVie
   );
 }
 
-export const ClientCard = memo(function ClientCard({ client }: { client: ClientSummary }) {
+export const ClientCard = memo(function ClientCard({
+  client,
+}: {
+  client: ClientSummary;
+}) {
   return (
     <Card className="dsp-interactive">
       <CardHeader
@@ -167,16 +171,25 @@ export function ClientProfileCard({
   );
 }
 
-export const MeetingCard = memo(function MeetingCard({ meeting }: { meeting: Meeting }) {
+export const MeetingCard = memo(function MeetingCard({
+  meeting,
+}: {
+  meeting: Meeting;
+}) {
   return (
     <Card className="dsp-interactive">
       <CardHeader
         title={meeting.title}
-        action={<Badge tone={meeting.status === "scheduled" ? "accent" : "neutral"}>{meeting.status}</Badge>}
+        action={
+          <Badge tone={meeting.status === "scheduled" ? "accent" : "neutral"}>
+            {meeting.status}
+          </Badge>
+        }
       />
       <CardBody className="space-y-1 text-sm">
         <p className="text-[var(--muted)]">
-          {new Date(meeting.scheduledAt).toLocaleString()} · {clientAlias(meeting.clientId)}
+          {new Date(meeting.scheduledAt).toLocaleString()} ·{" "}
+          {clientAlias(meeting.clientId)}
         </p>
         <p>{meeting.agenda}</p>
         <p className="text-xs text-[var(--muted)]">{meeting.notesPlaceholder}</p>
@@ -190,7 +203,11 @@ export const TaskCard = memo(function TaskCard({ task }: { task: Task }) {
     <Card className="dsp-interactive">
       <CardHeader
         title={task.title}
-        action={<Badge tone={task.status === "done" ? "success" : "warning"}>{task.status}</Badge>}
+        action={
+          <Badge tone={task.status === "done" ? "success" : "warning"}>
+            {task.status}
+          </Badge>
+        }
       />
       <CardBody className="space-y-1 text-sm">
         <div className="flex flex-wrap gap-1">

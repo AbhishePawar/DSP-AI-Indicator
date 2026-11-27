@@ -30,12 +30,10 @@ export default function GlobalError({
       >
         <main style={{ maxWidth: 480, margin: "48px auto" }}>
           <p style={{ fontSize: 12, opacity: 0.7 }}>Critical error</p>
-          <h1 style={{ fontSize: 24, marginTop: 8 }}>
-            DSP critically failed to load
-          </h1>
+          <h1 style={{ fontSize: 24, marginTop: 8 }}>DSP critically failed to load</h1>
           <p style={{ marginTop: 12, fontSize: 14, lineHeight: 1.5 }}>
-            The application shell could not render. Research engines and APIs were
-            not modified.
+            The application shell could not render. Research engines and APIs were not
+            modified.
           </p>
           <p
             style={{

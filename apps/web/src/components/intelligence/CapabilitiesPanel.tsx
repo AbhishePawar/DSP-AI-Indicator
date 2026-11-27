@@ -15,10 +15,7 @@ export function CapabilitiesPanel({
 }) {
   return (
     <Card>
-      <CardHeader
-        title="Capabilities"
-        description="From GET /api/v1/capabilities"
-      />
+      <CardHeader title="Capabilities" description="From GET /api/v1/capabilities" />
       <CardBody className="grid gap-4 md:grid-cols-2">
         <List title="Pipeline stages" items={stages} />
         <List title="Analytical modules" items={modules} />

@@ -44,11 +44,7 @@ export function LiveMarketDataLabel({ className = "" }: { className?: string }) 
   );
 }
 
-export function DeterministicAnalysisLabel({
-  className = "",
-}: {
-  className?: string;
-}) {
+export function DeterministicAnalysisLabel({ className = "" }: { className?: string }) {
   return (
     <Badge tone="neutral" className={className}>
       Deterministic Analysis

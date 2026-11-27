@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * Institutional Company Workspace — tab-through smoke test.
  *
- * Verifies the flagship `/analysis` workspace's left navigation renders
+ * Verifies the flagship `/analysis` workspace loads its start screen without a backend.
  * every section (Overview, Financials, Valuation, Business, Management,
  * Economic Moat, Risk, Ownership, Peers, Research, News, AI Copilot,
  * Documents, Settings, ...) and that switching between them — including the
@@ -12,7 +12,7 @@ import { expect, test } from "@playwright/test";
  * regression guard, not an integration test against a running API.
  */
 
-test("tabs through every Company Workspace section without crashing", async ({
+test("analysis workspace start screen renders without fabricated sections", async ({
   page,
 }) => {
   const pageErrors: string[] = [];
@@ -34,28 +34,16 @@ test("tabs through every Company Workspace section without crashing", async ({
   expect(response).toBeTruthy();
   expect(response!.status()).toBeLessThan(500);
 
-  // The workspace shell is a stable route-level contract even before a
-  // company is selected. Navigation must not depend on a successful API call.
-  const nav = page.getByRole("navigation", { name: "Analysis sections" });
-  await expect(nav).toBeVisible();
-  const main = page.getByRole("region", { name: "Main analysis area" });
-  await expect(main).toBeVisible();
-  await expect(page.getByTestId("analysis-empty")).toBeVisible();
-
-  const sectionButtons = nav.getByRole("button");
-  const count = await sectionButtons.count();
-  expect(count).toBeGreaterThanOrEqual(14);
-
-  for (let i = 0; i < count; i += 1) {
-    const button = sectionButtons.nth(i);
-    const label = (await button.textContent())?.trim() ?? `section-${i}`;
-    await button.click();
-    await expect(main, `main content after selecting "${label}"`).toBeVisible();
-    // Give lazy React Query hooks a beat to mount/settle before the next tab.
-    await page.waitForTimeout(50);
-  }
-
-  expect(pageErrors, `uncaught page errors: ${pageErrors.join("; ")}`).toEqual(
-    [],
+  // Phase 7 release contract: with no backend and no analysed company the
+  // workspace shows the research-depth start screen and must NOT fabricate
+  // analysis sections. The full section tab-through runs against a real API
+  // in the P1-09 critical journey (e2e/browser/p109-critical-investment.journey.spec.ts).
+  await expect(
+    page.getByRole("heading", { name: /Choose Research Depth/i }),
+  ).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Analysis sections" })).toHaveCount(
+    0,
   );
+
+  expect(pageErrors, `uncaught page errors: ${pageErrors.join("; ")}`).toEqual([]);
 });

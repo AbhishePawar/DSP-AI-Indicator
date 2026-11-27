@@ -16,9 +16,7 @@ export function MetricCard({ metric }: { metric: MetricView }) {
   const [showPrompts, setShowPrompts] = useState(false);
   const [showExplain, setShowExplain] = useState(false);
   const copilot = useCopilotOptional();
-  const ratingTone = metric.available
-    ? ("accent" as const)
-    : ("neutral" as const);
+  const ratingTone = metric.available ? ("accent" as const) : ("neutral" as const);
 
   return (
     <Card>
@@ -109,8 +107,8 @@ export function MetricCard({ metric }: { metric: MetricView }) {
         ) : null}
         {openLearn ? (
           <p className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted)]">
-            Terminology key: <code>{metric.learnMore}</code>. Full definitions
-            ship with the terminology drawer in a later sprint.
+            Terminology key: <code>{metric.learnMore}</code>. Full definitions ship with
+            the terminology drawer in a later sprint.
           </p>
         ) : null}
         {showPrompts && !copilot ? (

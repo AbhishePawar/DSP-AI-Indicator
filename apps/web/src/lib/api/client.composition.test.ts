@@ -57,7 +57,14 @@ describe("api composition client", () => {
   it("calls validate, version, and capabilities paths", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
-      text: async () => JSON.stringify({ ok: true, valid: true, errors: [], warnings: [], api_version: "v1" }),
+      text: async () =>
+        JSON.stringify({
+          ok: true,
+          valid: true,
+          errors: [],
+          warnings: [],
+          api_version: "v1",
+        }),
     });
     const { api } = await import("@/lib/api/client");
     await api.validateAnalyse({

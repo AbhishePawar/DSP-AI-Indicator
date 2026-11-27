@@ -122,11 +122,7 @@ describe("business education mapper", () => {
       company: "Apple Inc",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const report = view.businessEducation;
     expect(report.sections).toHaveLength(12);
     expect(report.title).toBe("Business & Buffett Analysis");
@@ -179,11 +175,7 @@ describe("business education mapper", () => {
       company: "Apple Inc",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const json = JSON.stringify(view.businessEducation);
     expect(json).not.toMatch(/"intrinsicValue"\s*:/);
     expect(json).not.toMatch(/"buffettScore"\s*:/);
@@ -199,11 +191,7 @@ describe("business education mapper", () => {
       company: "Apple Inc",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const conclusion = view.businessEducation.sections.find(
       (s) => s.id === "educational_conclusion",
     );
@@ -216,11 +204,7 @@ describe("business education mapper", () => {
       company: "Apple Inc",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const checklist = view.businessEducation.sections.find(
       (s) => s.id === "the_buffett_checklist",
     );
@@ -233,11 +217,7 @@ describe("business education mapper", () => {
       company: "Apple Inc",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     const risks = view.businessEducation.sections.find(
       (s) => s.id === "key_risks_to_understand",
     );

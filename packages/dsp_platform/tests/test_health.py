@@ -194,7 +194,7 @@ class TestHealthService:
     def test_investment_data_provider_fails_closed_in_production(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """P1-03 — invalid commercial provider selection fails closed but does not block API readiness."""
+        """Upstox is a supported quote provider but requires a server-side token."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
@@ -203,9 +203,8 @@ class TestHealthService:
         ).check()
         by_name = {c.name: c for c in report.checks}
         assert by_name["investment_data_provider"].status is CheckStatus.FAIL
-        # New contract: 'upstox' is an invalid value; commercial vendors are disabled.
         msg = by_name["investment_data_provider"].message
-        assert "commercial vendors" in msg or "DSP_INVESTMENT_DATA_PROVIDER" in msg
+        assert "DSP_UPSTOX_ANALYTICS_TOKEN" in msg
         # Auth/API boot must remain ready without investment credentials.
         assert report.ready is True
         assert report.status is CheckStatus.FAIL
@@ -213,7 +212,7 @@ class TestHealthService:
     def test_investment_data_provider_rejects_commercial_token_route(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Legacy Upstox token alone must not satisfy readiness (commercial vendors disabled)."""
+        """A token alone must not hide missing independent statement-provider configuration."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", "super-secret-token")

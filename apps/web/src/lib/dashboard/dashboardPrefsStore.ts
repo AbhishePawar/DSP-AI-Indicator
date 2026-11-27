@@ -113,9 +113,7 @@ export const useDashboardPrefsStore = create<DashboardPrefsState>()(
           ),
         })),
       isPinned: (symbol) =>
-        get().pinnedCompanies.some(
-          (p) => p.symbol === symbol.trim().toUpperCase(),
-        ),
+        get().pinnedCompanies.some((p) => p.symbol === symbol.trim().toUpperCase()),
       recordSearch: (query) =>
         set((s) => {
           const q = query.trim();

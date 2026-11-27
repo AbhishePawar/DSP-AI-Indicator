@@ -22,7 +22,10 @@ import {
 
 type FeedbackContextValue = {
   dialogOpen: boolean;
-  openFeedback: (opts?: { sectionId?: string | null; category?: FeedbackCategory }) => void;
+  openFeedback: (opts?: {
+    sectionId?: string | null;
+    category?: FeedbackCategory;
+  }) => void;
   closeFeedback: () => void;
   sectionId: string | null;
   presetCategory: FeedbackCategory | null;
@@ -140,9 +143,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return (
-    <FeedbackContext.Provider value={value}>{children}</FeedbackContext.Provider>
-  );
+  return <FeedbackContext.Provider value={value}>{children}</FeedbackContext.Provider>;
 }
 
 export function useFeedback(): FeedbackContextValue {

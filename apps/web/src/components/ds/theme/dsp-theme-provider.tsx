@@ -6,11 +6,11 @@
  * Existing app layout continues to use `@/providers/ThemeProvider`.
  */
 
-import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes";
 import {
-  useEffect,
-  type ReactNode,
-} from "react";
+  ThemeProvider as NextThemesProvider,
+  useTheme as useNextTheme,
+} from "next-themes";
+import { useEffect, type ReactNode } from "react";
 
 function DataThemeSync({ children }: { children: ReactNode }) {
   const { resolvedTheme } = useNextTheme();

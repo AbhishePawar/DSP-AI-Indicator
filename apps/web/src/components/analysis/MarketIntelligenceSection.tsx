@@ -3,11 +3,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { MarketIntelligenceView } from "@/lib/analysis/types";
 
-export function MarketSentimentCard({
-  market,
-}: {
-  market: MarketIntelligenceView;
-}) {
+export function MarketSentimentCard({ market }: { market: MarketIntelligenceView }) {
   return (
     <Card>
       <CardHeader

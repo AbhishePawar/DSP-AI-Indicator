@@ -7,11 +7,13 @@ and Resend auth email does not require SMTP password.
 from __future__ import annotations
 
 import ast
+import importlib
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
+from api_platform.api.infra_bootstrap import InfraBootstrapResult
 from auth.credential_boundary import (
     AUTH_JWT_SECRET_ENV,
     RESEND_API_KEY_ENV,
@@ -74,7 +76,15 @@ def _auth_boot_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(AUTH_JWT_SECRET_ENV, _AUTH_JWT)
     monkeypatch.setenv(RESEND_API_KEY_ENV, _RESEND_KEY)
     monkeypatch.setenv(RESEND_FROM_ADDRESS_ENV, "auth@example.com")
-    monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
+    monkeypatch.setattr(
+        importlib.import_module("api_platform.api.app"),
+        "bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(
+            infrastructure=None,
+            production=None,
+            notes=("isolated authentication test",),
+        ),
+    )
     monkeypatch.delenv("DSP_SMTP_PASSWORD", raising=False)
     monkeypatch.delenv("DSP_SMTP_HOST", raising=False)
     monkeypatch.delenv("DSP_SMTP_USERNAME", raising=False)
@@ -191,7 +201,8 @@ def test_c_missing_upstox_still_fail_closed_for_investment(
     _auth_boot_env(monkeypatch)
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     with pytest.raises(
-        ConnectorConfigurationError, match="commercial vendors are disabled"
+        ConnectorConfigurationError,
+        match="DSP_UPSTOX_ANALYTICS_TOKEN",
     ):
         build_default_quote_adapter_from_env()
 
@@ -215,9 +226,15 @@ def test_d_health_ready_while_investment_limitation_visible(
     checks = {c["name"]: c for c in body.get("checks", [])}
     investment = checks["investment_data_provider"]
     assert investment["status"] == "fail"
-    assert "investment_capability" in investment["message"]
-    assert "commercial vendors are disabled" in investment["message"]
-    assert "does not block auth" in investment["message"]
+    assert any(
+        phrase in investment["message"]
+        for phrase in (
+            "DSP_INVESTMENT_DATA_PROVIDER",
+            "investment_capability",
+            "P1-03",
+            "DSP_UPSTOX_ANALYTICS_TOKEN",
+        )
+    )
 
 
 # --- E -------------------------------------------------------------------
@@ -298,14 +315,17 @@ def test_f_auth_tests_and_sources_do_not_init_upstox_investment() -> None:
     assert offenders == []
 
 
-def test_f_upstox_remains_disabled_even_when_token_present(
+def test_f_upstox_still_selected_when_token_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Commercial vendors remain disabled by policy even with credentials."""
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    """G-adjacent: Upstox is selected with proper credentials in development and production."""
+    monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
-    with pytest.raises(
-        ConnectorConfigurationError, match="commercial vendors are disabled"
-    ):
-        build_default_quote_adapter_from_env()
+    quote = build_default_quote_adapter_from_env()
+    assert type(quote).__name__ == "UpstoxQuoteAdapter"
+
+    # Upstox is an allowed production provider when its credential is present.
+    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    quote = build_default_quote_adapter_from_env()
+    assert type(quote).__name__ == "UpstoxQuoteAdapter"

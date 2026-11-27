@@ -25,10 +25,7 @@ export function QualityPanel({ quality }: { quality: PortfolioQualityAnalytics }
             label="Companies with Research"
             value={quality.companiesWithResearch}
           />
-          <PortfolioCard
-            label="Portfolio Status"
-            value={quality.portfolioStatus}
-          />
+          <PortfolioCard label="Portfolio Status" value={quality.portfolioStatus} />
         </div>
       </CardBody>
     </Card>

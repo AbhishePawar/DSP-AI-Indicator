@@ -9,12 +9,8 @@ import { usePersistence } from "@/providers/PersistenceProvider";
 
 export function SavedAnalysesPanel() {
   const { status } = useAuth();
-  const {
-    savedAnalyses,
-    deleteSavedAnalysis,
-    reopenSavedAnalysis,
-    saveAnalysis,
-  } = usePersistence();
+  const { savedAnalyses, deleteSavedAnalysis, reopenSavedAnalysis, saveAnalysis } =
+    usePersistence();
 
   if (status !== "authenticated") {
     return (

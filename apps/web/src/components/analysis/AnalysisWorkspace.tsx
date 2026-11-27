@@ -196,7 +196,11 @@ function AnalysisWorkspaceBody({
           <AnalysisSectionShell id="risk" title="Risk Analysis" defaultOpen={false}>
             <RiskAnalysisSection risks={view.risks} />
           </AnalysisSectionShell>
-          <AnalysisSectionShell id="management" title="Management Quality" defaultOpen={false}>
+          <AnalysisSectionShell
+            id="management"
+            title="Management Quality"
+            defaultOpen={false}
+          >
             <ManagementSection items={view.management} />
           </AnalysisSectionShell>
           <AnalysisSectionShell
@@ -223,16 +227,28 @@ function AnalysisWorkspaceBody({
           >
             <AnalystConsensusSection consensus={view.analystConsensus} />
           </AnalysisSectionShell>
-          <AnalysisSectionShell id="dsp_vs_street" title="DSP vs Street" defaultOpen={false}>
+          <AnalysisSectionShell
+            id="dsp_vs_street"
+            title="DSP vs Street"
+            defaultOpen={false}
+          >
             <DspVsStreetSection rows={view.streetComparison} />
           </AnalysisSectionShell>
-          <AnalysisSectionShell id="ai_challenge" title="AI Challenge Mode" defaultOpen={false}>
+          <AnalysisSectionShell
+            id="ai_challenge"
+            title="AI Challenge Mode"
+            defaultOpen={false}
+          >
             <AiChallengeSection challenge={view.aiChallenge} />
           </AnalysisSectionShell>
 
           <SectionDivider label="Explainability" />
 
-          <AnalysisSectionShell id="decision_trace" title="Decision Trace" defaultOpen={false}>
+          <AnalysisSectionShell
+            id="decision_trace"
+            title="Decision Trace"
+            defaultOpen={false}
+          >
             <DecisionTraceSection trace={view.decisionTrace} />
           </AnalysisSectionShell>
           <AnalysisSectionShell
@@ -249,7 +265,11 @@ function AnalysisWorkspaceBody({
           >
             <AssumptionExplorerSection view={view.assumptionExplorer} />
           </AnalysisSectionShell>
-          <AnalysisSectionShell id="reasoning_flow" title="Reasoning Flow" defaultOpen={false}>
+          <AnalysisSectionShell
+            id="reasoning_flow"
+            title="Reasoning Flow"
+            defaultOpen={false}
+          >
             <ReasoningFlowSection flow={view.reasoningFlow} />
           </AnalysisSectionShell>
           <AnalysisSectionShell

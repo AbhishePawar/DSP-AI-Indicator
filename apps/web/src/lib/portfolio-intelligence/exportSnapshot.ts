@@ -92,11 +92,7 @@ export function portfolioSnapshotToHtml(snapshot: PortfolioExportSnapshot): stri
 </body></html>`;
 }
 
-export function downloadText(
-  filename: string,
-  content: string,
-  mime: string,
-): void {
+export function downloadText(filename: string, content: string, mime: string): void {
   if (typeof window === "undefined") return;
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);

@@ -8,9 +8,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import {
-  type AnalysisSectionId,
-} from "./sections";
+import { type AnalysisSectionId } from "./sections";
 
 export type WorkspaceNote = {
   id: string;
@@ -71,8 +69,7 @@ export const useWorkspacePrefsStore = create<WorkspacePrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeNote: (id) =>
-        set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
+      removeNote: (id) => set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
       addTag: (symbol, label) =>
         set((s) => {
           const trimmed = label.trim();
@@ -81,8 +78,7 @@ export const useWorkspacePrefsStore = create<WorkspacePrefsState>()(
           if (
             s.tags.some(
               (t) =>
-                t.symbol === sym &&
-                t.label.toLowerCase() === trimmed.toLowerCase(),
+                t.symbol === sym && t.label.toLowerCase() === trimmed.toLowerCase(),
             )
           ) {
             return s;
@@ -98,8 +94,7 @@ export const useWorkspacePrefsStore = create<WorkspacePrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeTag: (id) =>
-        set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
+      removeTag: (id) => set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
     }),
     {
       name: "dsp.company-analysis.prefs.v1",

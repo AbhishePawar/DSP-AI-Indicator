@@ -15,9 +15,7 @@ export function CanvasRightNotebook({ symbol }: { symbol: string | null }) {
   const entries = useResearchNotebookStore((s) => s.entries);
   const addEntry = useResearchNotebookStore((s) => s.addEntry);
   const removeEntry = useResearchNotebookStore((s) => s.removeEntry);
-  const toggleBookmarkEntry = useResearchNotebookStore(
-    (s) => s.toggleBookmarkEntry,
-  );
+  const toggleBookmarkEntry = useResearchNotebookStore((s) => s.toggleBookmarkEntry);
   const addBookmark = useResearchNotebookStore((s) => s.addBookmark);
 
   const [kind, setKind] = useState<NotebookEntryKind>("note");
@@ -26,9 +24,7 @@ export function CanvasRightNotebook({ symbol }: { symbol: string | null }) {
   const filtered = useMemo(() => {
     if (!symbol) return entries.slice(0, 40);
     const sym = symbol.toUpperCase();
-    return entries
-      .filter((e) => !e.symbol || e.symbol === sym)
-      .slice(0, 40);
+    return entries.filter((e) => !e.symbol || e.symbol === sym).slice(0, 40);
   }, [entries, symbol]);
 
   const thesis = filtered.filter((e) => e.kind === "thesis");
@@ -50,8 +46,8 @@ export function CanvasRightNotebook({ symbol }: { symbol: string | null }) {
         description="User-authored only — never overwrites institutional research"
       >
         <p className="mb-2 text-xs text-[var(--muted)]">
-          Personal workspace. Not sent to /analyse. CV-001 honesty preserved for
-          system research.
+          Personal workspace. Not sent to /analyse. CV-001 honesty preserved for system
+          research.
         </p>
         <label className="block text-xs text-[var(--muted)]" htmlFor="nb-kind">
           Entry type
@@ -75,7 +71,11 @@ export function CanvasRightNotebook({ symbol }: { symbol: string | null }) {
           placeholder="Capture thesis, questions, risks, catalysts…"
           aria-label="Notebook entry text"
         />
-        <Button className="mt-2 min-h-11 w-full" onClick={submit} disabled={!text.trim()}>
+        <Button
+          className="mt-2 min-h-11 w-full"
+          onClick={submit}
+          disabled={!text.trim()}
+        >
           Add entry
         </Button>
       </SectionCard>
@@ -134,10 +134,7 @@ export function CanvasRightNotebook({ symbol }: { symbol: string | null }) {
         ) : (
           <ul className="space-y-2 text-sm">
             {filtered.map((e) => (
-              <li
-                key={e.id}
-                className="rounded-md border border-[var(--border)] p-2"
-              >
+              <li key={e.id} className="rounded-md border border-[var(--border)] p-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-medium uppercase text-[var(--muted)]">
                     {NOTEBOOK_KIND_LABELS[e.kind]}

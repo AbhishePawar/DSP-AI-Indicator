@@ -52,12 +52,7 @@ export type PortfolioDiscussionDraft = {
   updatedAt: string;
 };
 
-export type PortfolioScenarioId =
-  | "conservative"
-  | "base"
-  | "bull"
-  | "bear"
-  | "stress";
+export type PortfolioScenarioId = "conservative" | "base" | "bull" | "bear" | "stress";
 
 export type PortfolioScenarioView = {
   id: PortfolioScenarioId;

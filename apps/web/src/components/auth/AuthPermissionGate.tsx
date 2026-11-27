@@ -15,10 +15,10 @@ export function AuthPermissionGate({
   fallback?: ReactNode;
 }) {
   const { session, user } = useAuth();
-  const allowed = Boolean(session) && (
-    user?.permissions.includes(permission) === true ||
-    user?.roles.includes("administrator") === true
-  );
+  const allowed =
+    Boolean(session) &&
+    (user?.permissions.includes(permission) === true ||
+      user?.roles.includes("administrator") === true);
 
   return (
     <PermissionWrapper allowed={allowed} fallback={fallback}>

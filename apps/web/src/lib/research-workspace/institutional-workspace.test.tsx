@@ -72,14 +72,18 @@ vi.mock("@/lib/api/client", () => ({
 
 const queryClients: QueryClient[] = [];
 
+afterEach(() => {
+  cleanup();
+  for (const client of queryClients) client.clear();
+  queryClients.length = 0;
+});
+
 function renderWithClient(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   queryClients.push(client);
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("Research Workspace templates", () => {
@@ -103,9 +107,7 @@ describe("InstitutionalResearchWorkspace", () => {
 
   it("renders workspace shell and loads dashboard", async () => {
     renderWithClient(<InstitutionalResearchWorkspace />);
-    expect(
-      screen.getByTestId("institutional-research-workspace"),
-    ).toBeTruthy();
+    expect(screen.getByTestId("institutional-research-workspace")).toBeTruthy();
     await waitFor(() => {
       expect(researchWorkspaceDashboard).toHaveBeenCalled();
       expect(researchWorkspaceListNotes).toHaveBeenCalled();

@@ -7,7 +7,9 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const ClientDetailWorkspace = dynamic(
   () =>
-    import("@/components/advisor/AdvisorWorkspace").then((m) => m.ClientDetailWorkspace),
+    import("@/components/advisor/AdvisorWorkspace").then(
+      (m) => m.ClientDetailWorkspace,
+    ),
   {
     loading: () => <Skeleton className="h-64 w-full" />,
     ssr: false,

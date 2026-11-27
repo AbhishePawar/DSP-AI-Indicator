@@ -120,6 +120,13 @@ class IdentityService:
         return self._users
 
     @property
+    def tokens(self) -> TokenService:
+        return self._tokens
+
+    def get_session(self, session_id: str):
+        return self._tokens.get_session(session_id)
+
+    @property
     def repository(self) -> UserRepositoryPort:
         return self._users.repository
 
@@ -247,10 +254,7 @@ class IdentityService:
 
     def refresh(self, refresh_token: str) -> TokenPair:
         self._check_rate("refresh")
-        # Peek user from refresh store via rotate path
-        from security_platform.security.identity.tokens import hash_token
-
-        rec = self._tokens._refresh.get(hash_token(refresh_token))  # noqa: SLF001
+        rec = self._tokens.get_refresh_record(refresh_token)
         if rec is None:
             raise AuthenticationError("invalid refresh token")
         user = self._users.get(rec.user_id)
@@ -261,11 +265,21 @@ class IdentityService:
         return pair
 
     def logout(
-        self, refresh_token: str | None = None, *, user_id: str | None = None
+        self,
+        refresh_token: str | None = None,
+        *,
+        user_id: str | None = None,
+        session_id: str | None = None,
     ) -> None:
+        resolved_sid = session_id
         if refresh_token:
+            rec = self._tokens.get_refresh_record(refresh_token)
+            if rec is not None and rec.session_id and not resolved_sid:
+                resolved_sid = rec.session_id
             self._tokens.revoke_refresh(refresh_token)
-        if user_id:
+        if resolved_sid:
+            self._tokens.revoke_session(resolved_sid)
+        if user_id and not refresh_token and not session_id:
             self._tokens.revoke_user(user_id)
         self._emit("logout", user_id or "unknown", True)
 

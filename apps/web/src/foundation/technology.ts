@@ -3,9 +3,15 @@
  */
 
 export const technologyDecisions = {
-  framework: { choice: "Next.js 15 App Router", reason: "SSR/RSC + institutional routing" },
+  framework: {
+    choice: "Next.js 15 App Router",
+    reason: "SSR/RSC + institutional routing",
+  },
   language: { choice: "TypeScript strict", reason: "Contract safety with /api/v1" },
-  styling: { choice: "Tailwind CSS 4", reason: "Utility-first; tokenized via CSS vars" },
+  styling: {
+    choice: "Tailwind CSS 4",
+    reason: "Utility-first; tokenized via CSS vars",
+  },
   ui: {
     choice: "shadcn/ui primitives (@/components/ds)",
     reason: "Accessible Radix primitives mapped to PR1.2 tokens",
@@ -21,7 +27,10 @@ export const technologyDecisions = {
     choice: "DS FormField + RHF/Zod in F002+",
     reason: "Primitives ready; form libs wire with auth experience",
   },
-  tables: { choice: "@tanstack/react-table via DataGrid", reason: "Headless enterprise tables" },
+  tables: {
+    choice: "@tanstack/react-table via DataGrid",
+    reason: "Headless enterprise tables",
+  },
   charts: {
     choice: "Apache ECharts shells (no financial charts yet)",
     reason: "Container/theme/responsive wrappers only in F001",
@@ -33,5 +42,8 @@ export const technologyDecisions = {
   auth: { choice: "JWT via backend /auth*", reason: "No client-side identity invent" },
   testing: { choice: "Vitest + Testing Library", reason: "Already configured" },
   lintFormat: { choice: "ESLint + Prettier", reason: "F000 baseline" },
-  storybook: { choice: "optional / deferred", reason: "Catalogue docs suffice for F001" },
+  storybook: {
+    choice: "optional / deferred",
+    reason: "Catalogue docs suffice for F001",
+  },
 } as const;

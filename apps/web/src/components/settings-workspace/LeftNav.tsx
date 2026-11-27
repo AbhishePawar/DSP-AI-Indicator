@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ds";
-import {
-  SETTINGS_SECTIONS,
-  useSettingsPrefsStore,
-} from "@/lib/settings";
+import { SETTINGS_SECTIONS, useSettingsPrefsStore } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
 export function SettingsLeftNav() {
@@ -20,8 +17,7 @@ export function SettingsLeftNav() {
           Settings
         </p>
         <p className="text-xs text-[var(--muted)]">
-          UI preferences persist locally. Account data uses existing auth APIs
-          only.
+          UI preferences persist locally. Account data uses existing auth APIs only.
         </p>
       </div>
 
@@ -40,9 +36,7 @@ export function SettingsLeftNav() {
                     ? "bg-[var(--surface-2)] font-medium text-[var(--fg)]"
                     : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
                 )}
-                aria-current={
-                  activeSection === section.id ? "page" : undefined
-                }
+                aria-current={activeSection === section.id ? "page" : undefined}
                 onClick={() => setActiveSection(section.id)}
               >
                 <span>{section.label}</span>

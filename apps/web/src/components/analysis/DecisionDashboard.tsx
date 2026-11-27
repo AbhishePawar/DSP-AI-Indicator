@@ -3,11 +3,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { DecisionDashboardView } from "@/lib/analysis/types";
 import { presentFieldLabel } from "@/lib/terminology";
 
-export function DecisionDashboard({
-  dashboard,
-}: {
-  dashboard: DecisionDashboardView;
-}) {
+export function DecisionDashboard({ dashboard }: { dashboard: DecisionDashboardView }) {
   return (
     <Card className="border-[var(--accent)]/40">
       <CardHeader
@@ -32,7 +28,11 @@ export function DecisionDashboard({
           <FieldRow label="Research confidence" field={dashboard.researchConfidence} />
           <FieldRow label="Top opportunity" field={dashboard.topOpportunity} />
           <FieldRow label="Biggest risk" field={dashboard.biggestRisk} />
-          <FieldRow label="Next investigation" field={dashboard.nextInvestigation} emphasize />
+          <FieldRow
+            label="Next investigation"
+            field={dashboard.nextInvestigation}
+            emphasize
+          />
         </div>
       </CardBody>
     </Card>

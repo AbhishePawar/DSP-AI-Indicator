@@ -14,13 +14,8 @@ export default function CompareRedirectPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const symbols =
-      searchParams.get("symbols") ||
-      searchParams.get("symbol") ||
-      "";
-    const qs = symbols
-      ? `?symbols=${encodeURIComponent(symbols)}`
-      : "";
+    const symbols = searchParams.get("symbols") || searchParams.get("symbol") || "";
+    const qs = symbols ? `?symbols=${encodeURIComponent(symbols)}` : "";
     router.replace(`/analysis/compare${qs}`);
   }, [router, searchParams]);
 

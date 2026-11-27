@@ -2,6 +2,7 @@ import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes
 import type { CopilotIntent, SuggestedQuestionId } from "@/lib/copilot/types";
 
 export type CopilotCompleteRequestBody = {
+  mode?: "simple" | "buffett";
   question_id: SuggestedQuestionId | "freeform";
   freeform?: string;
   request: AnalyseRequest | null;
@@ -46,6 +47,8 @@ export type CopilotV2RequestBody = {
   symbol?: string | null;
   symbols?: string[] | null;
   portfolio_id?: string | null;
+  analysis_id?: string | null;
+  idempotency_key?: string | null;
   analyse_response?: Record<string, unknown> | null;
   secondary_analyse_response?: Record<string, unknown> | null;
   research_object?: Record<string, unknown> | null;
@@ -81,4 +84,29 @@ export type CopilotV2ResponseBody = {
   };
   message?: string | null;
   error?: string;
+};
+
+export type CopilotQueryRequestBody = {
+  query: string;
+  symbol?: string | null;
+  analysis_id?: string | null;
+  section_context?: string | null;
+  prompt?: string | null;
+  system_instruction?: string | null;
+  market_context?: Record<string, string | number | null> | null;
+  mode?: "simple" | "buffett";
+  request?: import("@/lib/api/compositionTypes").AnalyseRequest | null;
+  response?: import("@/lib/api/compositionTypes").AnalyseResponse | null;
+};
+
+export type CopilotQueryResponseBody = {
+  content: string;
+  citations: string[];
+  intent: string;
+  unavailable: boolean;
+  provider_id: string;
+  limitations: string[];
+  symbol?: string | null;
+  analysis_id?: string | null;
+  section_context?: string | null;
 };

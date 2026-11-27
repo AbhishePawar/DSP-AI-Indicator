@@ -234,3 +234,32 @@ def test_production_default_store_uses_process_a008(
     )
     store = default_otp_store()
     assert store._persistence.registry.storage.provider_id == "postgres"
+
+
+def test_staging_otp_and_device_stores_share_a008_service(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakePostgres(InMemoryStorageProvider):
+        provider_id = "postgres"
+
+    monkeypatch.setenv("DSP_ENVIRONMENT", "staging")
+    monkeypatch.setenv("DSP_DATABASE_URL", "postgresql://test:test@localhost/test")
+    from auth.device_store import default_device_store
+    from persistence.registry import reset_repository_registry_for_tests
+    from persistence.service import reset_persistence_service_for_tests
+
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    monkeypatch.setattr(
+        "persistence.postgres_storage.build_postgres_storage",
+        lambda dsn, **kwargs: _FakePostgres(),
+    )
+    try:
+        device_store = default_device_store()
+        otp_store = default_otp_store()
+
+        assert device_store._persistence is otp_store._persistence
+        assert device_store._persistence.registry.storage.provider_id == "postgres"
+    finally:
+        reset_repository_registry_for_tests(None)
+        reset_persistence_service_for_tests(None)

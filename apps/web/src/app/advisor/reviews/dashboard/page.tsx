@@ -6,7 +6,9 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const WorkflowDashboardWorkspace = dynamic(
   () =>
-    import("@/components/advisor/ClientReview").then((m) => m.WorkflowDashboardWorkspace),
+    import("@/components/advisor/ClientReview").then(
+      (m) => m.WorkflowDashboardWorkspace,
+    ),
   { loading: () => <Skeleton className="h-64 w-full" />, ssr: false },
 );
 

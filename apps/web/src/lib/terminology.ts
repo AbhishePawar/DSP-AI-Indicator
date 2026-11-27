@@ -46,7 +46,10 @@ const FIELD_SEBI: Record<string, string> = {
 };
 
 function normalizeToken(token: string): string {
-  return token.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return token
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 }
 
 export function presentAction(

@@ -86,16 +86,13 @@ function normalizeLegacy(raw: Record<string, unknown>): Session | null {
   if (typeof raw.accessToken !== "string") return null;
   return {
     accessToken: raw.accessToken,
-    refreshToken:
-      typeof raw.refreshToken === "string" ? raw.refreshToken : null,
+    refreshToken: typeof raw.refreshToken === "string" ? raw.refreshToken : null,
     tokenType: String(raw.tokenType || "bearer"),
     role: String(raw.role || "read_only"),
     roles: Array.isArray(raw.roles)
       ? (raw.roles as string[])
       : [String(raw.role || "read_only")],
-    permissions: Array.isArray(raw.permissions)
-      ? (raw.permissions as string[])
-      : [],
+    permissions: Array.isArray(raw.permissions) ? (raw.permissions as string[]) : [],
     subject: String(raw.subject || ""),
     username: String(raw.username || raw.subject || ""),
     displayName: String(raw.displayName || raw.username || ""),
@@ -109,18 +106,28 @@ function normalizeLegacy(raw: Record<string, unknown>): Session | null {
 }
 
 export function sessionFromLoginPayload(
-  payload: LoginPayload & { refresh_token?: string; session_id?: string },
+  payload: LoginPayload & {
+    refresh_token?: string;
+    session_id?: string;
+    csrf_token?: string;
+    cookie_auth?: boolean;
+  },
   rememberMe: boolean,
 ): Session {
-  if (cookieAuthPreferred()) {
+  if (cookieAuthPreferred() && !cookieAuthConfirmed(payload)) {
     throw new CookieSessionUnavailableError();
+  }
+  const useCookies = cookieAuthPreferred() && cookieAuthConfirmed(payload);
+  if (payload.csrf_token) {
+    persistCsrfToken(payload.csrf_token, rememberMe);
   }
   const issuedAt = new Date().toISOString();
   const username = payload.username ?? payload.subject;
-  const accessToken = payload.access_token;
+  const accessToken = useCookies ? COOKIE_TOKEN_PLACEHOLDER : payload.access_token;
+  const refreshToken = useCookies ? null : (payload.refresh_token ?? null);
   return {
     accessToken,
-    refreshToken: payload.refresh_token ?? null,
+    refreshToken,
     tokenType: payload.token_type,
     role: payload.role,
     roles: [payload.role],
@@ -129,10 +136,10 @@ export function sessionFromLoginPayload(
     username,
     displayName: username,
     email: null,
-    authMethod: payload.auth_method,
+    authMethod: useCookies ? "cookie" : payload.auth_method,
     sessionId: payload.session_id ?? null,
     issuedAt,
-    expiresAt: resolveExpiry(accessToken, issuedAt, rememberMe),
+    expiresAt: resolveExpiry(payload.access_token, issuedAt, rememberMe),
     rememberMe,
   };
 }
@@ -148,14 +155,11 @@ export function sessionFromRbacLogin(
   if (cookieAuthPreferred() && !cookieAuthConfirmed(result)) {
     throw new CookieSessionUnavailableError();
   }
-  const useCookies =
-    cookieAuthPreferred() && cookieAuthConfirmed(result);
+  const useCookies = cookieAuthPreferred() && cookieAuthConfirmed(result);
   if (result.csrf_token) {
     persistCsrfToken(result.csrf_token, rememberMe);
   }
-  const accessToken = useCookies
-    ? COOKIE_TOKEN_PLACEHOLDER
-    : tokens.access_token;
+  const accessToken = useCookies ? COOKIE_TOKEN_PLACEHOLDER : tokens.access_token;
   const refreshToken = useCookies ? null : tokens.refresh_token;
   const next: Session = {
     accessToken,
@@ -328,7 +332,10 @@ export function clearStoredSession(): void {
   clearCsrfToken();
 }
 
-export function tokenStatus(session: Session | null, now = Date.now()): {
+export function tokenStatus(
+  session: Session | null,
+  now = Date.now(),
+): {
   label: string;
   valid: boolean;
   expiresAt: string | null;

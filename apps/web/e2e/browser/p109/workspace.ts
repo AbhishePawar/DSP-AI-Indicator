@@ -20,10 +20,7 @@ export function analysisMain(page: Page) {
   return page.getByRole("region", { name: "Main analysis area" });
 }
 
-export async function openAnalysisWorkspace(
-  page: Page,
-  ticker: string,
-): Promise<void> {
+export async function openAnalysisWorkspace(page: Page, ticker: string): Promise<void> {
   await page.goto(`/analysis?symbol=${encodeURIComponent(ticker)}`, {
     waitUntil: "domcontentloaded",
   });
@@ -39,10 +36,7 @@ export async function openAnalysisSection(
   heading: string | RegExp,
 ): Promise<void> {
   const button = analysisNav(page).getByRole("button", { name: label });
-  await expect(
-    button,
-    `[P1-09] section control ${label} must exist`,
-  ).toBeVisible();
+  await expect(button, `[P1-09] section control ${label} must exist`).toBeVisible();
   await button.click();
   await expect(analysisMain(page)).toBeVisible();
   await expect(
@@ -83,21 +77,20 @@ export async function waitForAnalyseSuccess(
   capture: AnalyseCapture,
   ticker: string,
 ): Promise<{ analysisId: string; payload: Record<string, unknown> }> {
-  const ready = () =>
-    Boolean(capture.body?.ok === true && capture.body?.analysis_id);
+  const ready = () => Boolean(capture.body?.ok === true && capture.body?.analysis_id);
 
   if (!ready()) {
-    await page.getByRole("button", { name: /^Analyze/i }).first().click();
+    await page
+      .getByRole("button", { name: /^Analyze/i })
+      .first()
+      .click();
   }
 
   await expect
-    .poll(
-      async () => ready(),
-      {
-        timeout: 90_000,
-        message: `[P1-09 ANALYSIS] POST /analyse must succeed with analysis_id (last status=${capture.status})`,
-      },
-    )
+    .poll(async () => ready(), {
+      timeout: 90_000,
+      message: `[P1-09 ANALYSIS] POST /analyse must succeed with analysis_id (last status=${capture.status})`,
+    })
     .toBeTruthy();
 
   let stableId = "";
@@ -156,22 +149,25 @@ export async function assertValuationVisible(
   payload: Record<string, unknown>,
 ): Promise<void> {
   await openAnalysisSection(page, /^Valuation(\s+\d|\d)?$/i, /^Valuation$/i);
-  await expect(page.getByText("Intrinsic Value", { exact: true })).toBeVisible();
-  await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
+  // The value appears in the summary, the valuation card and its detail list;
+  // assert the label inside the active analysis area rather than page-wide.
+  await expect(
+    analysisMain(page).getByText("Intrinsic Value", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    analysisMain(page).getByText("Current Price", { exact: true }).first(),
+  ).toBeVisible();
   await expect(
     analysisMain(page).getByText("Margin of Safety", { exact: true }).first(),
-    "[P1-09 VALUATION] margin-of-safety label must be visible in the active analysis area",
   ).toBeVisible();
 
-  const stages = (payload.stage_summaries ?? []) as Array<
-    Record<string, unknown>
-  >;
+  const stages = (payload.stage_summaries ?? []) as Array<Record<string, unknown>>;
   const valuation = stages.find((s) => s.stage === "valuation");
   expect(valuation, "[P1-09 VALUATION] valuation stage must exist").toBeTruthy();
-  expect(["succeeded", "degraded", "unavailable"]).toContain(
-    String(valuation!.status),
-  );
-  await expect(page.getByText("Stage status", { exact: true })).toBeVisible();
+  expect(["succeeded", "degraded", "unavailable"]).toContain(String(valuation!.status));
+  await expect(
+    analysisMain(page).getByText("Stage status", { exact: true }).first(),
+  ).toBeVisible();
 }
 
 export async function assertBuffettVisible(
@@ -179,14 +175,10 @@ export async function assertBuffettVisible(
   payload: Record<string, unknown>,
   ticker: string,
 ): Promise<void> {
-  await openAnalysisSection(
-    page,
-    /Buffett Assessment/i,
-    /Buffett Indicator Analysis/i,
-  );
+  await openAnalysisSection(page, /Buffett (?:Indicator|Assessment)/i, /Buffett Indicator Analysis/i);
   const buffettMain = analysisMain(page);
   await expect(
-    buffettMain.getByText(/Presentation synthesis of existing/i),
+    buffettMain.getByText(/Presentation synthesis of existing/i).first(),
   ).toBeVisible();
   // Scorecard repeats the same dt labels; the section contract is the
   // heading + at least one rating/action row, not uniqueness of the dt.
@@ -211,10 +203,10 @@ export async function assertEvidenceVisible(
   page: Page,
   analysisId: string,
 ): Promise<void> {
-  // The live navigation deliberately labels this destination "Evidence";
-  // the section registry's longer "Supporting Evidence" label is not rendered here.
-  await openAnalysisSection(page, /^Evidence$/i, /Research objects/i);
-  await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
+  await openAnalysisSection(page, /^(?:Supporting )?Evidence$/i, /Research objects/i);
+  await expect(
+    analysisMain(page).getByText("Analysis ID", { exact: true }).first(),
+  ).toBeVisible();
   await expect(analysisMain(page)).toContainText(analysisId);
 }
 
@@ -255,10 +247,7 @@ export async function fetchProvenanceFromSession(
     },
     { apiBase, id: analysisId },
   );
-  expect(
-    provFetch.ok,
-    `[P1-09 PROVENANCE] HTTP ${provFetch.status}`,
-  ).toBeTruthy();
+  expect(provFetch.ok, `[P1-09 PROVENANCE] HTTP ${provFetch.status}`).toBeTruthy();
   const provenance = (provFetch.body as { provenance: Record<string, unknown> })
     .provenance;
   expect(provenance.analysis_id).toBe(analysisId);

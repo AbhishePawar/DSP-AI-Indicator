@@ -24,9 +24,7 @@ export function ResearchCitationList({
   if (!citations?.length) return null;
 
   const unique = [...new Set(citations)];
-  const researchBase = ticker
-    ? `/research/${encodeURIComponent(ticker)}`
-    : "/research";
+  const researchBase = ticker ? `/research/${encodeURIComponent(ticker)}` : "/research";
 
   return (
     <div className="mt-2" aria-label="Research references">

@@ -21,8 +21,7 @@ const tagVariants = cva(
 );
 
 export interface TagProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof tagVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof tagVariants> {}
 
 function Tag({ className, variant, ...props }: TagProps) {
   return <span className={cn(tagVariants({ variant }), className)} {...props} />;

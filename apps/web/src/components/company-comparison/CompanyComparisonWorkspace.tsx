@@ -126,10 +126,7 @@ function renderModelSection(
 ) {
   if (id === "decisionWorkspace") {
     return (
-      <DecisionWorkspaceSection
-        model={model}
-        onNavigateSection={onNavigateSection}
-      />
+      <DecisionWorkspaceSection model={model} onNavigateSection={onNavigateSection} />
     );
   }
   if (id === "history") {
@@ -176,8 +173,7 @@ export function CompanyComparisonWorkspace() {
   const { session } = useAuth();
   const token = session?.accessToken ?? null;
   const { success, error: notifyError } = useNotifications();
-  const { runWithDisclaimer, gate: disclaimerGate } =
-    useResearchDisclaimerGate();
+  const { runWithDisclaimer, gate: disclaimerGate } = useResearchDisclaimerGate();
 
   const {
     activeSection,
@@ -207,9 +203,7 @@ export function CompanyComparisonWorkspace() {
 
   const [draftInput, setDraftInput] = useState(initialFromUrl.join(", "));
   const [slots, setSlots] = useState<ComparisonCompanySlot[]>([]);
-  const [intelligence, setIntelligence] = useState<
-    CompanyIntelligenceOverlay[]
-  >([]);
+  const [intelligence, setIntelligence] = useState<CompanyIntelligenceOverlay[]>([]);
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -234,7 +228,9 @@ export function CompanyComparisonWorkspace() {
       if (!isComparisonSectionId(sectionId)) return;
       setActiveSection(sectionId);
       syncUrl(
-        slots.length ? slots.map((s) => s.symbol) : parseSymbolsParam(draftInput.replace(/\s+/g, ",")),
+        slots.length
+          ? slots.map((s) => s.symbol)
+          : parseSymbolsParam(draftInput.replace(/\s+/g, ",")),
         sectionId,
       );
     },
@@ -244,13 +240,17 @@ export function CompanyComparisonWorkspace() {
   // Keyboard navigation for institutional review modes.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
       const idx = COMPARISON_SECTIONS.findIndex((s) => s.id === activeSection);
       if (e.key === "ArrowDown" || e.key === "j") {
         e.preventDefault();
-        const next = COMPARISON_SECTIONS[Math.min(idx + 1, COMPARISON_SECTIONS.length - 1)];
+        const next =
+          COMPARISON_SECTIONS[Math.min(idx + 1, COMPARISON_SECTIONS.length - 1)];
         if (next) navigateSection(next.id);
       } else if (e.key === "ArrowUp" || e.key === "k") {
         e.preventDefault();
@@ -344,25 +344,16 @@ export function CompanyComparisonWorkspace() {
           unique.map(async (symbol) => {
             try {
               const [perf, cal, timeline] = await Promise.all([
+                api.researchIntelligencePerformance({}, { token }).catch(() => null),
+                api.researchIntelligenceCalibration({}, { token }).catch(() => null),
                 api
-                  .researchIntelligencePerformance({}, { token })
-                  .catch(() => null),
-                api
-                  .researchIntelligenceCalibration({}, { token })
-                  .catch(() => null),
-                api
-                  .researchIntelligenceTimeline(
-                    { symbol, limit: 5 },
-                    { token },
-                  )
+                  .researchIntelligenceTimeline({ symbol, limit: 5 }, { token })
                   .catch(() => null),
               ]);
               return mapIntelligenceOverlay(
                 symbol,
-                (perf as { dashboard?: Record<string, unknown> } | null) ??
-                  null,
-                (cal as { calibration?: Record<string, unknown> } | null) ??
-                  null,
+                (perf as { dashboard?: Record<string, unknown> } | null) ?? null,
+                (cal as { calibration?: Record<string, unknown> } | null) ?? null,
                 timeline,
               );
             } catch {
@@ -397,13 +388,11 @@ export function CompanyComparisonWorkspace() {
             .filter(Boolean),
         ),
       );
-      const previous =
-        useComparisonHistoryStore.getState().entries[0] ?? null;
+      const previous = useComparisonHistoryStore.getState().entries[0] ?? null;
       appendHistory({
         at: new Date().toISOString(),
         symbols: next.map((s) => s.symbol),
-        researchVersion:
-          versions.length > 0 ? versions.join(" | ") : DATA_UNAVAILABLE,
+        researchVersion: versions.length > 0 ? versions.join(" | ") : DATA_UNAVAILABLE,
         confidence: preview.executive.confidence,
         winnerSummary: preview.executive.winnerSummary,
         changes: describeHistoryChanges(
@@ -545,7 +534,10 @@ export function CompanyComparisonWorkspace() {
         <ReviewModeControls />
         <div className="flex flex-col gap-2 lg:flex-row lg:items-end">
           <div className="flex-1">
-            <label className="mb-1 block text-xs text-[var(--muted)]" htmlFor="cmp-symbols">
+            <label
+              className="mb-1 block text-xs text-[var(--muted)]"
+              htmlFor="cmp-symbols"
+            >
               Companies (2–{MAX_COMPANIES} tickers, comma-separated)
             </label>
             <Input
@@ -577,23 +569,176 @@ export function CompanyComparisonWorkspace() {
             </Button>
           </div>
         </div>
-        {slots.length > 0 ? (
+        {slots.length === 2 ? (
+          <div
+            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/40 p-4 shadow-[var(--shadow-sm)]"
+            data-testid="two-security-comparison-header"
+          >
+            <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
+              {/* Security 1 */}
+              {(() => {
+                const s1 = slots[0];
+                const cat1 = resolveCatalogue(s1.symbol);
+                const name1 = s1.company || cat1?.name || s1.symbol;
+                const exchange1 = s1.exchange || cat1?.exchange || "Data unavailable.";
+                return (
+                  <div className="flex flex-col justify-between rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                          Security 1
+                        </div>
+                        <h4 className="text-base font-bold text-[var(--fg)]">
+                          {name1}
+                        </h4>
+                      </div>
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--border)] text-[var(--fg)]">
+                        {s1.symbol}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+                      <span>
+                        Exchange:{" "}
+                        <strong className="font-medium text-[var(--fg)]">
+                          {exchange1}
+                        </strong>
+                      </span>
+                      <span>·</span>
+                      <span>
+                        Status:{" "}
+                        <span className="font-medium capitalize text-[var(--fg)]">
+                          {s1.status}
+                        </span>
+                      </span>
+                      {s1.analysedAt ? (
+                        <>
+                          <span>·</span>
+                          <span>{new Date(s1.analysedAt).toLocaleDateString()}</span>
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 border-t border-[var(--border)]">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="min-h-[44px] text-xs"
+                        aria-pressed={pinned.includes(s1.symbol)}
+                        onClick={() =>
+                          pinned.includes(s1.symbol)
+                            ? unpinSymbol(s1.symbol)
+                            : pinSymbol(s1.symbol)
+                        }
+                      >
+                        {pinned.includes(s1.symbol) ? "Pinned" : "Pin"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="min-h-[44px] text-xs text-[var(--danger)] hover:bg-[var(--danger)]/10"
+                        onClick={() => removeSymbol(s1.symbol)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* VS indicator */}
+              <div className="flex items-center justify-center py-2 md:py-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-xs font-bold text-[var(--muted)] shadow-[var(--shadow-sm)]">
+                  VS
+                </div>
+              </div>
+
+              {/* Security 2 */}
+              {(() => {
+                const s2 = slots[1];
+                const cat2 = resolveCatalogue(s2.symbol);
+                const name2 = s2.company || cat2?.name || s2.symbol;
+                const exchange2 = s2.exchange || cat2?.exchange || "Data unavailable.";
+                return (
+                  <div className="flex flex-col justify-between rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                          Security 2
+                        </div>
+                        <h4 className="text-base font-bold text-[var(--fg)]">
+                          {name2}
+                        </h4>
+                      </div>
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--border)] text-[var(--fg)]">
+                        {s2.symbol}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+                      <span>
+                        Exchange:{" "}
+                        <strong className="font-medium text-[var(--fg)]">
+                          {exchange2}
+                        </strong>
+                      </span>
+                      <span>·</span>
+                      <span>
+                        Status:{" "}
+                        <span className="font-medium capitalize text-[var(--fg)]">
+                          {s2.status}
+                        </span>
+                      </span>
+                      {s2.analysedAt ? (
+                        <>
+                          <span>·</span>
+                          <span>{new Date(s2.analysedAt).toLocaleDateString()}</span>
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 border-t border-[var(--border)]">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="min-h-[44px] text-xs"
+                        aria-pressed={pinned.includes(s2.symbol)}
+                        onClick={() =>
+                          pinned.includes(s2.symbol)
+                            ? unpinSymbol(s2.symbol)
+                            : pinSymbol(s2.symbol)
+                        }
+                      >
+                        {pinned.includes(s2.symbol) ? "Pinned" : "Pin"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="min-h-[44px] text-xs text-[var(--danger)] hover:bg-[var(--danger)]/10"
+                        onClick={() => removeSymbol(s2.symbol)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        ) : slots.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {slots.map((s) => (
               <div
                 key={s.symbol}
-                className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] px-2 py-1 text-xs"
+                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs"
               >
-                <span className="font-medium">{s.symbol}</span>
+                <span className="font-mono font-semibold">{s.symbol}</span>
                 <span className="text-[var(--muted)]">({s.status})</span>
                 {s.analysedAt ? (
                   <span className="text-[var(--muted)]">
-                    {new Date(s.analysedAt).toLocaleString()}
+                    {new Date(s.analysedAt).toLocaleDateString()}
                   </span>
                 ) : null}
                 <Button
                   size="sm"
                   variant="ghost"
+                  className="min-h-[44px] px-2 text-xs"
                   aria-pressed={pinned.includes(s.symbol)}
                   onClick={() =>
                     pinned.includes(s.symbol)
@@ -606,6 +751,7 @@ export function CompanyComparisonWorkspace() {
                 <Button
                   size="sm"
                   variant="ghost"
+                  className="min-h-[44px] px-2 text-xs text-[var(--danger)]"
                   onClick={() => removeSymbol(s.symbol)}
                 >
                   Remove

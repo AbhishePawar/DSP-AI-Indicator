@@ -29,6 +29,10 @@ from data_engine.historical_series.service import (
     HistoricalSeriesService,
     HistoricalSeriesServiceMetrics,
 )
+from data_engine.historical_series.upstox_adapter import (
+    UpstoxCandle,
+    UpstoxHistoricalAdapter,
+)
 from data_engine.historical_series.validation import (
     validate_authenticated_historical_bundle,
 )
@@ -54,6 +58,8 @@ __all__ = [
     "NullAuthenticatedHistoricalAdapter",
     "build_default_historical_adapter_from_env",
     "build_historical_bundle_from_mapping",
+    "UpstoxCandle",
+    "UpstoxHistoricalAdapter",
     "utc_now",
     "validate_authenticated_historical_bundle",
 ]

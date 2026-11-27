@@ -57,14 +57,14 @@ export function OwnershipSection({ view }: { view: ResearchView }) {
 
   const ownership = ownershipQuery.data;
   const ownershipAvailable = Boolean(ownership?.available && ownership.authenticated);
-  const stakes = ownershipAvailable ? ownership?.stakes ?? [] : [];
+  const stakes = ownershipAvailable ? (ownership?.stakes ?? []) : [];
   const institutionalStakes = stakes.filter(
     (s) => s.holder_type && INSTITUTIONAL_HOLDER_TYPES.has(s.holder_type),
   );
 
   const insider = insiderQuery.data;
   const transactions =
-    insider?.available && insider.authenticated ? insider.transactions ?? [] : [];
+    insider?.available && insider.authenticated ? (insider.transactions ?? []) : [];
 
   return (
     <div className="space-y-4">
@@ -160,7 +160,11 @@ export function OwnershipSection({ view }: { view: ResearchView }) {
         title="Related — Management &amp; Governance"
         description={`Capital allocation and governance for ${view.company} are covered under Management — not duplicated here.`}
       >
-        <Button size="sm" variant="secondary" onClick={() => setActiveSection("management")}>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => setActiveSection("management")}
+        >
           Open Management tab
         </Button>
       </SectionCard>

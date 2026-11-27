@@ -11,10 +11,7 @@ import {
   isUnavailableDisplay,
   parseExistingScore,
 } from "./ranking";
-import type {
-  WinnerMatrixDimensionId,
-  WinnerMatrixRow,
-} from "./types";
+import type { WinnerMatrixDimensionId, WinnerMatrixRow } from "./types";
 
 type ScoreExtractor = (view: ResearchView) => {
   display: string;
@@ -144,9 +141,7 @@ const DIMENSIONS: {
       return {
         display: pct,
         numeric:
-          v.recommendationConfidence != null
-            ? v.recommendationConfidence * 100
-            : null,
+          v.recommendationConfidence != null ? v.recommendationConfidence * 100 : null,
         evidence: "recommendation_summary.confidence",
       };
     },

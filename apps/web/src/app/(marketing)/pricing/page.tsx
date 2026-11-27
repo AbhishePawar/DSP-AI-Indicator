@@ -66,9 +66,8 @@ export default function MarketingPricingPage() {
         Capability matrix (illustrative)
       </h3>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Matrix cells describe intended packaging — not live entitlements or
-        checkout. Features marked Yes may still require administrator
-        provisioning.
+        Matrix cells describe intended packaging — not live entitlements or checkout.
+        Features marked Yes may still require administrator provisioning.
       </p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
@@ -126,7 +125,10 @@ export default function MarketingPricingPage() {
             {" · "}
           </>
         ) : (
-          <>{SUPPORT_CONTACT.unpublishedNote}{" · "}</>
+          <>
+            {SUPPORT_CONTACT.unpublishedNote}
+            {" · "}
+          </>
         )}
         <Link className="text-[var(--accent)] underline" href="/login">
           Sign in

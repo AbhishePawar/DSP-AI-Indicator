@@ -37,17 +37,12 @@ export function RecentAnalyses({
                     </span>
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--muted)]">
-                    {new Date(item.analysedAt).toLocaleString()} ·{" "}
-                    {item.recommendation}
+                    {new Date(item.analysedAt).toLocaleString()} · {item.recommendation}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {onSelect ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onSelect(item)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => onSelect(item)}>
                       Re-run
                     </Button>
                   ) : null}

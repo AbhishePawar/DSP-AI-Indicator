@@ -67,6 +67,7 @@ def _period(
         "fiscal_year": fiscal_year,
         "fiscal_quarter": fiscal_quarter,
         "period_end": period_end,
+        "shares_outstanding": 100.0,
         "reporting_currency": "USD",
         "statement_basis": basis,
         "unit_scale": unit,

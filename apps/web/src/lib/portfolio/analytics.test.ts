@@ -37,9 +37,7 @@ describe("portfolio analytics", () => {
   });
 
   it("counts recommendation distribution", () => {
-    const distribution = buildRecommendationDistribution(
-      getDemoPortfolio().holdings,
-    );
+    const distribution = buildRecommendationDistribution(getDemoPortfolio().holdings);
     expect(distribution.Buy + distribution.Hold).toBeGreaterThan(0);
     expect(distribution["Strong Sell"]).toBe(0);
   });

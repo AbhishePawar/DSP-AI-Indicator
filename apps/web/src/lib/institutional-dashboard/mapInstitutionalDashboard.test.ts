@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { DATA_UNAVAILABLE, UNABLE_TO_CALCULATE } from "@/lib/institutional-dashboard/types";
+import {
+  DATA_UNAVAILABLE,
+  UNABLE_TO_CALCULATE,
+} from "@/lib/institutional-dashboard/types";
 import {
   mapInstitutionalDashboard,
   payloadsFromUnifiedBundle,
@@ -120,9 +123,7 @@ describe("mapInstitutionalDashboard", () => {
     expect(view.market.hasAuthenticatedMarketData).toBe(true);
     expect(view.market.currentPrice.presence).toBe("available");
     expect(view.market.currentPrice.source).toBe("authenticated_market_data");
-    expect(view.executive.currentMarketPrice.source).toBe(
-      "authenticated_market_data",
-    );
+    expect(view.executive.currentMarketPrice.source).toBe("authenticated_market_data");
     expect(view.market.currentPrice.display).not.toBe(DATA_UNAVAILABLE);
     expect(researchStandardsPass(view.rsValidation)).toBe(true);
   });
@@ -292,9 +293,9 @@ describe("mapInstitutionalDashboard", () => {
 
 describe("institutional nav", () => {
   it("registers institutional dashboard route", () => {
-    expect(
-      getPrimaryNav().some((n) => n.href === "/research/institutional"),
-    ).toBe(true);
+    expect(getPrimaryNav().some((n) => n.href === "/research/institutional")).toBe(
+      true,
+    );
   });
 
   it("breadcrumbs institutional without treating path as ticker", () => {

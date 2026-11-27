@@ -11,12 +11,25 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { MARKETING_NAV } from "./content";
 
 export function MarketingHeader() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { cycleMode, resolved, mode } = useTheme();
   const [open, setOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuId = useId();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -71,7 +84,10 @@ export function MarketingHeader() {
       : `Theme: ${mode}. Activate to cycle theme. Currently showing ${resolved}.`;
 
   return (
-    <header data-testid="marketing-header" className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]">
+    <header
+      data-testid="marketing-header"
+      className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]"
+    >
       <div className="relative flex min-h-[70px] items-center justify-between gap-4 px-5 py-4 sm:px-12">
         <Link
           href="/"
@@ -79,7 +95,8 @@ export function MarketingHeader() {
           aria-label={`${env.appName} home`}
           className="flex items-center gap-2.5 font-[family-name:var(--font-display)] text-lg text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
-          <span className="size-[26px] rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" />DSP
+          <span className="size-[26px] rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" />
+          DSP
         </Link>
 
         <nav
@@ -99,7 +116,8 @@ export function MarketingHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button data-testid="marketing-theme"
+          <button
+            data-testid="marketing-theme"
             type="button"
             onClick={cycleMode}
             className="inline-flex size-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
@@ -107,10 +125,62 @@ export function MarketingHeader() {
           >
             <MoonStar className="size-3.5" />
           </button>
-          <Link data-testid="marketing-account" href={user ? "/profile" : "/login"} className="flex min-h-9 max-w-44 items-center gap-2 rounded-lg px-2 text-xs transition-colors hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-            {user && <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] font-mono text-[10px] font-semibold text-white">{user.displayName.slice(0, 2).toUpperCase()}</span>}
-            <span className="truncate">{user?.displayName || "Log in"}</span>
-          </Link>
+          {user ? (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                type="button"
+                data-testid="marketing-account"
+                aria-expanded={userMenuOpen}
+                aria-haspopup="true"
+                onClick={() => setUserMenuOpen((v) => !v)}
+                className="flex min-h-9 max-w-44 items-center gap-2 rounded-lg px-2 text-xs transition-colors hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] font-mono text-[10px] font-semibold text-white">
+                  {user.displayName.slice(0, 2).toUpperCase()}
+                </span>
+                <span className="truncate">{user.displayName}</span>
+              </button>
+
+              {userMenuOpen ? (
+                <div
+                  data-testid="marketing-account-menu"
+                  role="menu"
+                  className="absolute right-0 mt-1.5 w-40 rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg z-50 text-xs"
+                >
+                  <Link
+                    href="/profile"
+                    role="menuitem"
+                    data-testid="marketing-account-profile"
+                    className="flex w-full items-center px-3 py-2 text-[var(--fg)] hover:bg-[var(--surface-2)]"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-testid="marketing-account-logout"
+                    className="flex w-full items-center px-3 py-2 text-[var(--fg)] hover:bg-[var(--surface-2)] text-left"
+                    onClick={async () => {
+                      setUserMenuOpen(false);
+                      await logout();
+                      window.location.assign("/");
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <Link
+              data-testid="marketing-account"
+              href="/login"
+              className="flex min-h-9 max-w-44 items-center gap-2 rounded-lg px-2 text-xs transition-colors hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            >
+              <span className="truncate">Log in</span>
+            </Link>
+          )}
           <button
             data-testid="marketing-menu-toggle"
             ref={menuButtonRef}
@@ -147,24 +217,55 @@ export function MarketingHeader() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                href="/register"
-                className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                onClick={() => setOpen(false)}
-              >
-                Create account
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/login"
-                className="flex min-h-11 items-center text-sm text-[var(--accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                onClick={() => setOpen(false)}
-              >
-                Sign in
-              </Link>
-            </li>
+            {user ? (
+              <>
+                <li>
+                  <Link
+                    href="/profile"
+                    data-testid="marketing-mobile-profile"
+                    className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                    onClick={() => setOpen(false)}
+                  >
+                    Profile ({user.displayName})
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    data-testid="marketing-mobile-logout"
+                    className="flex min-h-11 w-full items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] text-left"
+                    onClick={async () => {
+                      setOpen(false);
+                      await logout();
+                      window.location.assign("/");
+                    }}
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    href="/register"
+                    className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                    onClick={() => setOpen(false)}
+                  >
+                    Create account
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/login"
+                    className="flex min-h-11 items-center text-sm text-[var(--accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                    onClick={() => setOpen(false)}
+                  >
+                    Sign in
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
       ) : null}

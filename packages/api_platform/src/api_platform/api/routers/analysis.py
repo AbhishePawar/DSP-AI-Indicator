@@ -13,15 +13,13 @@ from api_platform.api.dependencies import (
     require_authenticated_actor,
 )
 from api_platform.api.exceptions import ApiValidationError
+from api_platform.api.research_orchestration_service import (
+    execute_research_orchestration,
+)
 from api_platform.api.schemas import AnalyzeCompanyRequest, ApiResponse
 from api_platform.api.tenant_isolation import stamp_report_owner
 from contracts import Instrument
 from contracts.enums import AssetClass
-
-try:
-    from llm_adapters import UserResearchRequest
-except ImportError:  # pragma: no cover - optional during partial installs
-    UserResearchRequest = None  # type: ignore[misc, assignment]
 
 router = APIRouter(tags=["analysis"])
 
@@ -95,25 +93,18 @@ def analyze_company(
     # this boundary; prompts, provider identities, and raw responses stay in
     # the orchestrator's private result.
     research_pack: object | None = None
-    if state.research_orchestrator is not None and UserResearchRequest is not None:
-        try:
-            research = state.research_orchestrator.run(
-                UserResearchRequest(
-                    symbol=instrument.symbol,
-                    question="Explain the validated company analysis.",
-                    exchange=instrument.asset_class.value,
-                    request_id=report_id,
-                )
-            )
-            research_pack = research.to_public().to_dict()
-            if research.status.value != "accepted":
-                limitations.append(
-                    "AI research validation failed closed; deterministic result returned."
-                )
-        except Exception:  # noqa: BLE001 — deterministic analysis remains available
-            limitations.append(
-                "AI research unavailable; deterministic result returned."
-            )
+    if state.research_orchestrator is not None:
+        # Use the same bounded execution, cancellation, capacity and public-schema
+        # validation boundary as /analyse. Never call the provider orchestrator
+        # directly from an HTTP request thread.
+        research_pack, research_limitations = execute_research_orchestration(
+            state.research_orchestrator,
+            ticker=instrument.symbol,
+            company=instrument.symbol,
+            exchange=instrument.asset_class.value,
+            correlation_id=report_id,
+        )
+        limitations.extend(research_limitations)
 
     # AI is an explanation layer over the already validated DSP result. The
     # service owns provider routing, dual-provider verification, fallback, and

@@ -13,15 +13,8 @@ import { Button } from "@/components/ui/Button";
 import type { CopilotAction } from "@/lib/analysis/sprint6Copilot";
 
 export function CopilotPanelInner() {
-  const {
-    open,
-    setOpen,
-    messages,
-    memory,
-    thinking,
-    ask,
-    clearConversation,
-  } = useCopilot();
+  const { open, setOpen, messages, memory, thinking, ask, clearConversation } =
+    useCopilot();
   const titleId = useId();
   const liveId = useId();
   const listRef = useRef<HTMLDivElement>(null);

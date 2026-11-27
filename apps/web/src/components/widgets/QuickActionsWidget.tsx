@@ -15,10 +15,7 @@ const ACTIONS = [
 export function QuickActionsWidget() {
   return (
     <Card>
-      <CardHeader
-        title="Quick Actions"
-        description="Jump to primary workspaces"
-      />
+      <CardHeader title="Quick Actions" description="Jump to primary workspaces" />
       <CardBody className="grid gap-2 sm:grid-cols-2">
         {ACTIONS.map((action) => (
           <Link key={action.href} href={action.href}>

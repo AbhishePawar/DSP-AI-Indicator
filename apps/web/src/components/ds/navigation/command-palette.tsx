@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useId,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useId, type ReactNode } from "react";
 import { Command } from "cmdk";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -67,14 +62,11 @@ export function CommandPalette({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [enableShortcut, onKeyDown]);
 
-  const groups = items.reduce<Record<string, CommandPaletteItem[]>>(
-    (acc, item) => {
-      const key = item.group ?? "Commands";
-      (acc[key] ??= []).push(item);
-      return acc;
-    },
-    {},
-  );
+  const groups = items.reduce<Record<string, CommandPaletteItem[]>>((acc, item) => {
+    const key = item.group ?? "Commands";
+    (acc[key] ??= []).push(item);
+    return acc;
+  }, {});
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

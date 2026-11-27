@@ -2,7 +2,12 @@
  * In-memory session store for client reviews (no persistence).
  */
 
-import type { ClientReview, ReviewActionStatus, ReviewChecklistItemId, ReviewTemplateId } from "./reviewTypes";
+import type {
+  ClientReview,
+  ReviewActionStatus,
+  ReviewChecklistItemId,
+  ReviewTemplateId,
+} from "./reviewTypes";
 import { createReviewFromTemplate, seedReviews } from "./reviewModels";
 
 let reviews: ClientReview[] = seedReviews.map((r) => ({
@@ -56,9 +61,7 @@ export function updateSessionReview(id: string, fn: (r: ClientReview) => ClientR
 export function toggleChecklistItem(reviewId: string, itemId: ReviewChecklistItemId) {
   updateSessionReview(reviewId, (r) => ({
     ...r,
-    checklist: r.checklist.map((c) =>
-      c.id === itemId ? { ...c, done: !c.done } : c,
-    ),
+    checklist: r.checklist.map((c) => (c.id === itemId ? { ...c, done: !c.done } : c)),
   }));
 }
 
@@ -73,10 +76,7 @@ export function setActionStatus(
   }));
 }
 
-export function setReviewStatus(
-  reviewId: string,
-  status: ClientReview["status"],
-) {
+export function setReviewStatus(reviewId: string, status: ClientReview["status"]) {
   updateSessionReview(reviewId, (r) => ({ ...r, status }));
 }
 

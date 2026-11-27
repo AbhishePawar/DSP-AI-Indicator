@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  memo,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { memo, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -178,12 +172,18 @@ export const ResearchCollectionCard = memo(function ResearchCollectionCard({
           {collection.favorite ? <Badge>Favorite</Badge> : null}
           <Badge>{collection.lifecycle}</Badge>
         </div>
-        <ul className="space-y-1 text-sm" aria-label={`${collection.name} research items`}>
+        <ul
+          className="space-y-1 text-sm"
+          aria-label={`${collection.name} research items`}
+        >
           {items.length === 0 ? (
             <li className="text-[var(--muted)]">Empty collection</li>
           ) : (
             items.map((e) => (
-              <li key={e.id} className="rounded-md border border-[var(--border)] px-2 py-1">
+              <li
+                key={e.id}
+                className="rounded-md border border-[var(--border)] px-2 py-1"
+              >
                 {e.companyLabel}
               </li>
             ))
@@ -202,17 +202,32 @@ export const ResearchCollectionCard = memo(function ResearchCollectionCard({
             </Button>
           ) : null}
           {onRename ? (
-            <Button type="button" size="sm" variant="secondary" onClick={() => onRename(collection.id)}>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => onRename(collection.id)}
+            >
               Rename
             </Button>
           ) : null}
           {onAdd ? (
-            <Button type="button" size="sm" variant="secondary" onClick={() => onAdd(collection.id)}>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => onAdd(collection.id)}
+            >
               Add research
             </Button>
           ) : null}
           {onDelete ? (
-            <Button type="button" size="sm" variant="danger" onClick={() => onDelete(collection.id)}>
+            <Button
+              type="button"
+              size="sm"
+              variant="danger"
+              onClick={() => onDelete(collection.id)}
+            >
               Delete
             </Button>
           ) : null}
@@ -230,10 +245,17 @@ export const ResearchBookmarkCard = memo(function ResearchBookmarkCard({
   const snap = useSharedResearch();
   return (
     <Card>
-      <CardHeader title={envelope.companyLabel} description="Bookmark / pin / favorite — session" />
+      <CardHeader
+        title={envelope.companyLabel}
+        description="Bookmark / pin / favorite — session"
+      />
       <CardBody className="space-y-2 text-sm">
         <p className="text-[var(--muted)]">{envelope.thesis.slice(0, 120)}…</p>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Bookmark actions">
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-label="Bookmark actions"
+        >
           <Button
             type="button"
             size="sm"
@@ -285,7 +307,10 @@ export const ResearchActivityFeed = memo(function ResearchActivityFeed({
 }) {
   return (
     <Card>
-      <CardHeader title="Research Activity" description="Session feed — not live multi-user" />
+      <CardHeader
+        title="Research Activity"
+        description="Session feed — not live multi-user"
+      />
       <CardBody>
         <WindowedList
           items={items}
@@ -319,7 +344,10 @@ export const ResearchFilterPanel = memo(function ResearchFilterPanel() {
 
   return (
     <Card>
-      <CardHeader title="Research Filters" description="Presentation filters over demo envelopes" />
+      <CardHeader
+        title="Research Filters"
+        description="Presentation filters over demo envelopes"
+      />
       <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block text-xs text-[var(--muted)] sm:col-span-2 lg:col-span-3">
           Search
@@ -442,7 +470,12 @@ export const ResearchFilterPanel = memo(function ResearchFilterPanel() {
           </div>
         </fieldset>
         <div className="sm:col-span-2 lg:col-span-3">
-          <Button type="button" variant="ghost" size="sm" onClick={() => resetSharedFilters()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => resetSharedFilters()}
+          >
             Reset filters
           </Button>
         </div>
@@ -476,7 +509,9 @@ export const ResearchOverviewDashboard = memo(function ResearchOverviewDashboard
               key={label}
               className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]/40 p-3"
             >
-              <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>
+              <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
+                {label}
+              </p>
               <p className="mt-1 text-sm font-medium">{value}</p>
             </div>
           ))}
@@ -559,19 +594,25 @@ export const ResearchLibraryPanel = memo(function ResearchLibraryPanel() {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <h3 className="font-medium">{e.companyLabel}</h3>
-                      <p className="mt-1 text-[var(--muted)]">{e.thesis.slice(0, 110)}…</p>
+                      <p className="mt-1 text-[var(--muted)]">
+                        {e.thesis.slice(0, 110)}…
+                      </p>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {snap.bookmarkedIds.includes(e.id) ? <Badge>Bookmarked</Badge> : null}
+                      {snap.bookmarkedIds.includes(e.id) ? (
+                        <Badge>Bookmarked</Badge>
+                      ) : null}
                       {snap.pinnedIds.includes(e.id) ? <Badge>Pinned</Badge> : null}
                       {snap.favoriteIds.includes(e.id) ? <Badge>Favorite</Badge> : null}
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-[var(--muted)]">
-                    {meta?.sector} · {meta?.industry} · {meta?.marketCap} · {meta?.rating}
+                    {meta?.sector} · {meta?.industry} · {meta?.marketCap} ·{" "}
+                    {meta?.rating}
                   </p>
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    Confidence: {e.confidence} · Valuation: {e.valuation} · Risk: {e.risk}
+                    Confidence: {e.confidence} · Valuation: {e.valuation} · Risk:{" "}
+                    {e.risk}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Button
@@ -589,15 +630,32 @@ export const ResearchLibraryPanel = memo(function ResearchLibraryPanel() {
                       aria-pressed={snap.compareSelection.includes(e.id)}
                       onClick={() => toggleCompareSelection(e.id)}
                     >
-                      {snap.compareSelection.includes(e.id) ? "In compare" : "Add to compare"}
+                      {snap.compareSelection.includes(e.id)
+                        ? "In compare"
+                        : "Add to compare"}
                     </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => toggleBookmark(e.id)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleBookmark(e.id)}
+                    >
                       Bookmark
                     </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => togglePin(e.id)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => togglePin(e.id)}
+                    >
                       Pin
                     </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => toggleFavorite(e.id)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleFavorite(e.id)}
+                    >
                       Favorite
                     </Button>
                   </div>
@@ -652,7 +710,10 @@ export const ResearchLibraryPanel = memo(function ResearchLibraryPanel() {
       </div>
 
       <Card>
-        <CardHeader title="Shared Collections" description="Active session collections" />
+        <CardHeader
+          title="Shared Collections"
+          description="Active session collections"
+        />
         <CardBody className="grid gap-3 md:grid-cols-2">
           {activeCollections.map((c) => (
             <ResearchCollectionCard key={c.id} collection={c} />
@@ -661,7 +722,10 @@ export const ResearchLibraryPanel = memo(function ResearchLibraryPanel() {
       </Card>
 
       <Card>
-        <CardHeader title="Research Timeline" description="Session activity derived from workspace actions" />
+        <CardHeader
+          title="Research Timeline"
+          description="Session activity derived from workspace actions"
+        />
         <CardBody>
           <ul className="space-y-2 text-sm" aria-label="Research timeline">
             {snap.activity.slice(0, 8).map((a) => (
@@ -751,7 +815,10 @@ export const ResearchComparisonWorkspace = memo(function ResearchComparisonWorks
       {selectedEnvs.length >= 2 ? (
         <>
           <Card>
-            <CardHeader title="Comparison table" description="Accessible reuse of envelope fields" />
+            <CardHeader
+              title="Comparison table"
+              description="Accessible reuse of envelope fields"
+            />
             <CardBody className="overflow-x-auto">
               <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
                 <caption className="sr-only">
@@ -759,7 +826,10 @@ export const ResearchComparisonWorkspace = memo(function ResearchComparisonWorks
                 </caption>
                 <thead>
                   <tr>
-                    <th scope="col" className="border-b border-[var(--border)] px-2 py-2">
+                    <th
+                      scope="col"
+                      className="border-b border-[var(--border)] px-2 py-2"
+                    >
                       Dimension
                     </th>
                     {selectedEnvs.map((e) => (
@@ -793,31 +863,49 @@ export const ResearchComparisonWorkspace = memo(function ResearchComparisonWorks
                     </tr>
                   ))}
                   <tr>
-                    <th scope="row" className="border-b border-[var(--border)] px-2 py-2">
+                    <th
+                      scope="row"
+                      className="border-b border-[var(--border)] px-2 py-2"
+                    >
                       Research Summary
                     </th>
                     {selectedEnvs.map((e) => (
-                      <td key={`sum-${e.id}`} className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]">
+                      <td
+                        key={`sum-${e.id}`}
+                        className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]"
+                      >
                         {e.thesis.slice(0, 80)}…
                       </td>
                     ))}
                   </tr>
                   <tr>
-                    <th scope="row" className="border-b border-[var(--border)] px-2 py-2">
+                    <th
+                      scope="row"
+                      className="border-b border-[var(--border)] px-2 py-2"
+                    >
                       Evidence
                     </th>
                     {selectedEnvs.map((e) => (
-                      <td key={`ev-${e.id}`} className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]">
+                      <td
+                        key={`ev-${e.id}`}
+                        className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]"
+                      >
                         {e.evidence.join("; ")}
                       </td>
                     ))}
                   </tr>
                   <tr>
-                    <th scope="row" className="border-b border-[var(--border)] px-2 py-2">
+                    <th
+                      scope="row"
+                      className="border-b border-[var(--border)] px-2 py-2"
+                    >
                       Methodology
                     </th>
                     {selectedEnvs.map((e) => (
-                      <td key={`m-${e.id}`} className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]">
+                      <td
+                        key={`m-${e.id}`}
+                        className="border-b border-[var(--border)] px-2 py-2 text-[var(--muted)]"
+                      >
                         {e.methodology}
                       </td>
                     ))}
@@ -837,8 +925,8 @@ export const ResearchComparisonWorkspace = memo(function ResearchComparisonWorks
             </CardBody>
           </Card>
           <p className="text-xs text-[var(--muted)]">
-            Dimensions included: {COMPARE_DIMENSIONS.map((d) => d.label).join(" · ")}. Compare does
-            not generate recommendations.
+            Dimensions included: {COMPARE_DIMENSIONS.map((d) => d.label).join(" · ")}.
+            Compare does not generate recommendations.
           </p>
         </>
       ) : (
@@ -885,9 +973,9 @@ export const SharedResearchWorkspace = memo(function SharedResearchWorkspace() {
         <Card>
           <CardHeader title="Trust reminder" />
           <CardBody className="text-sm text-[var(--muted)]">
-            Research remains the single source of truth. This workspace never regenerates Business
-            Analysis, Financial Analysis, Valuation, Risk, Evidence, Confidence, Methodology, or
-            Limitations.
+            Research remains the single source of truth. This workspace never
+            regenerates Business Analysis, Financial Analysis, Valuation, Risk,
+            Evidence, Confidence, Methodology, or Limitations.
           </CardBody>
         </Card>
       </div>
@@ -906,144 +994,151 @@ export const SharedResearchLibraryPage = memo(function SharedResearchLibraryPage
   );
 });
 
-export const SharedResearchCollectionsPage = memo(function SharedResearchCollectionsPage() {
-  const snap = useSharedResearch();
-  const [name, setName] = useState("");
-  const [renameId, setRenameId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [addId, setAddId] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
+export const SharedResearchCollectionsPage = memo(
+  function SharedResearchCollectionsPage() {
+    const snap = useSharedResearch();
+    const [name, setName] = useState("");
+    const [renameId, setRenameId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState("");
+    const [addId, setAddId] = useState<string | null>(null);
+    const [query, setQuery] = useState("");
+    const [favoritesOnly, setFavoritesOnly] = useState(false);
 
-  const active = useMemo(() => {
-    let list = snap.collections.filter((c) => c.lifecycle === "active");
-    if (favoritesOnly) list = list.filter((c) => c.favorite);
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter(
-        (c) => c.name.toLowerCase().includes(q) || c.theme.toLowerCase().includes(q),
-      );
-    }
-    return list;
-  }, [snap.collections, query, favoritesOnly]);
+    const active = useMemo(() => {
+      let list = snap.collections.filter((c) => c.lifecycle === "active");
+      if (favoritesOnly) list = list.filter((c) => c.favorite);
+      if (query.trim()) {
+        const q = query.trim().toLowerCase();
+        list = list.filter(
+          (c) => c.name.toLowerCase().includes(q) || c.theme.toLowerCase().includes(q),
+        );
+      }
+      return list;
+    }, [snap.collections, query, favoritesOnly]);
 
-  return (
-    <SharedResearchShell
-      title="Research Collections"
-      description="Create · rename · delete · move · favorite — session presentation only"
-    >
-      <Card>
-        <CardHeader title="Create / search collections" />
-        <CardBody className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-          <label className="block flex-1 text-xs text-[var(--muted)]">
-            New collection
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              aria-label="New collection name"
-              placeholder="Collection name"
-            />
-          </label>
-          <Button
-            type="button"
-            onClick={() => {
-              createSharedCollection(name);
-              setName("");
-            }}
-          >
-            Create
-          </Button>
-          <label className="block flex-1 text-xs text-[var(--muted)]">
-            Search collections
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              aria-label="Search collections"
-            />
-          </label>
-          <label className="flex min-h-11 items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={favoritesOnly}
-              onChange={(e) => setFavoritesOnly(e.target.checked)}
-            />
-            Favorites only
-          </label>
-        </CardBody>
-      </Card>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {active.map((c) => (
-          <ResearchCollectionCard
-            key={c.id}
-            collection={c}
-            onFavorite={(id) => toggleCollectionFavorite(id)}
-            onDelete={(id) => deleteSharedCollection(id)}
-            onRename={(id) => {
-              setRenameId(id);
-              setRenameValue(c.name);
-            }}
-            onAdd={(id) => setAddId(id)}
-          />
-        ))}
-      </div>
-
-      {renameId ? (
+    return (
+      <SharedResearchShell
+        title="Research Collections"
+        description="Create · rename · delete · move · favorite — session presentation only"
+      >
         <Card>
-          <CardHeader title="Rename collection" />
-          <CardBody className="flex flex-wrap gap-2">
-            <input
-              value={renameValue}
-              onChange={(e) => setRenameValue(e.target.value)}
-              className="min-h-11 flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              aria-label="Rename collection"
-            />
+          <CardHeader title="Create / search collections" />
+          <CardBody className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="block flex-1 text-xs text-[var(--muted)]">
+              New collection
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label="New collection name"
+                placeholder="Collection name"
+              />
+            </label>
             <Button
               type="button"
               onClick={() => {
-                renameSharedCollection(renameId, renameValue);
-                setRenameId(null);
+                createSharedCollection(name);
+                setName("");
               }}
             >
-              Save
+              Create
             </Button>
-            <Button type="button" variant="ghost" onClick={() => setRenameId(null)}>
-              Cancel
-            </Button>
+            <label className="block flex-1 text-xs text-[var(--muted)]">
+              Search collections
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label="Search collections"
+              />
+            </label>
+            <label className="flex min-h-11 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={favoritesOnly}
+                onChange={(e) => setFavoritesOnly(e.target.checked)}
+              />
+              Favorites only
+            </label>
           </CardBody>
         </Card>
-      ) : null}
 
-      {addId ? (
-        <Card>
-          <CardHeader title="Move research into collection" />
-          <CardBody className="flex flex-wrap gap-2">
-            {listResearchEnvelopes().map((e) => (
+        <div className="grid gap-4 md:grid-cols-2">
+          {active.map((c) => (
+            <ResearchCollectionCard
+              key={c.id}
+              collection={c}
+              onFavorite={(id) => toggleCollectionFavorite(id)}
+              onDelete={(id) => deleteSharedCollection(id)}
+              onRename={(id) => {
+                setRenameId(id);
+                setRenameValue(c.name);
+              }}
+              onAdd={(id) => setAddId(id)}
+            />
+          ))}
+        </div>
+
+        {renameId ? (
+          <Card>
+            <CardHeader title="Rename collection" />
+            <CardBody className="flex flex-wrap gap-2">
+              <input
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="min-h-11 flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label="Rename collection"
+              />
               <Button
-                key={e.id}
                 type="button"
-                size="sm"
-                variant="secondary"
                 onClick={() => {
-                  moveResearchToCollection(addId, e.id);
-                  setAddId(null);
+                  renameSharedCollection(renameId, renameValue);
+                  setRenameId(null);
                 }}
               >
-                {e.companyLabel}
+                Save
               </Button>
-            ))}
-            <Button type="button" variant="ghost" size="sm" onClick={() => setAddId(null)}>
-              Cancel
-            </Button>
-          </CardBody>
-        </Card>
-      ) : null}
-    </SharedResearchShell>
-  );
-});
+              <Button type="button" variant="ghost" onClick={() => setRenameId(null)}>
+                Cancel
+              </Button>
+            </CardBody>
+          </Card>
+        ) : null}
+
+        {addId ? (
+          <Card>
+            <CardHeader title="Move research into collection" />
+            <CardBody className="flex flex-wrap gap-2">
+              {listResearchEnvelopes().map((e) => (
+                <Button
+                  key={e.id}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    moveResearchToCollection(addId, e.id);
+                    setAddId(null);
+                  }}
+                >
+                  {e.companyLabel}
+                </Button>
+              ))}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setAddId(null)}
+              >
+                Cancel
+              </Button>
+            </CardBody>
+          </Card>
+        ) : null}
+      </SharedResearchShell>
+    );
+  },
+);
 
 export const SharedResearchComparePage = memo(function SharedResearchComparePage() {
   return (

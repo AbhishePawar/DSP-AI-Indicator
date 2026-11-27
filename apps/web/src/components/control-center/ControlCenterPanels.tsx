@@ -7,16 +7,9 @@ type Props = {
   error?: string | null;
 };
 
-export function ControlCenterJsonPanel({
-  title,
-  data,
-  loading,
-  error,
-}: Props) {
+export function ControlCenterJsonPanel({ title, data, loading, error }: Props) {
   if (loading) {
-    return (
-      <p className="text-sm text-[var(--dsp-text-muted)]">Loading {title}…</p>
-    );
+    return <p className="text-sm text-[var(--dsp-text-muted)]">Loading {title}…</p>;
   }
   if (error) {
     return (
@@ -26,9 +19,7 @@ export function ControlCenterJsonPanel({
     );
   }
   if (data == null) {
-    return (
-      <p className="text-sm text-[var(--dsp-text-muted)]">Data unavailable.</p>
-    );
+    return <p className="text-sm text-[var(--dsp-text-muted)]">Data unavailable.</p>;
   }
   return (
     <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">

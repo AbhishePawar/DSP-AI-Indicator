@@ -3,11 +3,7 @@
 import type { AllocationSegment } from "@/lib/portfolio/model";
 import { AllocationCard } from "./AllocationCard";
 
-export function SectorAllocation({
-  segments,
-}: {
-  segments: AllocationSegment[];
-}) {
+export function SectorAllocation({ segments }: { segments: AllocationSegment[] }) {
   return (
     <AllocationCard
       title="Sector Allocation"

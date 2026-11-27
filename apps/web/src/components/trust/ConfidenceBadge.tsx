@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/Badge";
-import {
-  CONFIDENCE_LABELS,
-  type ConfidenceLevel,
-} from "@/lib/trust/labels";
+import { CONFIDENCE_LABELS, type ConfidenceLevel } from "@/lib/trust/labels";
 
-const TONE: Record<ConfidenceLevel, "success" | "accent" | "neutral" | "warning" | "danger"> = {
+const TONE: Record<
+  ConfidenceLevel,
+  "success" | "accent" | "neutral" | "warning" | "danger"
+> = {
   very_high: "success",
   high: "accent",
   moderate: "neutral",
@@ -12,11 +12,7 @@ const TONE: Record<ConfidenceLevel, "success" | "accent" | "neutral" | "warning"
   insufficient_evidence: "danger",
 };
 
-export function ConfidenceBadge({
-  level,
-}: {
-  level: ConfidenceLevel | string;
-}) {
+export function ConfidenceBadge({ level }: { level: ConfidenceLevel | string }) {
   const key = (
     typeof level === "string" ? level.toLowerCase().replace(/\s+/g, "_") : level
   ) as ConfidenceLevel;

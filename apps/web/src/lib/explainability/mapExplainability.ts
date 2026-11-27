@@ -74,10 +74,8 @@ export function mapModuleExplainability(module: ModuleRating): ModuleExplainabil
     confidence: module.confidence,
     oneLineSummary: oneLineSummaryFromModule(module),
     evidence,
-    strengths:
-      module.strengths.length > 0 ? module.strengths : ["Unavailable"],
-    weaknesses:
-      module.weaknesses.length > 0 ? module.weaknesses : ["Unavailable"],
+    strengths: module.strengths.length > 0 ? module.strengths : ["Unavailable"],
+    weaknesses: module.weaknesses.length > 0 ? module.weaknesses : ["Unavailable"],
     explanation: truncateWords(module.explanation, MAX_EXPLANATION_WORDS),
     traceability,
   };

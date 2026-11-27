@@ -707,7 +707,7 @@ If no administrator exists (non-production unless `DSP_FORCE_ADMIN_SEED=1`):
 
 - email: `admin@dspai.local`  
 - username: `admin`  
-- password: supplied through `DSP_SEED_ADMIN_PASSWORD`; no checked-in or fallback password  
+- password: supplied through `DSP_SEED_ADMIN_PASSWORD`; no checked-in or fallback password
 - role: Administrator  
 
 ## 10. Security summary

@@ -46,6 +46,7 @@ def map_platform_result(
     api_version: str,
     correlation_id: str | None,
     public_payload: dict[str, Any],
+    mode: str = "buffett",
 ) -> AnalyseResponse:
     meta = getattr(platform_result, "metadata", None)
     pipeline_meta = None
@@ -62,6 +63,7 @@ def map_platform_result(
         platform_version=getattr(meta, "version", None),
         pipeline_version=getattr(pipeline_meta, "pipeline_version", None),
         correlation_id=correlation_id,
+        mode=mode,
     )
 
 

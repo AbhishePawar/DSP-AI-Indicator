@@ -264,9 +264,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("EPIC-F005 company analysis lib", () => {
@@ -399,11 +397,11 @@ describe("EPIC-F005 workspace UI", () => {
   });
 
   it("renders workspace layout and loads analyse API", async () => {
-    const { CompanyAnalysisWorkspace } = await import(
-      "@/components/company-analysis/CompanyAnalysisWorkspace"
-    );
+    const { CompanyAnalysisWorkspace } =
+      await import("@/components/company-analysis/CompanyAnalysisWorkspace");
     wrap(<CompanyAnalysisWorkspace />);
     expect(screen.getByRole("textbox", { name: "Company ticker" })).toBeTruthy();
+    expect(screen.getByTestId("analysis-submit")).toBeTruthy();
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
@@ -426,13 +424,15 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.valuation_signals).toBeUndefined();
     expect(body.current_market_price).toBeUndefined();
     expect(marketQuoteMock).toHaveBeenCalled();
+    expect(
+      await screen.findByRole("button", { name: "Refresh analysis" }),
+    ).toBeTruthy();
   });
 
   it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
     navigationState.search = "symbol=TCS";
-    const { CompanyAnalysisWorkspace } = await import(
-      "@/components/company-analysis/CompanyAnalysisWorkspace"
-    );
+    const { CompanyAnalysisWorkspace } =
+      await import("@/components/company-analysis/CompanyAnalysisWorkspace");
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
@@ -454,9 +454,8 @@ describe("EPIC-F005 workspace UI", () => {
 
   it("does not invent exchange when the ticker is not in the catalogue", async () => {
     navigationState.search = "symbol=ZZZZNOTINCAT";
-    const { CompanyAnalysisWorkspace } = await import(
-      "@/components/company-analysis/CompanyAnalysisWorkspace"
-    );
+    const { CompanyAnalysisWorkspace } =
+      await import("@/components/company-analysis/CompanyAnalysisWorkspace");
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
@@ -466,9 +465,7 @@ describe("EPIC-F005 workspace UI", () => {
       (call) => call[1] as { exchange?: string },
     );
     expect(
-      statementOpts.every(
-        (opts) => opts.exchange == null || opts.exchange === "",
-      ),
+      statementOpts.every((opts) => opts.exchange == null || opts.exchange === ""),
     ).toBe(true);
     const quoteOpts = marketQuoteMock.mock.calls.map(
       (call) => call[1] as { exchange?: string },
@@ -480,7 +477,7 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.exchange == null || body.exchange === "").toBe(true);
   });
 
-  it("keeps server analyse authoritative when client statement enrichment is unavailable", async () => {
+  it("runs server-authoritative analyse even when client header statements are unavailable", async () => {
     financialStatementsMock.mockResolvedValue({
       ok: true,
       available: false,
@@ -488,9 +485,8 @@ describe("EPIC-F005 workspace UI", () => {
       periods: null,
       message: "Data unavailable.",
     });
-    const { CompanyAnalysisWorkspace } = await import(
-      "@/components/company-analysis/CompanyAnalysisWorkspace"
-    );
+    const { CompanyAnalysisWorkspace } =
+      await import("@/components/company-analysis/CompanyAnalysisWorkspace");
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
@@ -507,13 +503,10 @@ describe("EPIC-F005 workspace UI", () => {
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
-    const { clearResearchDisclaimerAcknowledgement } = await import(
-      "@/lib/legal"
-    );
+    const { clearResearchDisclaimerAcknowledgement } = await import("@/lib/legal");
     clearResearchDisclaimerAcknowledgement();
-    const { CompanyAnalysisWorkspace } = await import(
-      "@/components/company-analysis/CompanyAnalysisWorkspace"
-    );
+    const { CompanyAnalysisWorkspace } =
+      await import("@/components/company-analysis/CompanyAnalysisWorkspace");
     wrap(<CompanyAnalysisWorkspace />);
     expect(
       await screen.findByRole("heading", {
@@ -524,9 +517,8 @@ describe("EPIC-F005 workspace UI", () => {
   });
 
   it("shows valuation fields from mapped backend outputs", async () => {
-    const { ValuationSection } = await import(
-      "@/components/company-analysis/WorkspaceSections"
-    );
+    const { ValuationSection } =
+      await import("@/components/company-analysis/WorkspaceSections");
     const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<ValuationSection view={view} />);
@@ -535,26 +527,29 @@ describe("EPIC-F005 workspace UI", () => {
   });
 
   it("renders the real Risk stage — available and honestly-unavailable categories", async () => {
-    const { RiskSection } = await import(
-      "@/components/company-analysis/FlagshipSections"
-    );
+    const { RiskSection } =
+      await import("@/components/company-analysis/FlagshipSections");
     const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<RiskSection view={view} />);
     expect(screen.getByText("Moderate (from economic_moat)")).toBeTruthy();
     expect(screen.getByText("Low (from financial_strength)")).toBeTruthy();
     expect(
-      screen.getAllByText("Data unavailable — no data source connected.")
-        .length,
+      screen.getAllByText("Data unavailable — no data source connected.").length,
     ).toBeGreaterThanOrEqual(4);
   });
 
   it("renders the focused result surface without the legacy workspace shell", async () => {
-    const { CompanyAnalysisWorkspace } = await import(
-      "@/components/company-analysis/CompanyAnalysisWorkspace"
-    );
+    const { CompanyAnalysisWorkspace } =
+      await import("@/components/company-analysis/CompanyAnalysisWorkspace");
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
+    expect(await screen.findByTestId("analysis-title")).toBeTruthy();
+    expect(
+      screen.getByText(
+        /Business quality, financial strength, valuation, and evidence/i,
+      ),
+    ).toBeTruthy();
     expect(await screen.findByText(/What the research says/i)).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Analysis sections" })).toBeTruthy();
     expect(screen.getByRole("region", { name: "Main analysis area" })).toBeTruthy();

@@ -33,9 +33,7 @@ export function CommandDialog({
 }: CommandDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn("overflow-hidden p-0 sm:max-w-lg", className)}
-      >
+      <DialogContent className={cn("overflow-hidden p-0 sm:max-w-lg", className)}>
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

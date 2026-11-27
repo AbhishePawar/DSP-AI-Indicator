@@ -146,13 +146,42 @@ describe("mapResearchView", () => {
       "intangible_assets",
       "efficient_scale",
     ]);
-    expect(
-      view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A"),
-    ).toBe(true);
-    expect(view.moat.label).toBe("Wide");
-    expect(view.canonicalMoatDimensions[0]?.displayRating).not.toBe(
-      view.moat.score,
+    expect(view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A")).toBe(
+      true,
     );
+    expect(view.moat.label).toBe("Wide");
+    expect(view.canonicalMoatDimensions[0]?.displayRating).not.toBe(view.moat.score);
+  });
+
+  it("maps server-derived source attribution without inferring missing providers", () => {
+    const response = sampleResponse();
+    response.payload.source_evidence = {
+      authenticated: true,
+      status: "authenticated",
+      statement_provider: "NSE",
+      statement_source_type: "primary",
+      statement_retrieved_at: "2026-10-11T10:00:00Z",
+      quote_provider: "UPSTOX",
+      quote_source_type: "market_data",
+      quote_retrieved_at: "2026-10-11T10:01:00Z",
+      shares_outstanding: 123456,
+      share_count_source: "NSE",
+      share_count_as_of: "2026-03-31",
+      share_count_verified: true,
+    };
+    const view = mapResearchView(response, SAMPLE_ANALYSE_REQUEST);
+    expect(view.sourceAttribution.authenticated).toBe(true);
+    expect(view.sourceAttribution.statementProvider).toBe("NSE");
+    expect(view.sourceAttribution.quoteProvider).toBe("UPSTOX");
+    expect(view.sourceAttribution.sharesOutstanding).toBe(123456);
+    expect(view.sourceAttribution.sharesSource).toBe("NSE");
+    expect(view.sourceAttribution.sharesAsOf).toBe("2026-03-31");
+    expect(view.sourceAttribution.sharesVerified).toBe(true);
+
+    const unavailable = mapResearchView(sampleResponse(), SAMPLE_ANALYSE_REQUEST);
+    expect(unavailable.sourceAttribution.authenticated).toBe(false);
+    expect(unavailable.sourceAttribution.statementProvider).toBeNull();
+    expect(unavailable.sourceAttribution.quoteProvider).toBeNull();
   });
 
   it("RC3-001 — does not alias Management/Moat into Business Quality metrics", () => {
@@ -168,9 +197,7 @@ describe("mapResearchView", () => {
     expect(byLabel["Franchise Durability"]).toBe("Unavailable");
     expect(byLabel["Industry Structure"]).toBe("Unavailable");
     // Must not equal sibling stage labels/decisions
-    expect(byLabel["Capital Allocation Quality"]).not.toBe(
-      view.management.label,
-    );
+    expect(byLabel["Capital Allocation Quality"]).not.toBe(view.management.label);
     expect(byLabel["Franchise Durability"]).not.toBe(view.moat.label);
     expect(byLabel["Industry Structure"]).not.toBe(view.moat.decision);
   });
@@ -204,9 +231,9 @@ describe("mapResearchView", () => {
     );
     expect(view.moat.label).toBe("Wide");
     expect(view.moat.score).not.toBe("N/A");
-    expect(
-      view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A"),
-    ).toBe(true);
+    expect(view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A")).toBe(
+      true,
+    );
   });
 });
 
@@ -217,10 +244,6 @@ describe("research routing breadcrumbs", () => {
 
   it("builds ticker crumbs for /research/[ticker]", () => {
     const crumbs = breadcrumbsFor("/research/acm");
-    expect(crumbs.map((c) => c.label)).toEqual([
-      "Home",
-      "Research Workspace",
-      "ACM",
-    ]);
+    expect(crumbs.map((c) => c.label)).toEqual(["Home", "Research Workspace", "ACM"]);
   });
 });

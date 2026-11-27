@@ -128,17 +128,14 @@ function exchangeForTicker(ticker: string): string {
 }
 
 /** Rebalance allocations equally across holdings (presentation only). */
-export function rebalanceHoldings(
-  holdings: PortfolioHolding[],
-): PortfolioHolding[] {
+export function rebalanceHoldings(holdings: PortfolioHolding[]): PortfolioHolding[] {
   if (holdings.length === 0) return [];
   const share = Number((100 / holdings.length).toFixed(1));
   const allocated = share * holdings.length;
   const remainder = Number((100 - allocated).toFixed(1));
   return holdings.map((holding, index) => ({
     ...holding,
-    allocationPercent:
-      index === 0 ? Number((share + remainder).toFixed(1)) : share,
+    allocationPercent: index === 0 ? Number((share + remainder).toFixed(1)) : share,
   }));
 }
 
@@ -165,8 +162,7 @@ export function buildPortfolioSummary(
 
   let portfolioStatus = "Empty";
   if (holdings.length > 0) {
-    portfolioStatus =
-      researchCount === holdings.length ? "Active · Covered" : "Active";
+    portfolioStatus = researchCount === holdings.length ? "Active · Covered" : "Active";
   }
 
   return {
@@ -185,9 +181,7 @@ export function buildPortfolioSummary(
 export function buildAllocations(holdings: PortfolioHolding[]) {
   return {
     bySector: groupAllocation(holdings, (h) => h.sector),
-    byMarketCap: groupAllocation(holdings, (h) =>
-      deriveMarketCapSegment(h.ticker),
-    ),
+    byMarketCap: groupAllocation(holdings, (h) => deriveMarketCapSegment(h.ticker)),
     byGeography: groupAllocation(holdings, (h) =>
       deriveGeography(exchangeForTicker(h.ticker)),
     ),
@@ -232,19 +226,14 @@ export function getDemoPortfolio(): PortfolioView {
 }
 
 export function getEmptyPortfolio(): PortfolioView {
-  return buildPortfolioView([], [
-    createActivity("Portfolio Created"),
-  ]);
+  return buildPortfolioView([], [createActivity("Portfolio Created")]);
 }
 
 export function isPortfolioEmpty(view: PortfolioView): boolean {
   return view.holdings.length === 0;
 }
 
-export function hasHolding(
-  holdings: PortfolioHolding[],
-  ticker: string,
-): boolean {
+export function hasHolding(holdings: PortfolioHolding[], ticker: string): boolean {
   const normalized = ticker.trim().toUpperCase();
   return holdings.some((h) => h.ticker.toUpperCase() === normalized);
 }
@@ -256,10 +245,7 @@ export function addHoldingToView(
 ): PortfolioView | null {
   if (hasHolding(view.holdings, input.ticker)) return null;
   const nextHoldings = [...view.holdings, holdingFromInput(input)];
-  const activities = [
-    createActivity(`Added ${input.company}`),
-    ...view.activities,
-  ];
+  const activities = [createActivity(`Added ${input.company}`), ...view.activities];
   return buildPortfolioView(nextHoldings, activities);
 }
 
@@ -269,16 +255,11 @@ export function removeHoldingFromView(
   ticker: string,
 ): PortfolioView | null {
   const normalized = ticker.trim().toUpperCase();
-  const target = view.holdings.find(
-    (h) => h.ticker.toUpperCase() === normalized,
-  );
+  const target = view.holdings.find((h) => h.ticker.toUpperCase() === normalized);
   if (!target) return null;
   const nextHoldings = view.holdings.filter(
     (h) => h.ticker.toUpperCase() !== normalized,
   );
-  const activities = [
-    createActivity(`Removed ${target.company}`),
-    ...view.activities,
-  ];
+  const activities = [createActivity(`Removed ${target.company}`), ...view.activities];
   return buildPortfolioView(nextHoldings, activities);
 }

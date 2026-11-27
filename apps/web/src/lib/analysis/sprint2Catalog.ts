@@ -41,8 +41,10 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     title: "Historical Revenue Trend",
     meaning: "How top-line results have evolved over the analysis window.",
     whyItMatters: "Past revenue path frames whether growth is durable or episodic.",
-    investorTakeaway: "Confirm multi-year revenue trajectory in filings when metrics load.",
-    aiExplanation: "AI will interpret trend shape once calculated series are in the envelope.",
+    investorTakeaway:
+      "Confirm multi-year revenue trajectory in filings when metrics load.",
+    aiExplanation:
+      "AI will interpret trend shape once calculated series are in the envelope.",
     learnMore: "term:cagr",
   },
   {
@@ -51,16 +53,20 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     meaning: "How profitability has moved alongside revenue.",
     whyItMatters: "Growth without profit quality can destroy economic value.",
     investorTakeaway: "Watch whether profits compound with sales or lag.",
-    aiExplanation: "Pending envelope profit series — interpretation deferred, not invented.",
+    aiExplanation:
+      "Pending envelope profit series — interpretation deferred, not invented.",
     learnMore: "term:free_cash_flow",
   },
   {
     id: "growth_drivers",
     title: "Growth Drivers",
-    meaning: "Primary engines that can expand the business (volume, price, mix, geography).",
+    meaning:
+      "Primary engines that can expand the business (volume, price, mix, geography).",
     whyItMatters: "Knowing the driver tells you what must keep working for the thesis.",
-    investorTakeaway: "List 1–2 driver hypotheses and seek evidence in segment disclosures.",
-    aiExplanation: "Driver narratives require cited segments — unavailable until present.",
+    investorTakeaway:
+      "List 1–2 driver hypotheses and seek evidence in segment disclosures.",
+    aiExplanation:
+      "Driver narratives require cited segments — unavailable until present.",
     learnMore: "term:cagr",
   },
   {
@@ -69,7 +75,8 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     meaning: "Whether recent growth looks repeatable under normal conditions.",
     whyItMatters: "One-off spikes mislead decade-horizon research.",
     investorTakeaway: "Separate cyclical rebound from structural expansion.",
-    aiExplanation: "Sustainability is an interpretation — labeled AI when generated later.",
+    aiExplanation:
+      "Sustainability is an interpretation — labeled AI when generated later.",
     learnMore: "term:research_conclusion",
   },
   {
@@ -78,7 +85,8 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     meaning: "How large the opportunity set appears for the company’s offerings.",
     whyItMatters: "A small or saturated market caps long-term growth.",
     investorTakeaway: "Seek independent TAM context; DSP will not invent market size.",
-    aiExplanation: "External market sizing is consensus/research input when providers exist.",
+    aiExplanation:
+      "External market sizing is consensus/research input when providers exist.",
     learnMore: "term:market_consensus",
   },
   {
@@ -96,7 +104,8 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     meaning: "Capacity to renew offerings and stay relevant.",
     whyItMatters: "Stagnant product sets erode growth and moat over a decade.",
     investorTakeaway: "Review R&D and launch cadence in reports when available.",
-    aiExplanation: "Innovation quality is interpretive — never shown as verified fact alone.",
+    aiExplanation:
+      "Innovation quality is interpretive — never shown as verified fact alone.",
     learnMore: "term:moat",
   },
   {
@@ -113,7 +122,8 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     title: "Growth Constraints",
     meaning: "Factors that can cap or slow expansion (capacity, regulation, capital).",
     whyItMatters: "Constraints define realistic decade paths.",
-    investorTakeaway: "Write down the top constraint and monitor it each reporting cycle.",
+    investorTakeaway:
+      "Write down the top constraint and monitor it each reporting cycle.",
     aiExplanation: "Constraints stay Unavailable until evidence cites them.",
     learnMore: "term:debt_to_equity",
   },
@@ -123,7 +133,8 @@ export const GROWTH_METRICS: GrowthMetricTemplate[] = [
     meaning: "Specific signals to watch that would validate or break the growth story.",
     whyItMatters: "Turns growth research into an actionable checklist.",
     investorTakeaway: "Prefer 3 measurable watchpoints over vague optimism.",
-    aiExplanation: "Monitoring lists are user research aids until API provides structured ones.",
+    aiExplanation:
+      "Monitoring lists are user research aids until API provides structured ones.",
     learnMore: "term:research_conclusion",
   },
 ];
@@ -132,42 +143,49 @@ export const RISK_CATEGORIES: RiskTemplate[] = [
   {
     id: "operational",
     title: "Operational Risk",
-    reason: "Day-to-day execution, supply, quality, or process failures can impair results.",
-    mitigation: "Look for diversified operations, controls, and recovery history in filings.",
+    reason:
+      "Day-to-day execution, supply, quality, or process failures can impair results.",
+    mitigation:
+      "Look for diversified operations, controls, and recovery history in filings.",
     watchpoints: ["Service outages", "Supply disruptions", "Quality recalls"],
   },
   {
     id: "financial",
     title: "Financial Risk",
     reason: "Leverage, liquidity, and funding structure can amplify stress.",
-    mitigation: "Review debt maturity, coverage, and cash buffers when fundamentals load.",
+    mitigation:
+      "Review debt maturity, coverage, and cash buffers when fundamentals load.",
     watchpoints: ["Interest coverage", "Refinancing wall", "Cash burn"],
   },
   {
     id: "valuation",
     title: "Valuation Risk",
     reason: "Paying too much for uncertain cash flows raises permanent capital risk.",
-    mitigation: "Rely on Estimated Intrinsic Value Range only when present; widen uncertainty otherwise.",
+    mitigation:
+      "Rely on Estimated Intrinsic Value Range only when present; widen uncertainty otherwise.",
     watchpoints: ["Assumption sensitivity", "Multiple compression", "Missed growth"],
   },
   {
     id: "competitive",
     title: "Competitive Risk",
     reason: "Rivals can erode share, pricing, or relevance.",
-    mitigation: "Track share, switching costs, and new entrants in industry disclosures.",
+    mitigation:
+      "Track share, switching costs, and new entrants in industry disclosures.",
     watchpoints: ["Share loss", "Price wars", "Substitute products"],
   },
   {
     id: "regulatory",
     title: "Regulatory Risk",
     reason: "Rules, licenses, or policy shifts can change economics overnight.",
-    mitigation: "Read risk-factor regulatory language; do not ignore jurisdiction exposure.",
+    mitigation:
+      "Read risk-factor regulatory language; do not ignore jurisdiction exposure.",
     watchpoints: ["Pending rules", "Fines", "License renewals"],
   },
   {
     id: "execution",
     title: "Execution Risk",
-    reason: "Strategy may be sound but delivery fails (integrations, launches, pivots).",
+    reason:
+      "Strategy may be sound but delivery fails (integrations, launches, pivots).",
     mitigation: "Compare guidance vs outcomes across reporting periods when available.",
     watchpoints: ["Missed timelines", "Integration write-downs", "Strategy U-turns"],
   },
@@ -188,8 +206,10 @@ export const RISK_CATEGORIES: RiskTemplate[] = [
   {
     id: "macroeconomic",
     title: "Macroeconomic Risk",
-    reason: "Rates, FX, inflation, and growth regimes affect demand and discount rates.",
-    mitigation: "Note sensitivity qualitatively until economic context is in the envelope.",
+    reason:
+      "Rates, FX, inflation, and growth regimes affect demand and discount rates.",
+    mitigation:
+      "Note sensitivity qualitatively until economic context is in the envelope.",
     watchpoints: ["Rate shock", "FX swings", "Recession demand"],
   },
 ];
@@ -199,8 +219,10 @@ export const MANAGEMENT_METRICS: ManagementMetricTemplate[] = [
     id: "capital_allocation",
     title: "Capital Allocation",
     meaning: "How leadership deploys capital across reinvestment, M&A, and returns.",
-    importance: "Allocation quality often matters more than a single year’s earnings beat.",
-    aiInterpretation: "Interpret only from cited uses of cash — never invent buyback motives.",
+    importance:
+      "Allocation quality often matters more than a single year’s earnings beat.",
+    aiInterpretation:
+      "Interpret only from cited uses of cash — never invent buyback motives.",
     learnMore: "term:capital_allocation",
   },
   {
@@ -208,7 +230,8 @@ export const MANAGEMENT_METRICS: ManagementMetricTemplate[] = [
     title: "Execution History",
     meaning: "Track record of delivering stated plans.",
     importance: "Credibility compounds; repeated misses erode trust in forecasts.",
-    aiInterpretation: "Compare promises vs outcomes when historical guidance is available.",
+    aiInterpretation:
+      "Compare promises vs outcomes when historical guidance is available.",
     learnMore: "term:research_conclusion",
   },
   {
@@ -216,7 +239,8 @@ export const MANAGEMENT_METRICS: ManagementMetricTemplate[] = [
     title: "Governance",
     meaning: "Board oversight, controls, and accountability structures.",
     importance: "Weak governance raises fraud and misalignment risk.",
-    aiInterpretation: "Governance scores stay Unavailable without disclosed structures.",
+    aiInterpretation:
+      "Governance scores stay Unavailable without disclosed structures.",
     learnMore: "term:research_conclusion",
   },
   {
@@ -280,7 +304,8 @@ export const MOAT_METRICS: MoatMetricTemplate[] = [
     id: "switching_costs",
     title: "Switching Costs",
     meaning: "Friction customers face when leaving.",
-    investorTakeaway: "High switching costs support retention — verify with churn evidence.",
+    investorTakeaway:
+      "High switching costs support retention — verify with churn evidence.",
     learnMore: "term:switching_cost",
   },
   {
@@ -348,12 +373,15 @@ export const CONCEPT_TOOLTIPS: Record<
 > = {
   roce: {
     title: "ROCE",
-    definition: "Return on capital employed — profit relative to capital tied up in the business.",
-    aiExplanation: "Higher ROCE can signal efficient use of capital; always compare within industry.",
+    definition:
+      "Return on capital employed — profit relative to capital tied up in the business.",
+    aiExplanation:
+      "Higher ROCE can signal efficient use of capital; always compare within industry.",
   },
   operating_leverage: {
     title: "Operating Leverage",
-    definition: "Sensitivity of operating profit to changes in revenue given fixed vs variable costs.",
+    definition:
+      "Sensitivity of operating profit to changes in revenue given fixed vs variable costs.",
     aiExplanation: "High operating leverage magnifies both upcycles and downcycles.",
   },
   switching_cost: {
@@ -363,17 +391,21 @@ export const CONCEPT_TOOLTIPS: Record<
   },
   capital_allocation: {
     title: "Capital Allocation",
-    definition: "Management choices about where to invest, acquire, return, or hold cash.",
-    aiExplanation: "Good allocation compounds; poor allocation destroys value even in strong businesses.",
+    definition:
+      "Management choices about where to invest, acquire, return, or hold cash.",
+    aiExplanation:
+      "Good allocation compounds; poor allocation destroys value even in strong businesses.",
   },
   network_effect: {
     title: "Network Effect",
     definition: "Product value increases as more participants join the network.",
-    aiExplanation: "True network effects are rare; verify reinforcing loops with evidence.",
+    aiExplanation:
+      "True network effects are rare; verify reinforcing loops with evidence.",
   },
   pricing_power: {
     title: "Pricing Power",
     definition: "Ability to raise prices without losing customers disproportionately.",
-    aiExplanation: "Pricing power often coexists with brand, switching costs, or unique supply.",
+    aiExplanation:
+      "Pricing power often coexists with brand, switching costs, or unique supply.",
   },
 };

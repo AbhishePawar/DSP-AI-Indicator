@@ -4,10 +4,7 @@
  * Never invent, estimate, or substitute missing scores.
  */
 
-import {
-  DATA_UNAVAILABLE,
-  UNABLE_TO_CALCULATE,
-} from "./constants";
+import { DATA_UNAVAILABLE, UNABLE_TO_CALCULATE } from "./constants";
 import type { Medal } from "./types";
 
 export function isUnavailableDisplay(value: string | null | undefined): boolean {
@@ -30,7 +27,9 @@ export function isUnavailableDisplay(value: string | null | undefined): boolean 
 }
 
 /** Parse an existing score string into a comparable number, or null. */
-export function parseExistingScore(scoreText: string | null | undefined): number | null {
+export function parseExistingScore(
+  scoreText: string | null | undefined,
+): number | null {
   if (isUnavailableDisplay(scoreText)) return null;
   const cleaned = String(scoreText)
     .replace(/%/g, "")
@@ -79,8 +78,6 @@ export function honestDisplay(value: string | null | undefined): string {
   return String(value);
 }
 
-export function unableOrUnavailable(
-  reason: "missing" | "incomplete",
-): string {
+export function unableOrUnavailable(reason: "missing" | "incomplete"): string {
   return reason === "incomplete" ? UNABLE_TO_CALCULATE : DATA_UNAVAILABLE;
 }

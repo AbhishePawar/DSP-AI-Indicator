@@ -54,20 +54,14 @@ export const env = {
   marketRefreshMs: Number(process.env.NEXT_PUBLIC_MARKET_REFRESH_MS ?? 60_000),
   aiProviderId:
     (process.env.NEXT_PUBLIC_AI_PROVIDER as
-      | "mock"
-      | "deterministic"
-      | "backend"
-      | undefined) ?? "deterministic",
+      "mock" | "deterministic" | "backend" | undefined) ?? "deterministic",
 } as const;
 
 /**
  * Combine a base API URL and an endpoint path ensuring exactly one `/api/v1` prefix.
  * Prevents duplicated prefixes like `/api/v1/api/v1/...` and handles leading/trailing slashes.
  */
-export function buildApiUrl(
-  path: string,
-  baseUrl: string = env.apiBaseUrl,
-): string {
+export function buildApiUrl(path: string, baseUrl: string = env.apiBaseUrl): string {
   const base = normalizeApiBaseUrl(baseUrl);
   let cleanPath = path.trim();
   if (!cleanPath.startsWith("/")) {

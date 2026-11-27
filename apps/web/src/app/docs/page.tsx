@@ -37,7 +37,11 @@ const DOCS = [
     title: "Research Methodology",
     file: "docs/RESEARCH_METHODOLOGY_v1.0.0.md",
   },
-  { href: "/docs/release-notes", title: "Release Notes", file: "docs/RELEASE_NOTES_v2.0.0-rc.md" },
+  {
+    href: "/docs/release-notes",
+    title: "Release Notes",
+    file: "docs/RELEASE_NOTES_v2.0.0-rc.md",
+  },
   {
     href: LEGAL_DOCUMENTS.privacy.href,
     title: LEGAL_DOCUMENTS.privacy.title,

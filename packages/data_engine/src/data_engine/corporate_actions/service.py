@@ -158,8 +158,12 @@ class CorporateActionService:
         action = (query.action_type or "all").strip().lower()
         start = query.start_date.isoformat() if query.start_date else ""
         end = query.end_date.isoformat() if query.end_date else ""
+        exchange = (query.instrument.exchange or "").strip().upper()
+        currency = (query.instrument.currency or "").strip().upper()
+
         cache_key = (
-            f"corporate_actions:{self.provider_id}:{symbol}:{action}:"
+            f"corporate_actions:{self.provider_id}:{symbol}:"
+            f"{exchange}:{currency}:{action}:"
             f"{start}:{end}:{query.limit}"
         )
         cached = self._cache.get(cache_key)

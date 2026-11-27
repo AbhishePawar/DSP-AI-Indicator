@@ -277,3 +277,4 @@ class TestLlmAdaptersArchitecture:
         text = api_composition.read_text(encoding="utf-8")
         assert "ResearchOrchestrator" not in text
         assert "llm_adapters.orchestrator" not in text
+        assert "compose_intelligence" in text

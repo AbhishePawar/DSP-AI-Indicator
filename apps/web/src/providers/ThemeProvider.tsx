@@ -26,9 +26,7 @@ const STORAGE_KEY = "dsp.theme.v2";
 function resolveMode(mode: ThemeMode): ResolvedTheme {
   if (mode === "light" || mode === "dark") return mode;
   if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function applyResolved(resolved: ResolvedTheme) {
@@ -42,9 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
     const initial: ThemeMode =
-      stored === "light" || stored === "dark" || stored === "system"
-        ? stored
-        : "dark";
+      stored === "light" || stored === "dark" || stored === "system" ? stored : "dark";
     setModeState(initial);
     const next = resolveMode(initial);
     setResolved(next);
@@ -82,9 +78,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [mode, resolved, setMode, cycleMode],
   );
 
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): ThemeContextValue {

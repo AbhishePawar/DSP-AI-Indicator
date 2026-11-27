@@ -12,7 +12,7 @@ const JSDOM_DISABLED_RULES = {
   "color-contrast": { enabled: false },
   "target-size": { enabled: false },
   // Landmark uniqueness often fails on isolated component mounts.
-  "region": { enabled: false },
+  region: { enabled: false },
 } as const;
 
 export const runAxe = configureAxe({

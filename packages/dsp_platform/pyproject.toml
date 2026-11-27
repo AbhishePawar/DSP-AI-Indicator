@@ -9,6 +9,7 @@ description = "DSP Platform façade — composition entry point and application 
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
 dependencies = [
+    "pypdf>=6.0,<7",
     "comparison",
     "contracts",
     "copilot",

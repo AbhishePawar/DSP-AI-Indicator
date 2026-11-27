@@ -98,6 +98,21 @@ export type ResearchView = IntelligenceView & {
    */
   canonicalMoatDimensions: CanonicalMoatDimensionView[];
   researchTeam: ResearchTeamView | null;
+  /** Server-derived financial-data provenance; never inferred by the browser. */
+  sourceAttribution: {
+    authenticated: boolean;
+    status: string;
+    statementProvider: string | null;
+    statementSourceType: string | null;
+    statementRetrievedAt: string | null;
+    quoteProvider: string | null;
+    quoteSourceType: string | null;
+    quoteRetrievedAt: string | null;
+    sharesOutstanding: number | null;
+    sharesSource: string | null;
+    sharesAsOf: string | null;
+    sharesVerified: boolean;
+  };
 };
 
 export type ResearchTeamView = {
@@ -183,12 +198,38 @@ export function mapResearchView(
       } | null;
       source_evidence?: {
         current_market_price?: number | null;
+        authenticated?: boolean;
+        status?: string;
+        statement_provider?: string | null;
+        statement_source_type?: string | null;
+        statement_retrieved_at?: string | null;
+        quote_provider?: string | null;
+        quote_source_type?: string | null;
+        quote_retrieved_at?: string | null;
+        shares_outstanding?: number | null;
+        share_count_source?: string | null;
+        share_count_as_of?: string | null;
+        share_count_verified?: boolean;
       } | null;
     }
   ).server_valuation;
   const sourceEvidence = (
     response.payload as {
-      source_evidence?: { current_market_price?: number | null } | null;
+      source_evidence?: {
+        current_market_price?: number | null;
+        authenticated?: boolean;
+        status?: string;
+        statement_provider?: string | null;
+        statement_source_type?: string | null;
+        statement_retrieved_at?: string | null;
+        quote_provider?: string | null;
+        quote_source_type?: string | null;
+        quote_retrieved_at?: string | null;
+        shares_outstanding?: number | null;
+        share_count_source?: string | null;
+        share_count_as_of?: string | null;
+        share_count_verified?: boolean;
+      } | null;
     }
   ).source_evidence;
 
@@ -282,6 +323,24 @@ export function mapResearchView(
     exchange: display(request.exchange, "—"),
     company: display(request.company, request.ticker.toUpperCase()),
     analysedAt: analysedAt ?? null,
+    sourceAttribution: {
+      authenticated: sourceEvidence?.authenticated === true,
+      status: display(sourceEvidence?.status, "unavailable"),
+      statementProvider: sourceEvidence?.statement_provider ?? null,
+      statementSourceType: sourceEvidence?.statement_source_type ?? null,
+      statementRetrievedAt: sourceEvidence?.statement_retrieved_at ?? null,
+      quoteProvider: sourceEvidence?.quote_provider ?? null,
+      quoteSourceType: sourceEvidence?.quote_source_type ?? null,
+      quoteRetrievedAt: sourceEvidence?.quote_retrieved_at ?? null,
+      sharesOutstanding:
+        typeof sourceEvidence?.shares_outstanding === "number" &&
+        Number.isFinite(sourceEvidence.shares_outstanding)
+          ? sourceEvidence.shares_outstanding
+          : null,
+      sharesSource: sourceEvidence?.share_count_source ?? null,
+      sharesAsOf: sourceEvidence?.share_count_as_of ?? null,
+      sharesVerified: sourceEvidence?.share_count_verified === true,
+    },
     valuation: {
       intrinsicValue: money(serverValuation?.intrinsic_value_per_share ?? null),
       currentPrice: money(

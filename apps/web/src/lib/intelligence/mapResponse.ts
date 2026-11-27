@@ -63,10 +63,7 @@ function pickDecision(summary: DecisionSummary | null | undefined): string {
   );
 }
 
-function stageByName(
-  stages: StageSummary[],
-  name: string,
-): StageSummary | undefined {
+function stageByName(stages: StageSummary[], name: string): StageSummary | undefined {
   return stages.find((s) => s.stage === name);
 }
 
@@ -113,9 +110,7 @@ export function mapAnalyseResponse(response: AnalyseResponse): IntelligenceView 
     null;
   const auditReference =
     response.audit_reference ??
-    (typeof payload.audit_reference === "string"
-      ? payload.audit_reference
-      : null) ??
+    (typeof payload.audit_reference === "string" ? payload.audit_reference : null) ??
     analysisId;
   const provenancePersisted =
     typeof response.provenance_persisted === "boolean"
@@ -146,14 +141,8 @@ export function mapAnalyseResponse(response: AnalyseResponse): IntelligenceView 
     evidenceCounts: meta.evidence_counts ?? {},
     confidenceSummary: meta.confidence_summary ?? {},
     warnings: [...new Set(warnings)],
-    errors: [
-      ...(payload.errors ?? []),
-      ...(response.errors ?? []),
-    ],
-    limitations: [
-      ...(payload.limitations ?? []),
-      ...(response.limitations ?? []),
-    ],
+    errors: [...(payload.errors ?? []), ...(response.errors ?? [])],
+    limitations: [...(payload.limitations ?? []), ...(response.limitations ?? [])],
     totalElapsedMs: num(meta.total_elapsed_ms),
     failedStage: meta.failed_stage ?? null,
     packageVersions: meta.package_versions ?? {},

@@ -101,8 +101,8 @@ export default function SignUpPage() {
           {submitted ? (
             <>
               <Alert variant="success" title="Access request submitted">
-                Your request was recorded for administrator review. You will
-                receive an invitation to create a password after approval.
+                Your request was recorded for administrator review. You will receive an
+                invitation to create a password after approval.
               </Alert>
               {requestId ? (
                 <p className="text-sm text-[var(--muted)]">
@@ -121,8 +121,8 @@ export default function SignUpPage() {
           ) : (
             <>
               <Alert variant="info" title="Enterprise workflow">
-                Submit → Admin Approval → Invitation → Create Password → Login.
-                For immediate self-service, use Register instead.
+                Submit → Admin Approval → Invitation → Create Password → Login. For
+                immediate self-service, use Register instead.
               </Alert>
               <form className="space-y-4" onSubmit={onSubmit} noValidate>
                 <fieldset className="flex flex-col gap-1.5">
@@ -136,11 +136,19 @@ export default function SignUpPage() {
                     aria-label="Requester type"
                   >
                     <label className="flex items-center gap-2 text-sm text-[var(--fg)]">
-                      <RadioGroupItem value="individual" id="requester-individual" disabled={pending} />
+                      <RadioGroupItem
+                        value="individual"
+                        id="requester-individual"
+                        disabled={pending}
+                      />
                       Individual
                     </label>
                     <label className="flex items-center gap-2 text-sm text-[var(--fg)]">
-                      <RadioGroupItem value="organization" id="requester-organization" disabled={pending} />
+                      <RadioGroupItem
+                        value="organization"
+                        id="requester-organization"
+                        disabled={pending}
+                      />
                       Organization
                     </label>
                   </RadioGroup>
@@ -211,7 +219,11 @@ export default function SignUpPage() {
                     />
                   </FormField>
                 </div>
-                <FormField label="Reason for access" htmlFor="signup-reason" hint="Optional">
+                <FormField
+                  label="Reason for access"
+                  htmlFor="signup-reason"
+                  hint="Optional"
+                >
                   <Textarea
                     id="signup-reason"
                     value={reason}

@@ -25,14 +25,8 @@ export function ResearchCoverage({
             label="Research Available"
             value={coverage.researchAvailable}
           />
-          <PortfolioCard
-            label="Research Missing"
-            value={coverage.researchMissing}
-          />
-          <PortfolioCard
-            label="Coverage %"
-            value={`${coverage.coveragePercent}%`}
-          />
+          <PortfolioCard label="Research Missing" value={coverage.researchMissing} />
+          <PortfolioCard label="Coverage %" value={`${coverage.coveragePercent}%`} />
         </div>
       </CardBody>
     </Card>

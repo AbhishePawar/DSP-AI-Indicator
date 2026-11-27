@@ -103,9 +103,7 @@ function wrap(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("EPIC-F009 settings lib", () => {
@@ -167,9 +165,8 @@ describe("EPIC-F009 settings workspace UI", () => {
   });
 
   it("renders workspace layout and theme controls", async () => {
-    const { SettingsWorkspace } = await import(
-      "@/components/settings-workspace/SettingsWorkspace"
-    );
+    const { SettingsWorkspace } =
+      await import("@/components/settings-workspace/SettingsWorkspace");
     wrap(<SettingsWorkspace />);
     expect(screen.getByLabelText("Settings navigation")).toBeTruthy();
     expect(screen.getByLabelText("Main settings panel")).toBeTruthy();
@@ -179,9 +176,8 @@ describe("EPIC-F009 settings workspace UI", () => {
   });
 
   it("switches density preference from UI", async () => {
-    const { AppearanceSection } = await import(
-      "@/components/settings-workspace/Sections"
-    );
+    const { AppearanceSection } =
+      await import("@/components/settings-workspace/Sections");
     wrap(<AppearanceSection />);
     fireEvent.click(screen.getByRole("button", { name: "Compact" }));
     expect(useSettingsPrefsStore.getState().density).toBe("compact");
@@ -189,9 +185,7 @@ describe("EPIC-F009 settings workspace UI", () => {
 
   it("displays profile information", async () => {
     useSettingsPrefsStore.setState({ activeSection: "profile" });
-    const { ProfileSection } = await import(
-      "@/components/settings-workspace/Sections"
-    );
+    const { ProfileSection } = await import("@/components/settings-workspace/Sections");
     wrap(<ProfileSection />);
     expect(screen.getByText("Account Summary")).toBeTruthy();
     expect(screen.getByText("Ada Analyst")).toBeTruthy();
@@ -199,21 +193,20 @@ describe("EPIC-F009 settings workspace UI", () => {
   });
 
   it("displays session information in security section", async () => {
-    const { SecuritySection } = await import(
-      "@/components/settings-workspace/Sections"
-    );
+    const { SecuritySection } =
+      await import("@/components/settings-workspace/Sections");
     wrap(<SecuritySection />);
     expect(await screen.findByText("Active Sessions")).toBeTruthy();
     expect(await screen.findByText("s1")).toBeTruthy();
   });
 
   it("displays version information", async () => {
-    const { AboutSection } = await import(
-      "@/components/settings-workspace/Sections"
-    );
+    const { AboutSection } = await import("@/components/settings-workspace/Sections");
     wrap(<AboutSection />);
     expect(screen.getByText("Version Information")).toBeTruthy();
-    expect(screen.getAllByText(FRONTEND_FOUNDATION_VERSION).length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText(FRONTEND_FOUNDATION_VERSION).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 });
 

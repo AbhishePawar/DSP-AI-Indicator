@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
 
-export function TraceLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
+export function TraceLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a
       href={href}

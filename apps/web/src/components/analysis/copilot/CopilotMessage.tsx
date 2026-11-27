@@ -11,13 +11,7 @@ import type {
   CopilotMessage,
 } from "@/lib/analysis/sprint6Copilot";
 
-export function ContextBadge({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+export function ContextBadge({ label, value }: { label: string; value: string }) {
   return (
     <span className="inline-flex min-h-8 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 text-xs">
       <span className="text-[var(--muted)]">{label}</span>
@@ -43,11 +37,7 @@ export function ThinkingIndicator() {
 }
 
 export function CopilotCitationLink({ citation }: { citation: CopilotCitation }) {
-  return (
-    <TraceLink href={citation.href}>
-      {citation.label}
-    </TraceLink>
-  );
+  return <TraceLink href={citation.href}>{citation.label}</TraceLink>;
 }
 
 export function EvidenceCitation({ items }: { items: string[] }) {

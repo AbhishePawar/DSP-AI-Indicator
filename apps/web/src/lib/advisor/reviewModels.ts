@@ -4,7 +4,10 @@
 
 import { demoResearchEnvelopes } from "./advisorResearchModels";
 import { listAdvisorResearchTimeline } from "./advisorResearchViewModel";
-import { buildPortfolioReview, seedModelPortfolioLibrary } from "./modelPortfolioManager";
+import {
+  buildPortfolioReview,
+  seedModelPortfolioLibrary,
+} from "./modelPortfolioManager";
 import { seedPresentations } from "./presentationModels";
 import type {
   ClientReview,
@@ -239,7 +242,9 @@ export function buildReviewTimeline(review: ClientReview): ReviewTimelineEvent[]
       occurredAt: review.scheduledAt,
     },
   ];
-  for (const r of seedReviews.filter((x) => x.clientAlias === review.clientAlias && x.id !== review.id)) {
+  for (const r of seedReviews.filter(
+    (x) => x.clientAlias === review.clientAlias && x.id !== review.id,
+  )) {
     events.push({
       id: `prev-${r.id}`,
       kind: r.status === "upcoming" ? "upcoming_review" : "previous_review",
@@ -285,7 +290,9 @@ export function buildReviewSummary(review: ClientReview) {
       ...review.clientQuestions,
       `Presentation: ${review.presentationId ?? "not linked"}`,
     ],
-    keyRisks: envelopes.flatMap((e) => e.topRisks.map((r) => `${e.companyLabel}: ${r}`)),
+    keyRisks: envelopes.flatMap((e) =>
+      e.topRisks.map((r) => `${e.companyLabel}: ${r}`),
+    ),
     portfolioReview: [
       reviewHeuristics.diversification,
       reviewHeuristics.concentration,

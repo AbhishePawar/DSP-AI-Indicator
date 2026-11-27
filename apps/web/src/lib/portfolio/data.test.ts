@@ -46,9 +46,7 @@ describe("portfolio foundation data", () => {
   it("builds geography allocation buckets", () => {
     const allocations = buildAllocations(getDemoPortfolio().holdings);
     expect(allocations.byGeography.some((s) => s.name === "India")).toBe(true);
-    expect(allocations.byGeography.some((s) => s.name === "United States")).toBe(
-      true,
-    );
+    expect(allocations.byGeography.some((s) => s.name === "United States")).toBe(true);
   });
 });
 
@@ -110,10 +108,7 @@ describe("portfolio management workflows", () => {
       ticker: "TCS",
       sector: "Technology",
     })!;
-    const total = view.holdings.reduce(
-      (sum, h) => sum + h.allocationPercent,
-      0,
-    );
+    const total = view.holdings.reduce((sum, h) => sum + h.allocationPercent, 0);
     expect(Math.round(total)).toBe(100);
   });
 });

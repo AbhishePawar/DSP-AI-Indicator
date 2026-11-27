@@ -42,13 +42,8 @@ export function FeedbackButton() {
 }
 
 export function FeedbackDialog() {
-  const {
-    dialogOpen,
-    closeFeedback,
-    sectionId,
-    presetCategory,
-    bumpRefresh,
-  } = useFeedback();
+  const { dialogOpen, closeFeedback, sectionId, presetCategory, bumpRefresh } =
+    useFeedback();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { session } = useAuth();
@@ -237,8 +232,8 @@ export function FeedbackDialog() {
               className="mt-0.5"
             />
             <span>
-              I acknowledge this feedback contains no secrets, holdings, or
-              research envelopes, and may be reviewed by beta operators.
+              I acknowledge this feedback contains no secrets, holdings, or research
+              envelopes, and may be reviewed by beta operators.
             </span>
           </label>
           <div className="rounded-md border border-dashed border-[var(--border)] p-2 text-xs text-[var(--muted)]">
@@ -262,13 +257,7 @@ export function FeedbackDialog() {
   );
 }
 
-export function FeedbackCard({
-  title,
-  meta,
-}: {
-  title: string;
-  meta: string;
-}) {
+export function FeedbackCard({ title, meta }: { title: string; meta: string }) {
   return (
     <Card>
       <CardHeader title={title} />

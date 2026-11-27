@@ -10,7 +10,10 @@ import { seedModelPortfolioLibrary } from "./modelPortfolioManager";
 import { seedPresentations } from "./presentationModels";
 import { checklistCompletionPct } from "./reviewModels";
 import { getSharedPortfolioSnapshot } from "./sharedPortfolioSession";
-import { buildSharedOverview, getSharedResearchSnapshot } from "./sharedResearchSession";
+import {
+  buildSharedOverview,
+  getSharedResearchSnapshot,
+} from "./sharedResearchSession";
 import { buildTeamReviewOverview, getTeamReviewSnapshot } from "./teamReviewSession";
 import { listTasks } from "./advisorViewModel";
 
@@ -66,7 +69,9 @@ export function buildWorkspaceHealth(): WorkspaceHealthItem[] {
       id: "reviews",
       label: "Shared Reviews",
       href: "/advisor/team/shared-reviews",
-      status: reviews.reviews.some((r) => r.status === "in_progress") ? "healthy" : "watch",
+      status: reviews.reviews.some((r) => r.status === "in_progress")
+        ? "healthy"
+        : "watch",
       detail: `${reviews.reviews.length} reviews · ${reviews.assignments.filter((a) => a.owner !== "Unassigned").length} assigned`,
     },
     {
@@ -80,7 +85,9 @@ export function buildWorkspaceHealth(): WorkspaceHealthItem[] {
       id: "presentations",
       label: "Presentations",
       href: "/advisor/presentations",
-      status: seedPresentations.some((p) => p.lifecycle === "active") ? "healthy" : "empty",
+      status: seedPresentations.some((p) => p.lifecycle === "active")
+        ? "healthy"
+        : "empty",
       detail: `${seedPresentations.filter((p) => p.lifecycle === "active").length} active packs (demo)`,
     },
   ];
@@ -100,7 +107,9 @@ export function buildTeamMetrics() {
             activeReviews.length,
         );
   const openTasks = listTasks().filter((t) => t.status !== "done").length;
-  const presentationReady = seedPresentations.filter((p) => p.lifecycle === "active").length;
+  const presentationReady = seedPresentations.filter(
+    (p) => p.lifecycle === "active",
+  ).length;
   const meetingReady = reviews.filter((r) =>
     r.checklist.some((c) => c.id === "presentation_ready" && c.done),
   ).length;
@@ -111,7 +120,9 @@ export function buildTeamMetrics() {
     reviews.length > 0 ? 1 : 0,
     presentationReady > 0 ? 1 : 0,
   ];
-  const overall = Math.round((coverageBits.reduce((a, b) => a + b, 0) / coverageBits.length) * 100);
+  const overall = Math.round(
+    (coverageBits.reduce((a, b) => a + b, 0) / coverageBits.length) * 100,
+  );
 
   return {
     researchCoverage: `${research.researchCount} envelopes · ${research.collectionsCount} collections`,

@@ -11,9 +11,9 @@ const badgeVariants = cva(
       variant: {
         default: "bg-[var(--surface-2)] text-[var(--fg)]",
         accent: "bg-[var(--accent-soft)] text-[var(--accent)]",
-        danger: "bg-[var(--danger-bg)] text-[var(--danger-fg)] border border-[var(--danger-border)]",
-        warning:
-          "bg-[var(--warning-bg,#f7ecd2)] text-[var(--warning-fg,#7a5a12)]",
+        danger:
+          "bg-[var(--danger-bg)] text-[var(--danger-fg)] border border-[var(--danger-border)]",
+        warning: "bg-[var(--warning-bg,#f7ecd2)] text-[var(--warning-fg,#7a5a12)]",
         outline: "border border-[var(--border)] bg-transparent text-[var(--muted)]",
       },
     },
@@ -24,8 +24,7 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return <span className={cn(badgeVariants({ variant }), className)} {...props} />;

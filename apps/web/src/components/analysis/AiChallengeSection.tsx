@@ -46,7 +46,10 @@ export function ChallengeCard({ challenge }: { challenge: AiChallengeView }) {
           <ValueCategoryBadge category={challenge.category} />
           <SourceBadge source={challenge.source} />
         </div>
-        <ListBlock label="What evidence supports this?" items={challenge.supportingEvidence} />
+        <ListBlock
+          label="What evidence supports this?"
+          items={challenge.supportingEvidence}
+        />
         <ListBlock
           label="What evidence contradicts this?"
           items={challenge.contradictingEvidence}

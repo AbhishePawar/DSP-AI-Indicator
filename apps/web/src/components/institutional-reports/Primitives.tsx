@@ -23,10 +23,7 @@ export function FieldRow({
   value: string | null | undefined;
 }) {
   const display =
-    value === null ||
-    value === undefined ||
-    value === "" ||
-    value === "Unavailable"
+    value === null || value === undefined || value === "" || value === "Unavailable"
       ? "Data unavailable."
       : value;
   return (
@@ -51,9 +48,7 @@ export function SectionCard({
   className?: string;
 }) {
   return (
-    <Card
-      className={cn("print:break-inside-avoid print:shadow-none", className)}
-    >
+    <Card className={cn("print:break-inside-avoid print:shadow-none", className)}>
       <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
         <div>
           <CardTitle className="text-base">{title}</CardTitle>
@@ -96,9 +91,7 @@ export function StageSectionCard({
           {section.metrics.map((m) => (
             <li key={m.label} className="flex justify-between gap-3">
               <span className="text-[var(--muted)]">{m.label}</span>
-              <span>
-                {m.value === "Unavailable" ? "Data unavailable." : m.value}
-              </span>
+              <span>{m.value === "Unavailable" ? "Data unavailable." : m.value}</span>
             </li>
           ))}
         </ul>
@@ -140,11 +133,7 @@ export function WorkspaceEmpty({
   action?: ReactNode;
 }) {
   return (
-    <EmptyState
-      title="No report data"
-      description={description}
-      action={action}
-    />
+    <EmptyState title="No report data" description={description} action={action} />
   );
 }
 

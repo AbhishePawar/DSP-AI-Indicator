@@ -34,7 +34,11 @@ export function ReleaseStatusCard({ view }: { view: LaunchDashboardView }) {
     <Card className="border-[var(--accent)]/40">
       <CardHeader
         title="Release status"
-        action={<Badge tone={deployTone(view.deploymentStatus)}>{view.deploymentStatus}</Badge>}
+        action={
+          <Badge tone={deployTone(view.deploymentStatus)}>
+            {view.deploymentStatus}
+          </Badge>
+        }
       />
       <CardBody className="space-y-2 text-sm">
         <p className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
@@ -61,11 +65,7 @@ export function ReleaseStatusCard({ view }: { view: LaunchDashboardView }) {
   );
 }
 
-export function BuildInfoCard({
-  view,
-}: {
-  view: LaunchDashboardView;
-}) {
+export function BuildInfoCard({ view }: { view: LaunchDashboardView }) {
   const freeze = useMemo(() => buildVersionFreeze(), []);
   return (
     <Card>
@@ -188,7 +188,9 @@ export function PostLaunchReport({ report }: { report: PostLaunchReportView }) {
             ))}
           </ul>
         </div>
-        <p className="text-xs text-[var(--muted)]">Regression: {report.regressionSummary}</p>
+        <p className="text-xs text-[var(--muted)]">
+          Regression: {report.regressionSummary}
+        </p>
         <KnownIssuesCard issues={report.knownIssues} />
       </CardBody>
     </Card>

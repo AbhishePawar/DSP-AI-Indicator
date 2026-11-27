@@ -141,7 +141,9 @@ export function ControlCenter() {
       );
     },
     onSuccess: (res) => {
-      setStatusMsg(res.ok ? "Configuration updated." : res.message || "Data unavailable.");
+      setStatusMsg(
+        res.ok ? "Configuration updated." : res.message || "Data unavailable.",
+      );
       invalidate();
     },
     onError: (err: Error) => setStatusMsg(err.message || "Data unavailable."),
@@ -179,7 +181,9 @@ export function ControlCenter() {
         opts,
       ),
     onSuccess: (res) => {
-      setStatusMsg(res.ok ? "Feature flag updated." : res.message || "Data unavailable.");
+      setStatusMsg(
+        res.ok ? "Feature flag updated." : res.message || "Data unavailable.",
+      );
       invalidate();
     },
     onError: (err: Error) => setStatusMsg(err.message || "Data unavailable."),
@@ -227,7 +231,9 @@ export function ControlCenter() {
       );
     },
     onSuccess: (res) => {
-      setStatusMsg(res.ok ? "AI config overlay saved." : res.message || "Data unavailable.");
+      setStatusMsg(
+        res.ok ? "AI config overlay saved." : res.message || "Data unavailable.",
+      );
       invalidate();
     },
     onError: (err: Error) => setStatusMsg(err.message || "Data unavailable."),
@@ -248,7 +254,9 @@ export function ControlCenter() {
         opts,
       ),
     onSuccess: (res) => {
-      setStatusMsg(res.ok ? "Business rule saved." : res.message || "Data unavailable.");
+      setStatusMsg(
+        res.ok ? "Business rule saved." : res.message || "Data unavailable.",
+      );
       invalidate();
     },
     onError: (err: Error) => setStatusMsg(err.message || "Data unavailable."),
@@ -272,7 +280,9 @@ export function ControlCenter() {
       );
     },
     onSuccess: (res) => {
-      setStatusMsg(res.ok ? "Security config updated." : res.message || "Data unavailable.");
+      setStatusMsg(
+        res.ok ? "Security config updated." : res.message || "Data unavailable.",
+      );
       invalidate();
     },
     onError: (err: Error) => setStatusMsg(err.message || "Data unavailable."),

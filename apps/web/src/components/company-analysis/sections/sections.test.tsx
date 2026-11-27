@@ -85,9 +85,15 @@ beforeEach(() => {
   copilotCompleteMock.mockReset();
   analyzeCompanyMock.mockReset();
   compareMock.mockReset();
-  newsMock.mockReset().mockResolvedValue({ ok: true, available: false, authenticated: false });
-  filingsMock.mockReset().mockResolvedValue({ ok: true, available: false, authenticated: false });
-  ownershipMock.mockReset().mockResolvedValue({ ok: true, available: false, authenticated: false });
+  newsMock
+    .mockReset()
+    .mockResolvedValue({ ok: true, available: false, authenticated: false });
+  filingsMock
+    .mockReset()
+    .mockResolvedValue({ ok: true, available: false, authenticated: false });
+  ownershipMock
+    .mockReset()
+    .mockResolvedValue({ ok: true, available: false, authenticated: false });
   insiderTradingMock
     .mockReset()
     .mockResolvedValue({ ok: true, available: false, authenticated: false });
@@ -111,21 +117,15 @@ describe("PeersSection", () => {
   it("requires at least one peer ticker before comparing", () => {
     const view = buildView();
     wrap(<PeersSection view={view} />);
-    expect(
-      screen.getByRole("button", { name: "Compare" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Compare" })).toBeDisabled();
   });
 });
 
 describe("AiCopilotSection", () => {
   it("prompts the user to run analysis before asking questions", () => {
     const view = buildView();
-    wrap(
-      <AiCopilotSection view={view} analyseRequest={null} analyseResponse={null} />,
-    );
-    expect(
-      screen.getByText(/Run an analysis first/i),
-    ).toBeTruthy();
+    wrap(<AiCopilotSection view={view} analyseRequest={null} analyseResponse={null} />);
+    expect(screen.getByText(/Run an analysis first/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ask" })).toBeDisabled();
   });
 
@@ -161,8 +161,7 @@ describe("Honest empty-state sections", () => {
     await waitFor(() => expect(ownershipMock).toHaveBeenCalled());
     await waitFor(() =>
       expect(
-        screen.getAllByText("Data unavailable — no data source connected.")
-          .length,
+        screen.getAllByText("Data unavailable — no data source connected.").length,
       ).toBeGreaterThanOrEqual(3),
     );
   });

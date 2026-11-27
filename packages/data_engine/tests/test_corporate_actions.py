@@ -227,3 +227,99 @@ class TestRegistry:
         reg.register(adapter, default=True)
         assert reg.get().provider_id == "null_corporate_actions"
         assert "null_corporate_actions" in reg.list_ids()
+
+
+# Phase 7 corporate-action integrity regression.
+
+def test_phase7_rejects_duplicate_action_ids():
+    bundle = _seeded_bundle()
+
+    bad = replace(
+        bundle,
+        events=(bundle.events[0], bundle.events[0]),
+    )
+
+    with pytest.raises(
+        InvalidProviderDataError,
+        match="duplicate",
+    ):
+        validate_authenticated_corporate_actions(bad)
+
+
+def test_phase7_rejects_unrelated_company_event():
+    bundle = _seeded_bundle()
+
+    event = replace(bundle.events[0], symbol="MSFT")
+
+    bad = replace(bundle, events=(event,))
+
+    with pytest.raises(
+        InvalidProviderDataError,
+        match="identity mismatch",
+    ):
+        validate_authenticated_corporate_actions(bad)
+
+
+@pytest.mark.parametrize("value", [
+    Decimal("NaN"),
+    Decimal("Infinity"),
+    Decimal("-Infinity"),
+])
+def test_phase7_rejects_nonfinite_action_ratio(value):
+    bundle = _seeded_bundle()
+
+    event = replace(
+        bundle.events[1],
+        ratio_from=CorporateActionField(
+            value=value,
+            available=True,
+        ),
+    )
+
+    with pytest.raises(InvalidProviderDataError):
+        validate_authenticated_corporate_actions(
+            replace(bundle, events=(event,))
+        )
+
+
+@pytest.mark.parametrize("value", [
+    Decimal("0"),
+    Decimal("-1"),
+])
+def test_phase7_rejects_nonpositive_action_ratio(value):
+    bundle = _seeded_bundle()
+
+    event = replace(
+        bundle.events[1],
+        ratio_to=CorporateActionField(
+            value=value,
+            available=True,
+        ),
+    )
+
+    with pytest.raises(InvalidProviderDataError):
+        validate_authenticated_corporate_actions(
+            replace(bundle, events=(event,))
+        )
+
+
+def test_phase7_corporate_action_cache_separates_exchanges():
+    adapter = InMemoryAuthenticatedCorporateActionAdapter(
+        api_key="test-only"
+    )
+    adapter.put(_seeded_bundle())
+
+    service = CorporateActionService(adapter)
+
+    first = replace(_instrument(), exchange="NASDAQ")
+    second = replace(_instrument(), exchange="NYSE")
+
+    assert service.get_actions(
+        CorporateActionQuery(first)
+    ) is not None
+
+    assert service.get_actions(
+        CorporateActionQuery(second)
+    ) is not None
+
+    assert service.metrics.cache_hits == 0

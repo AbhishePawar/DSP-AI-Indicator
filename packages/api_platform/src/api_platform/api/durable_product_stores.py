@@ -29,7 +29,7 @@ def is_durable_database(database: Any | None) -> bool:
 def require_durable_product_database(database: Any | None) -> None:
     """Fail closed in production when product stores cannot be durable."""
     env = (os.environ.get("DSP_ENVIRONMENT") or "").lower()
-    if env != "production":
+    if env not in {"production", "staging"}:
         return
     adapter = type(database).__name__ if database is not None else "None"
     if not is_durable_database(database) or adapter == "InMemoryDatabasePort":

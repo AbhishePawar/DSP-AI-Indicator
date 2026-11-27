@@ -11,7 +11,11 @@ export const DEFAULT_AI_CONFIG: AIPlatformConfig = {
 
 export function resolveAIConfig(): AIPlatformConfig {
   const candidate = env.aiProviderId;
-  if (candidate === "mock" || candidate === "deterministic" || candidate === "backend") {
+  if (
+    candidate === "mock" ||
+    candidate === "deterministic" ||
+    candidate === "backend"
+  ) {
     return { activeProviderId: candidate };
   }
   return DEFAULT_AI_CONFIG;

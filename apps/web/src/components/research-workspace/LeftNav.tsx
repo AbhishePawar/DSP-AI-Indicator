@@ -33,9 +33,7 @@ export function ResearchLeftNav({
   onAnalyze: () => void;
 }) {
   const activeSection = useResearchWorkspacePrefsStore((s) => s.activeSection);
-  const setActiveSection = useResearchWorkspacePrefsStore(
-    (s) => s.setActiveSection,
-  );
+  const setActiveSection = useResearchWorkspacePrefsStore((s) => s.setActiveSection);
   const favourites = useResearchWorkspacePrefsStore((s) => s.favourites);
   const pinnedTickers = useResearchWorkspacePrefsStore((s) => s.pinnedTickers);
   const selectedTicker = useResearchWorkspacePrefsStore((s) => s.selectedTicker);

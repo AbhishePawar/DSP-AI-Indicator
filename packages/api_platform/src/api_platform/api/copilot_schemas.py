@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,6 +19,7 @@ class CopilotCompleteRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    mode: Literal["simple", "buffett"] = "buffett"
     question_id: str = Field(default="freeform", max_length=64)
     freeform: str | None = Field(default=None, max_length=8000)
     request: dict[str, Any] | None = None

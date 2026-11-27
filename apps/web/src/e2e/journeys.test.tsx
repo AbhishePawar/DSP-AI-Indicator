@@ -7,11 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import {
-  E2E_CRITICAL_ROUTES,
-  E2E_JOURNEYS,
-  journeyById,
-} from "@/e2e/coverage";
+import { E2E_CRITICAL_ROUTES, E2E_JOURNEYS, journeyById } from "@/e2e/coverage";
 import {
   AUTH_PUBLIC_PATHS,
   isAuthPublicPath,
@@ -36,10 +32,7 @@ import {
   FRONTEND_FOUNDATION_EPIC,
   FRONTEND_FOUNDATION_STATUS,
 } from "@/foundation";
-import {
-  CRITICAL_ROUTES as F010_ROUTES,
-  RESPONSIVE_VIEWPORTS,
-} from "@/lib/a11y";
+import { CRITICAL_ROUTES as F010_ROUTES, RESPONSIVE_VIEWPORTS } from "@/lib/a11y";
 import { ADMIN_ACCESS_PERMISSIONS, ADMIN_SECTIONS } from "@/lib/admin-console";
 import { ANALYSIS_SECTIONS } from "@/lib/company-analysis";
 import { PORTFOLIO_SECTIONS } from "@/lib/portfolio-intelligence";
@@ -142,9 +135,11 @@ describe("EPIC-F011 navigation & routing journey", () => {
   });
 
   it("builds breadcrumbs for nested research routes", () => {
-    expect(
-      breadcrumbsForPath("/research/institutional").map((c) => c.label),
-    ).toEqual(["Home", "Research Workspace", "Research Reports"]);
+    expect(breadcrumbsForPath("/research/institutional").map((c) => c.label)).toEqual([
+      "Home",
+      "Research Workspace",
+      "Research Reports",
+    ]);
   });
 
   it("keeps command-palette searchable routes non-empty", () => {
@@ -302,9 +297,9 @@ describe("EPIC-F011 cross-browser baseline", () => {
   it("relies on widely supported web platform APIs", () => {
     expect(typeof URLSearchParams).toBe("function");
     expect(typeof AbortController).toBe("function");
-    expect(typeof CSS === "undefined" || typeof CSS.supports === "function" || true).toBe(
-      true,
-    );
+    expect(
+      typeof CSS === "undefined" || typeof CSS.supports === "function" || true,
+    ).toBe(true);
     expect(typeof localStorage).toBe("object");
   });
 });

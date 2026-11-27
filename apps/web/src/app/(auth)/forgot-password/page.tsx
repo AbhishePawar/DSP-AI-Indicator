@@ -24,7 +24,8 @@ import {
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
-type Step = "identifier" | "otp" | "password" | "done";
+type Step =
+  "identifier" | "otp" | "password" | "emailSent" | "emailUnavailable" | "done";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("identifier");
@@ -41,13 +42,26 @@ export default function ForgotPasswordPage() {
     event.preventDefault();
     setError(null);
     const id = normalizeLoginIdentifier(identifier);
-    if (!id || !isPlausibleLoginIdentifier(identifier) || id.includes("@")) {
-      setError("Enter a valid username or India mobile number.");
+    if (!id || !isPlausibleLoginIdentifier(identifier)) {
+      setError("Enter a valid username, email address or India mobile number.");
       return;
     }
     setPending(true);
     try {
       const envelope = await enterpriseAuthApi.forgotPassword(id);
+      if (!envelope.ok) {
+        throw new Error(envelope.error || "Unable to start password recovery.");
+      }
+      if (id.includes("@")) {
+        // The backend reports provider availability before account lookup, so
+        // this status does not reveal whether the email belongs to an account.
+        setStep(
+          envelope.result?.recovery_available === false
+            ? "emailUnavailable"
+            : "emailSent",
+        );
+        return;
+      }
       const cid = envelope.result?.challenge_id;
       if (!cid) {
         throw new Error(envelope.error || "Unable to start password recovery.");
@@ -110,9 +124,33 @@ export default function ForgotPasswordPage() {
     <AuthShell>
       <AuthCard
         title="Forgot password"
-        description="Recover access using the verified mobile number already stored on the account."
+        description="Recover access using the email address or verified mobile number already stored on your account."
       >
         <Stack gap={4}>
+          {step === "emailUnavailable" ? (
+            <>
+              <Alert variant="info" title="Email recovery unavailable">
+                Email password recovery is not configured for this deployment. Contact
+                your administrator or support team to regain access.
+              </Alert>
+              <Link href="/login">
+                <Button className="w-full">Back to sign in</Button>
+              </Link>
+            </>
+          ) : null}
+
+          {step === "emailSent" ? (
+            <>
+              <Alert variant="success" title="Check your email">
+                If an account with that email exists and email delivery is available,
+                you will receive a reset link. Check your inbox and spam folder.
+              </Alert>
+              <Link href="/login">
+                <Button className="w-full">Back to sign in</Button>
+              </Link>
+            </>
+          ) : null}
+
           {step === "done" ? (
             <>
               <Alert variant="success" title="Password updated">
@@ -127,7 +165,7 @@ export default function ForgotPasswordPage() {
           {step === "identifier" ? (
             <form className="space-y-4" onSubmit={onRequest} noValidate>
               <FormField
-                label="Username or Mobile Number"
+                label="Username, Email or Mobile Number"
                 htmlFor="forgot-identifier"
                 required
               >
@@ -144,7 +182,11 @@ export default function ForgotPasswordPage() {
                 <ValidationMessage tone="error">{error}</ValidationMessage>
               ) : null}
               <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "Sending…" : "Send OTP"}
+                {pending
+                  ? "Sending…"
+                  : identifier.includes("@")
+                    ? "Send reset link"
+                    : "Send OTP"}
               </Button>
             </form>
           ) : null}
@@ -185,11 +227,7 @@ export default function ForgotPasswordPage() {
                 />
               </FormField>
               <PasswordStrengthMeter password={password} />
-              <FormField
-                label="Confirm new password"
-                htmlFor="forgot-confirm"
-                required
-              >
+              <FormField label="Confirm new password" htmlFor="forgot-confirm" required>
                 <PasswordInput
                   id="forgot-confirm"
                   value={confirm}
@@ -208,8 +246,11 @@ export default function ForgotPasswordPage() {
             </form>
           ) : null}
 
-          {step !== "done" ? (
-            <Link href="/login" className="text-center text-sm text-[var(--accent)] underline">
+          {step !== "done" && step !== "emailSent" && step !== "emailUnavailable" ? (
+            <Link
+              href="/login"
+              className="text-center text-sm text-[var(--accent)] underline"
+            >
               Back to sign in
             </Link>
           ) : null}

@@ -19,6 +19,8 @@ class CopilotV2Request(BaseModel):
     symbol: str | None = Field(None, max_length=32)
     symbols: list[str] | None = None
     portfolio_id: str | None = Field(None, max_length=128)
+    analysis_id: str | None = Field(None, max_length=128)
+    idempotency_key: str | None = Field(None, max_length=128)
     analyse_response: dict[str, Any] | None = None
     secondary_analyse_response: dict[str, Any] | None = None
     research_object: dict[str, Any] | None = None

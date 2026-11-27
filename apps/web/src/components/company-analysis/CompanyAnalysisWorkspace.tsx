@@ -32,9 +32,11 @@ import {
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { resolveAssetEntry } from "@/lib/assets/resolver";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 
+import { buildAnalysisUrl, parseResearchMode } from "@/lib/analysis/intents";
 import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
@@ -211,6 +213,12 @@ export function CompanyAnalysisWorkspace() {
   /** Monotonic generation — drop stale analyse responses after symbol change. */
   const analyseGeneration = useRef(0);
 
+  const currentMode = parseResearchMode(
+    searchParams.get("mode"),
+    searchParams.get("intent"),
+  );
+  const isSimpleMode = currentMode === "simple";
+
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
   const searchParamsKey = searchParams.toString();
@@ -228,11 +236,15 @@ export function CompanyAnalysisWorkspace() {
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
 
   useEffect(() => {
-    const next = (
-      new URLSearchParams(searchParamsKey).get("symbol") || ""
-    ).trim().toUpperCase();
+    const next = (new URLSearchParams(searchParamsKey).get("symbol") || "")
+      .trim()
+      .toUpperCase();
     const requestedSection = new URLSearchParams(searchParamsKey).get("section");
-    setActiveSection(requestedSection && isAnalysisSectionId(requestedSection) ? requestedSection : "summary");
+    setActiveSection(
+      requestedSection && isAnalysisSectionId(requestedSection)
+        ? requestedSection
+        : "summary",
+    );
     setSymbol((prev) => {
       if (prev === next) return prev;
       // Clear prior company research only when the ticker actually changes.
@@ -253,11 +265,13 @@ export function CompanyAnalysisWorkspace() {
       setSymbol(normalized);
       setQuery(normalized);
       recordSearch(normalized);
-      router.replace(
-        `/analysis?symbol=${encodeURIComponent(normalized)}&intent=dsp_indicator`,
+      const mode = parseResearchMode(
+        searchParams.get("mode"),
+        searchParams.get("intent"),
       );
+      router.replace(buildAnalysisUrl({ symbol: normalized, mode }));
     },
-    [recordSearch, router],
+    [recordSearch, router, searchParams],
   );
 
   const analyseMutation = useMutation({
@@ -265,12 +279,28 @@ export function CompanyAnalysisWorkspace() {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
       const match = resolveCatalogue(requestedSymbol);
+      const asset = !match
+        ? resolveAssetEntry(requestedSymbol, searchParams.get("exchange"))
+        : null;
+
+      if (asset && !asset.allowsEquityValuation) {
+        throw new Error(
+          `${asset.name} is classified as a ${asset.assetClass}. Fundamental equity valuation (DCF, Buffett Indicator, Earnings Quality) is restricted to corporate equities and cannot be computed for ${asset.assetClass} assets.`,
+        );
+      }
+      if (asset?.ambiguous && asset.candidates?.length) {
+        const names = asset.candidates.map((c) => `${c.name} (${c.symbol})`).join(", ");
+        throw new Error(
+          `Multiple assets match "${requestedSymbol}": ${names}. Please specify an exact ticker or company name.`,
+        );
+      }
+
       // The existing ticker-only API resolves verified sources and calculates
       // authoritative DSP results server-side. The client sends identity only.
       const body: AnalyseRequest = {
-        ticker: requestedSymbol,
-        exchange: match?.exchange,
-        company: match?.name,
+        ticker: asset?.symbol || requestedSymbol,
+        exchange: match?.exchange || asset?.exchange,
+        company: match?.name || asset?.name,
       };
       const response = await api.analyse(body, { token });
       return { body, response, generation, requestedSymbol };
@@ -292,6 +322,7 @@ export function CompanyAnalysisWorkspace() {
         analysedAt: at,
         request: body,
         response,
+        analysisId: response.analysis_id ?? null,
       });
       pushRecentAnalysis({
         ticker: body.ticker.toUpperCase(),
@@ -336,9 +367,15 @@ export function CompanyAnalysisWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
   }, [symbol, token]);
 
+  const resolvedAsset = useMemo(
+    () => resolveAssetEntry(symbol, searchParams.get("exchange")),
+    [symbol, searchParams],
+  );
+  const activeExchange = catalogue?.exchange || resolvedAsset?.exchange;
+
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
-    queryFn: () => api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+    queryKey: ["company-analysis", "market", symbol, activeExchange],
+    queryFn: () => api.marketQuote(symbol, { token, exchange: activeExchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -346,14 +383,16 @@ export function CompanyAnalysisWorkspace() {
 
   // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
   const financialStatementsQuery = useQuery({
-    queryKey: ["company-analysis", "financial-statements", symbol, catalogue?.exchange],
+    queryKey: ["company-analysis", "financial-statements", symbol, activeExchange],
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
         limit: 1,
-        exchange: catalogue?.exchange,
+        exchange: activeExchange,
       }),
-    enabled: Boolean(token && symbol),
+    enabled: Boolean(
+      token && symbol && (!resolvedAsset || resolvedAsset.allowsEquityValuation),
+    ),
     retry: false,
     staleTime: 60_000,
   });
@@ -423,29 +462,90 @@ export function CompanyAnalysisWorkspace() {
         analysedAt: view.analysedAt,
       })
     : emptySurfaceTrust("company_analysis", {
-        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
+        auditNote:
+          "Audit: company analysis is awaiting an authenticated analyse payload.",
       });
 
-  const detailComponents: Partial<Record<AnalysisSectionId, ComponentType<{ view: ResearchView }>>> = {
-    valuation: ValuationSection, quality: QualitySection, management: ManagementSection,
-    moat: MoatSection, risk: RiskSection, financial: FinancialSection,
-    explainability: ExplainabilitySection, evidence: EvidenceSection,
-    compliance: ComplianceSection, ownership: OwnershipSection, peers: PeersSection,
-    documents: DocumentsSection, news: NewsSection, settings: SettingsSection,
+  const detailComponents: Partial<
+    Record<AnalysisSectionId, ComponentType<{ view: ResearchView }>>
+  > = {
+    valuation: ValuationSection,
+    quality: QualitySection,
+    management: ManagementSection,
+    moat: MoatSection,
+    risk: RiskSection,
+    financial: FinancialSection,
+    explainability: ExplainabilitySection,
+    evidence: EvidenceSection,
+    compliance: ComplianceSection,
+    ownership: OwnershipSection,
+    peers: PeersSection,
+    documents: DocumentsSection,
+    news: NewsSection,
+    settings: SettingsSection,
   };
   const Detail = detailComponents[section];
   const detail = view ? (
     <Suspense fallback={<WorkspaceSkeleton />}>
-      {Detail ? <Detail view={view} /> :
-        section === "buffett" ? <BuffettIndicatorSection report={view.buffett} /> :
-        section === "ratings" ? <InstitutionalRatingsSection ratings={view.ratings} transparency={view.transparency} explainability={view.explainability} /> :
-        section === "valuationTransparency" ? <ValuationTransparencySection transparency={view.valuationTransparency} /> :
-        section === "copilot" ? <AiCopilotSection view={view} analyseRequest={lastAnalyseRequest} analyseResponse={lastAnalyseResponse} /> :
-        section === "export" ? <ExportSection view={view} analyseRequest={lastAnalyseRequest} analyseResponse={lastAnalyseResponse} /> :
-        section === "earnings" ? <AnalysisStageDetails title="Earnings Quality" stage={view.earnings} /> :
-        section === "growth" ? <AnalysisStageDetails title="Growth Quality" stage={view.growth} /> :
-        section === "strengths" ? <div className="grid gap-4 sm:grid-cols-2">{[{ title: "Strengths", items: view.strengths }, { title: "Weaknesses", items: view.weaknesses }].map(({ title, items }) => <section key={title} data-testid={`analysis-${title.toLowerCase()}`} className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5"><h2 className="font-[family-name:var(--font-display)] text-lg">{title}</h2>{items.length ? <ul className="mt-4 list-disc space-y-2 pl-4 text-sm text-[var(--muted)]">{items.map((text, index) => <li key={index}>{text}</li>)}</ul> : <p className="mt-4 text-sm text-[var(--muted)]">Evidence unavailable.</p>}</section>)}</div> :
-        <ExplainabilitySection view={view} />}
+      {Detail ? (
+        <Detail view={view} />
+      ) : section === "buffett" ? (
+        <BuffettIndicatorSection report={view.buffett} />
+      ) : section === "ratings" ? (
+        <InstitutionalRatingsSection
+          ratings={view.ratings}
+          transparency={view.transparency}
+          explainability={view.explainability}
+        />
+      ) : section === "valuationTransparency" ? (
+        <ValuationTransparencySection transparency={view.valuationTransparency} />
+      ) : section === "copilot" ? (
+        <AiCopilotSection
+          view={view}
+          analyseRequest={lastAnalyseRequest}
+          analyseResponse={lastAnalyseResponse}
+        />
+      ) : section === "export" ? (
+        <ExportSection
+          view={view}
+          analyseRequest={lastAnalyseRequest}
+          analyseResponse={lastAnalyseResponse}
+        />
+      ) : section === "earnings" ? (
+        <AnalysisStageDetails title="Earnings Quality" stage={view.earnings} />
+      ) : section === "growth" ? (
+        <AnalysisStageDetails title="Growth Quality" stage={view.growth} />
+      ) : section === "strengths" ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[
+            { title: "Strengths", items: view.strengths },
+            { title: "Weaknesses", items: view.weaknesses },
+          ].map(({ title, items }) => (
+            <section
+              key={title}
+              data-testid={`analysis-${title.toLowerCase()}`}
+              className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5"
+            >
+              <h2 className="font-[family-name:var(--font-display)] text-lg">
+                {title}
+              </h2>
+              {items.length ? (
+                <ul className="mt-4 list-disc space-y-2 pl-4 text-sm text-[var(--muted)]">
+                  {items.map((text, index) => (
+                    <li key={index}>{text}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-[var(--muted)]">
+                  Evidence unavailable.
+                </p>
+              )}
+            </section>
+          ))}
+        </div>
+      ) : (
+        <ExplainabilitySection view={view} />
+      )}
     </Suspense>
   ) : null;
 
@@ -457,18 +557,23 @@ export function CompanyAnalysisWorkspace() {
       onAnalyze={runAnalyse}
       analyzing={analyseMutation.isPending}
       view={view}
-      error={analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null}
+      error={
+        analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null
+      }
       disclaimerGate={disclaimerGate}
       activeSection={section}
       navigation={<AnalysisNavigation active={section} onSelect={setActiveSection} />}
       detail={detail}
-      simpleMode={searchParams.get("mode") === "simple"}
+      simpleMode={isSimpleMode}
       onModeChange={() => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("mode", searchParams.get("mode") === "simple" ? "full" : "simple");
-        router.replace(`/analysis?${params}`);
+        const nextMode = isSimpleMode ? "full" : "simple";
+        router.replace(
+          buildAnalysisUrl({
+            symbol: symbol || null,
+            mode: nextMode,
+          }),
+        );
       }}
     />
   );
-
 }

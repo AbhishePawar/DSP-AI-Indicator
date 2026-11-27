@@ -19,13 +19,7 @@ export type UserMenuProps = {
   className?: string;
 };
 
-export function UserMenu({
-  name,
-  email,
-  items,
-  avatar,
-  className,
-}: UserMenuProps) {
+export function UserMenu({ name, email, items, avatar, className }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const id = useId();
   const menuId = `${id}-menu`;
@@ -65,9 +59,7 @@ export function UserMenu({
         <span className="hidden min-w-0 text-left sm:block">
           <span className="block truncate font-medium leading-tight">{name}</span>
           {email ? (
-            <span className="block truncate text-xs text-[var(--muted)]">
-              {email}
-            </span>
+            <span className="block truncate text-xs text-[var(--muted)]">{email}</span>
           ) : null}
         </span>
         <ChevronDown className="size-4 text-[var(--muted)]" aria-hidden />
@@ -96,9 +88,7 @@ export function UserMenu({
               }}
               className={cn(
                 "block w-full px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:bg-[var(--surface-2)] hover:bg-[var(--surface-2)]",
-                item.destructive
-                  ? "text-[var(--danger-fg)]"
-                  : "text-[var(--fg)]",
+                item.destructive ? "text-[var(--danger-fg)]" : "text-[var(--fg)]",
               )}
             >
               {item.label}

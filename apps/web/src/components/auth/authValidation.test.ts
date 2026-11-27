@@ -47,9 +47,7 @@ describe("authValidation", () => {
 
   it("scores password strength", () => {
     expect(evaluatePasswordStrength("short").score).toBeLessThan(2);
-    expect(evaluatePasswordStrength("LongerPass1!").score).toBeGreaterThanOrEqual(
-      2,
-    );
+    expect(evaluatePasswordStrength("LongerPass1!").score).toBeGreaterThanOrEqual(2);
   });
 
   it("maps rate-limit and credential errors to user-facing copy", () => {
@@ -86,4 +84,3 @@ describe("authValidation", () => {
     );
   });
 });
-

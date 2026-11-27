@@ -5,15 +5,7 @@ export const DESIGN_SYSTEM_VERSION = "0.2.0" as const;
 export const COMPONENT_CATALOGUE = {
   theme: ["DspThemeProvider", "ThemeSwitcher", "CSS variables", "semantic tokens"],
   typography: ["Typography (display, h1–h6, body, caption, mono)"],
-  layout: [
-    "Container",
-    "Stack",
-    "Grid",
-    "Flex",
-    "Section",
-    "Card*",
-    "PageLayout",
-  ],
+  layout: ["Container", "Stack", "Grid", "Flex", "Section", "Card*", "PageLayout"],
   navigation: [
     "Sidebar",
     "SidebarGroup",

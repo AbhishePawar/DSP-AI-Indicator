@@ -63,15 +63,48 @@ export const PortfolioHoldingCard = memo(function PortfolioHoldingCard({
         action={<ConfidenceBadge level={holding.confidence} />}
       />
       <CardBody className="grid gap-2 text-sm sm:grid-cols-2">
-        <Field label="Weight" value={holding.weight != null ? `${holding.weight.toFixed(1)}%` : null} />
-        <Field label="Market value" value={holding.marketValue?.toLocaleString() ?? null} />
-        <Field label="Purchase / Current" value={`${holding.purchasePrice ?? "—"} / ${holding.currentPrice ?? "—"}`} />
-        <Field label="Target allocation" value={holding.targetAllocation != null ? `${holding.targetAllocation}%` : null} />
-        <Field label="Intrinsic value" value={holding.intrinsicValue?.toLocaleString() ?? null} />
-        <Field label="MOS" value={holding.marginOfSafety != null ? `${holding.marginOfSafety.toFixed(1)}%` : null} />
-        <Field label="Expected CAGR" value={holding.expectedCagr != null ? `${holding.expectedCagr}%` : null} />
-        <Field label="Sector / Industry" value={`${holding.sector} / ${holding.industry}`} />
-        <Field label="Quality / Moat / Risk" value={`${holding.businessQuality ?? "Unavailable"} / ${holding.moatRating ?? "Unavailable"} / ${holding.riskRating ?? "Unavailable"}`} />
+        <Field
+          label="Weight"
+          value={holding.weight != null ? `${holding.weight.toFixed(1)}%` : null}
+        />
+        <Field
+          label="Market value"
+          value={holding.marketValue?.toLocaleString() ?? null}
+        />
+        <Field
+          label="Purchase / Current"
+          value={`${holding.purchasePrice ?? "—"} / ${holding.currentPrice ?? "—"}`}
+        />
+        <Field
+          label="Target allocation"
+          value={
+            holding.targetAllocation != null ? `${holding.targetAllocation}%` : null
+          }
+        />
+        <Field
+          label="Intrinsic value"
+          value={holding.intrinsicValue?.toLocaleString() ?? null}
+        />
+        <Field
+          label="MOS"
+          value={
+            holding.marginOfSafety != null
+              ? `${holding.marginOfSafety.toFixed(1)}%`
+              : null
+          }
+        />
+        <Field
+          label="Expected CAGR"
+          value={holding.expectedCagr != null ? `${holding.expectedCagr}%` : null}
+        />
+        <Field
+          label="Sector / Industry"
+          value={`${holding.sector} / ${holding.industry}`}
+        />
+        <Field
+          label="Quality / Moat / Risk"
+          value={`${holding.businessQuality ?? "Unavailable"} / ${holding.moatRating ?? "Unavailable"} / ${holding.riskRating ?? "Unavailable"}`}
+        />
         <Field label="Evidence" value={holding.evidence} />
         <Field label="Methodology" value={holding.methodology} />
         <Field label="Updated" value={holding.lastUpdated} />
@@ -83,7 +116,9 @@ export const PortfolioHoldingCard = memo(function PortfolioHoldingCard({
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        {label}
+      </p>
       <p className="mt-0.5">{value ?? "Unavailable"}</p>
     </div>
   );
@@ -100,7 +135,10 @@ export function PortfolioSectorChart({ view }: { view: PortfolioWorkspaceView })
 export function PortfolioPerformanceCard({ view }: { view: PortfolioWorkspaceView }) {
   return (
     <Card>
-      <CardHeader title="Performance context" description="Presentation metrics — not a live P&amp;L engine" />
+      <CardHeader
+        title="Performance context"
+        description="Presentation metrics — not a live P&amp;L engine"
+      />
       <CardBody className="grid gap-3 sm:grid-cols-2">
         <TrustedMetricBlock metric={view.overview.expectedUpside} />
         <TrustedMetricBlock metric={view.overview.downsideRisk} />
@@ -114,15 +152,38 @@ export function PortfolioPerformanceCard({ view }: { view: PortfolioWorkspaceVie
 export function PortfolioWatchlistCard({ item }: { item: WatchlistItem }) {
   return (
     <Card>
-      <CardHeader title={item.symbol} action={<ConfidenceBadge level={item.confidence} />} />
+      <CardHeader
+        title={item.symbol}
+        action={<ConfidenceBadge level={item.confidence} />}
+      />
       <CardBody className="space-y-2 text-sm">
         <p className="font-medium">{item.name}</p>
-        <Field label="Target buy price" value={item.targetBuyPrice?.toLocaleString() ?? null} />
-        <Field label="Current price" value={item.currentPrice?.toLocaleString() ?? null} />
-        <Field label="Current discount" value={item.currentDiscount != null ? `${item.currentDiscount.toFixed(1)}%` : null} />
-        <Field label="MOS" value={item.marginOfSafety != null ? `${item.marginOfSafety}%` : null} />
-        <Field label="Intrinsic value" value={item.intrinsicValue?.toLocaleString() ?? null} />
-        <Field label="Expected CAGR" value={item.expectedCagr != null ? `${item.expectedCagr}%` : null} />
+        <Field
+          label="Target buy price"
+          value={item.targetBuyPrice?.toLocaleString() ?? null}
+        />
+        <Field
+          label="Current price"
+          value={item.currentPrice?.toLocaleString() ?? null}
+        />
+        <Field
+          label="Current discount"
+          value={
+            item.currentDiscount != null ? `${item.currentDiscount.toFixed(1)}%` : null
+          }
+        />
+        <Field
+          label="MOS"
+          value={item.marginOfSafety != null ? `${item.marginOfSafety}%` : null}
+        />
+        <Field
+          label="Intrinsic value"
+          value={item.intrinsicValue?.toLocaleString() ?? null}
+        />
+        <Field
+          label="Expected CAGR"
+          value={item.expectedCagr != null ? `${item.expectedCagr}%` : null}
+        />
         <Field label="Reason to watch" value={item.reasonToWatch} />
         <Field label="Alert" value={item.alertPlaceholder} />
         <Field label="Evidence" value={item.evidence} />
@@ -163,11 +224,21 @@ export function PortfolioMoatDistribution({ view }: { view: PortfolioWorkspaceVi
   return <QualityHistogram slices={view.moatDistribution} title="Moat distribution" />;
 }
 
-export function PortfolioQualityDistribution({ view }: { view: PortfolioWorkspaceView }) {
-  return <QualityHistogram slices={view.qualityDistribution} title="Quality distribution" />;
+export function PortfolioQualityDistribution({
+  view,
+}: {
+  view: PortfolioWorkspaceView;
+}) {
+  return (
+    <QualityHistogram slices={view.qualityDistribution} title="Quality distribution" />
+  );
 }
 
-export function PortfolioDiversificationCard({ view }: { view: PortfolioWorkspaceView }) {
+export function PortfolioDiversificationCard({
+  view,
+}: {
+  view: PortfolioWorkspaceView;
+}) {
   return (
     <Card>
       <CardHeader title="Diversification" />
@@ -194,7 +265,10 @@ export function PortfolioRebalanceSuggestions({
       />
       <CardBody className="space-y-3">
         {items.map((r) => (
-          <div key={r.id} className="rounded-md border border-[var(--border)] p-3 text-sm">
+          <div
+            key={r.id}
+            className="rounded-md border border-[var(--border)] p-3 text-sm"
+          >
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{r.symbol}</span>
               <Badge tone="accent">{r.action.replace(/_/g, " ")}</Badge>
@@ -212,10 +286,16 @@ export function PortfolioRebalanceSuggestions({
 export function PortfolioScenarioAnalysis({ rows }: { rows: ScenarioRow[] }) {
   return (
     <Card>
-      <CardHeader title="Scenario analysis" description="Qualitative overlays — not forecasts" />
+      <CardHeader
+        title="Scenario analysis"
+        description="Qualitative overlays — not forecasts"
+      />
       <CardBody className="space-y-3">
         {rows.map((s) => (
-          <div key={s.id} className="rounded-md border border-[var(--border)] p-3 text-sm">
+          <div
+            key={s.id}
+            className="rounded-md border border-[var(--border)] p-3 text-sm"
+          >
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{s.label}</span>
               <ConfidenceBadge level={s.confidence} />
@@ -300,7 +380,13 @@ export function PortfolioCashAllocation({ view }: { view: PortfolioWorkspaceView
   );
 }
 
-export function PortfolioNotes({ notes, disclosures }: { notes: string[]; disclosures: string[] }) {
+export function PortfolioNotes({
+  notes,
+  disclosures,
+}: {
+  notes: string[];
+  disclosures: string[];
+}) {
   return (
     <Card>
       <CardHeader title="Notes & disclosures" />
@@ -321,11 +407,21 @@ function HoldingsTable({ holdings }: { holdings: PortfolioHolding[] }) {
         <caption className="sr-only">Portfolio holdings</caption>
         <thead>
           <tr className="border-b border-[var(--border)] text-[var(--muted)]">
-            <th className="px-2 py-2" scope="col">Symbol</th>
-            <th className="px-2 py-2" scope="col">Weight</th>
-            <th className="px-2 py-2" scope="col">MOS</th>
-            <th className="px-2 py-2" scope="col">Confidence</th>
-            <th className="px-2 py-2" scope="col">Sector</th>
+            <th className="px-2 py-2" scope="col">
+              Symbol
+            </th>
+            <th className="px-2 py-2" scope="col">
+              Weight
+            </th>
+            <th className="px-2 py-2" scope="col">
+              MOS
+            </th>
+            <th className="px-2 py-2" scope="col">
+              Confidence
+            </th>
+            <th className="px-2 py-2" scope="col">
+              Sector
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -334,7 +430,9 @@ function HoldingsTable({ holdings }: { holdings: PortfolioHolding[] }) {
               <td className="px-2 py-2 font-medium">{h.symbol}</td>
               <td className="px-2 py-2">{h.weight?.toFixed(1) ?? "Unavailable"}%</td>
               <td className="px-2 py-2">
-                {h.marginOfSafety != null ? `${h.marginOfSafety.toFixed(1)}%` : "Unavailable"}
+                {h.marginOfSafety != null
+                  ? `${h.marginOfSafety.toFixed(1)}%`
+                  : "Unavailable"}
               </td>
               <td className="px-2 py-2">
                 <ConfidenceBadge level={h.confidence} />
@@ -370,11 +468,7 @@ export function PortfolioExportPanel({ view }: { view: PortfolioWorkspaceView })
 
   const onExport = (kind: PortfolioReportKind) => {
     const res = exportPortfolioReport(view, kind, format);
-    setMsg(
-      res.ok
-        ? `Exported ${kind} as ${format}`
-        : res.reason,
-    );
+    setMsg(res.ok ? `Exported ${kind} as ${format}` : res.reason);
   };
 
   return (
@@ -406,7 +500,11 @@ export function PortfolioExportPanel({ view }: { view: PortfolioWorkspaceView })
             </Button>
           ))}
         </div>
-        {msg ? <p className="text-sm text-[var(--muted)]" role="status">{msg}</p> : null}
+        {msg ? (
+          <p className="text-sm text-[var(--muted)]" role="status">
+            {msg}
+          </p>
+        ) : null}
       </CardBody>
     </Card>
   );
@@ -433,7 +531,9 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
   return (
     <div className="relative pb-24 md:pb-8">
       <div className="sticky top-14 z-20 mb-4 space-y-1 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur motion-reduce:backdrop-blur-none lg:top-16">
-        <p className="text-xs text-[var(--muted)]">Portfolio summary · {view.version}</p>
+        <p className="text-xs text-[var(--muted)]">
+          Portfolio summary · {view.version}
+        </p>
         <p className="font-medium">
           Value {sticky.value} · Cash {sticky.cash} · Risk {sticky.risk}
         </p>
@@ -449,14 +549,18 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="min-w-0 space-y-8">
           <section id="pf_overview" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Overview</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Overview
+            </h2>
             <PortfolioOverviewCard view={view} />
             <PortfolioPerformanceCard view={view} />
             <PortfolioCashAllocation view={view} />
           </section>
 
           <section id="pf_holdings" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Holdings</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Holdings
+            </h2>
             <Card>
               <CardHeader title="Holdings table" />
               <CardBody>
@@ -471,17 +575,40 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
           </section>
 
           <section id="pf_allocations" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Allocations</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Allocations
+            </h2>
             <div className="grid gap-4 lg:grid-cols-2">
               <PortfolioAllocationChart view={view} />
               <PortfolioSectorChart view={view} />
-              <SectorBarChart slices={view.allocations.industry} title="Industry allocation" />
-              <SectorBarChart slices={view.allocations.marketCap} title="Market cap allocation" />
-              <SectorBarChart slices={view.allocations.country} title="Country allocation" />
-              <SectorBarChart slices={view.allocations.theme} title="Theme allocation" />
-              <SectorBarChart slices={view.allocations.growthVsValue} title="Growth vs Value" />
-              <SectorBarChart slices={view.allocations.dividendVsGrowth} title="Dividend vs Growth" />
-              <SectorBarChart slices={view.allocations.cyclicalVsDefensive} title="Cyclical vs Defensive" />
+              <SectorBarChart
+                slices={view.allocations.industry}
+                title="Industry allocation"
+              />
+              <SectorBarChart
+                slices={view.allocations.marketCap}
+                title="Market cap allocation"
+              />
+              <SectorBarChart
+                slices={view.allocations.country}
+                title="Country allocation"
+              />
+              <SectorBarChart
+                slices={view.allocations.theme}
+                title="Theme allocation"
+              />
+              <SectorBarChart
+                slices={view.allocations.growthVsValue}
+                title="Growth vs Value"
+              />
+              <SectorBarChart
+                slices={view.allocations.dividendVsGrowth}
+                title="Dividend vs Growth"
+              />
+              <SectorBarChart
+                slices={view.allocations.cyclicalVsDefensive}
+                title="Cyclical vs Defensive"
+              />
               <WeightTreemap slices={view.allocations.sector} />
             </div>
           </section>
@@ -493,7 +620,9 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
           </section>
 
           <section id="pf_watchlist" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Watchlist</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Watchlist
+            </h2>
             <div className="grid gap-4 md:grid-cols-2">
               {view.watchlist.map((w) => (
                 <PortfolioWatchlistCard key={w.id} item={w} />
@@ -502,27 +631,38 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
           </section>
 
           <section id="pf_rebalance" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Rebalance</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Rebalance
+            </h2>
             <PortfolioRebalanceSuggestions items={view.rebalance} />
           </section>
 
           <section id="pf_scenarios" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Scenarios</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Scenarios
+            </h2>
             <PortfolioScenarioAnalysis rows={view.scenarios} />
           </section>
 
           <section id="pf_expected" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Expected return</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Expected return
+            </h2>
             <PortfolioExpectedReturn view={view} />
             <PortfolioValuationSummary view={view} />
           </section>
 
           <section id="pf_quality" className="scroll-mt-28 space-y-4">
-            <h2 className="font-[family-name:var(--font-display)] text-2xl">Quality &amp; moat</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl">
+              Quality &amp; moat
+            </h2>
             <div className="grid gap-4 lg:grid-cols-2">
               <PortfolioQualityDistribution view={view} />
               <PortfolioMoatDistribution view={view} />
-              <QualityHistogram slices={view.mosDistribution} title="MOS distribution" />
+              <QualityHistogram
+                slices={view.mosDistribution}
+                title="MOS distribution"
+              />
               <PortfolioDiversificationCard view={view} />
             </div>
           </section>
@@ -541,7 +681,10 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
               <ol className="space-y-1 text-sm">
                 {PORTFOLIO_TOC.map((t, i) => (
                   <li key={t.id}>
-                    <a href={`#${t.id}`} className="text-[var(--muted)] hover:text-[var(--fg)]">
+                    <a
+                      href={`#${t.id}`}
+                      className="text-[var(--muted)] hover:text-[var(--fg)]"
+                    >
                       {i + 1}. {t.title}
                     </a>
                   </li>
@@ -553,16 +696,28 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 overflow-x-auto border-t border-[var(--border)] bg-[var(--surface)] p-2 md:hidden">
-        <a href="#pf_overview" className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs">
+        <a
+          href="#pf_overview"
+          className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs"
+        >
           Overview
         </a>
-        <a href="#pf_holdings" className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs">
+        <a
+          href="#pf_holdings"
+          className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs"
+        >
           Holdings
         </a>
-        <a href="#pf_risk" className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs">
+        <a
+          href="#pf_risk"
+          className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs"
+        >
           Risk
         </a>
-        <a href="#pf_export" className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs">
+        <a
+          href="#pf_export"
+          className="min-h-11 shrink-0 rounded-md border border-[var(--border)] px-3 py-2 text-xs"
+        >
           Export
         </a>
       </div>

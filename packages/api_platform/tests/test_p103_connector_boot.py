@@ -7,9 +7,12 @@ Upstox/FMP boot. Validation now lives in adapter factories / investment paths.
 
 from __future__ import annotations
 
+import importlib
+
 import pytest
 from fastapi.testclient import TestClient
 
+from api_platform.api.infra_bootstrap import InfraBootstrapResult
 from data_engine.exceptions import ConnectorConfigurationError
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
@@ -26,10 +29,17 @@ def platform() -> DSPPlatform:
 
 
 def _clear_investment_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        importlib.import_module("api_platform.api.app"),
+        "bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(
+            infrastructure=None,
+            production=None,
+            notes=("isolated authentication test",),
+        ),
+    )
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
-    # Isolate investment-decoupling from Postgres/region runtime gates.
-    monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
     monkeypatch.setattr(
         "api_platform.api.durable_product_stores.require_durable_product_database",
         lambda database: None,

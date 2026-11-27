@@ -27,7 +27,8 @@ const ResearchWorkspace = dynamic(
 
 function ResearchRouteContent() {
   const params = useSearchParams();
-  const isDetailedView = params.has("ticker") || params.has("section") || params.get("view") === "workspace";
+  const isDetailedView =
+    params.has("ticker") || params.has("section") || params.get("view") === "workspace";
   if (!isDetailedView) return <ResearchHub />;
   return (
     <div className="space-y-4">
@@ -43,5 +44,9 @@ function ResearchRouteContent() {
 }
 
 export default function ResearchPage() {
-  return <Suspense fallback={<WorkspaceSkeleton />}><ResearchRouteContent /></Suspense>;
+  return (
+    <Suspense fallback={<WorkspaceSkeleton />}>
+      <ResearchRouteContent />
+    </Suspense>
+  );
 }

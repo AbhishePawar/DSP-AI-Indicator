@@ -19,7 +19,9 @@ export function buildCollaborationOverview() {
   const researchCount = demoResearchEnvelopes.length;
   const reviewCount = seedReviews.filter((r) => r.status !== "archived").length;
   const portfolioCount = seedModelPortfolioLibrary.length;
-  const presentationCount = seedPresentations.filter((p) => p.lifecycle === "active").length;
+  const presentationCount = seedPresentations.filter(
+    (p) => p.lifecycle === "active",
+  ).length;
 
   return {
     workspaceSummary:

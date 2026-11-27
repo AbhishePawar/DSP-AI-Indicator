@@ -65,11 +65,7 @@ export function mapWhyNotAnalysis(
       for (const p of peerMos) {
         const selfN = Number(String(mosSelf).replace("%", ""));
         const peerN = Number(String(p.mos).replace("%", ""));
-        if (
-          Number.isFinite(selfN) &&
-          Number.isFinite(peerN) &&
-          peerN > selfN + 0.5
-        ) {
+        if (Number.isFinite(selfN) && Number.isFinite(peerN) && peerN > selfN + 0.5) {
           reasons.push({
             dimension: "Margin of Safety",
             reason: `${view.ticker} shows a lower Margin of Safety (${mosSelf}) than ${p.ticker} (${p.mos}) on existing valuation outputs.`,

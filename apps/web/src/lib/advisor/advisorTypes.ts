@@ -20,18 +20,10 @@ export type ReviewStatus = "on_track" | "due_soon" | "overdue" | "completed";
 export type PortfolioSizeBand = "small" | "medium" | "large" | "institutional";
 
 export type ModelPortfolioStyle =
-  | "growth"
-  | "balanced"
-  | "income"
-  | "value"
-  | "quality"
-  | "custom";
+  "growth" | "balanced" | "income" | "value" | "quality" | "custom";
 
 export type TaskKind =
-  | "upcoming_review"
-  | "meeting_followup"
-  | "research_request"
-  | "portfolio_review";
+  "upcoming_review" | "meeting_followup" | "research_request" | "portfolio_review";
 
 export type TaskStatus = "todo" | "in_progress" | "waiting" | "done";
 
@@ -42,10 +34,7 @@ export type MeetingStatus = "scheduled" | "completed" | "cancelled";
 export type NoteKind = "pinned" | "meeting" | "research" | "advisor";
 
 export type ResearchHistoryKind =
-  | "company_reviewed"
-  | "report_exported"
-  | "portfolio_review"
-  | "saved_research";
+  "company_reviewed" | "report_exported" | "portfolio_review" | "saved_research";
 
 export type Organization = {
   id: OrganizationId;

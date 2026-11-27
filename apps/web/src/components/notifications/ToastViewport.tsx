@@ -3,12 +3,9 @@
 import type { Notification } from "@/providers/NotificationProvider";
 
 const TONE_STYLES: Record<Notification["tone"], string> = {
-  success:
-    "border-[var(--accent)]/40 bg-[var(--accent-soft)]/60 text-[var(--fg)]",
-  warning:
-    "border-amber-500/40 bg-amber-500/10 text-[var(--fg)]",
-  error:
-    "border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
+  success: "border-[var(--accent)]/40 bg-[var(--accent-soft)]/60 text-[var(--fg)]",
+  warning: "border-amber-500/40 bg-amber-500/10 text-[var(--fg)]",
+  error: "border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
   info: "border-[var(--border)] bg-[var(--surface-2)] text-[var(--fg)]",
 };
 

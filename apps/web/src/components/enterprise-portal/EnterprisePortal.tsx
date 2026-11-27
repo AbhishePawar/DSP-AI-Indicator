@@ -23,13 +23,7 @@ function Empty({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Panel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section
       className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4"
@@ -122,7 +116,10 @@ export function EnterprisePortal() {
           <Empty>{orgMessage || "No organizations available."}</Empty>
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <label className="text-sm text-[var(--dsp-text-muted)]" htmlFor="org-select">
+            <label
+              className="text-sm text-[var(--dsp-text-muted)]"
+              htmlFor="org-select"
+            >
               Active organization
             </label>
             <select
@@ -225,9 +222,7 @@ export function EnterprisePortal() {
       </Panel>
 
       <Panel title="Billing & Invoices">
-        <Empty>
-          {portal?.billing?.message || "Billing unavailable."}
-        </Empty>
+        <Empty>{portal?.billing?.message || "Billing unavailable."}</Empty>
         <p className="mt-2 text-xs text-[var(--dsp-text-muted)]">
           No checkout or payment simulation. Provider adapters only.
         </p>

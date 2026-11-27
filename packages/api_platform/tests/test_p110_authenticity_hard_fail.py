@@ -8,6 +8,7 @@ evidence_class for any fixture path remains test_fixture — never G2 live.
 
 from __future__ import annotations
 
+import importlib
 import json
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from api_platform.api.infra_bootstrap import InfraBootstrapResult
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
@@ -245,7 +247,15 @@ class TestProductionConnectorAuthenticity:
         """
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
-        monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
+        monkeypatch.setattr(
+            importlib.import_module("api_platform.api.app"),
+            "bootstrap_production_infrastructure",
+            lambda: InfraBootstrapResult(
+                infrastructure=None,
+                production=None,
+                notes=("isolated authentication test",),
+            ),
+        )
         monkeypatch.setattr(
             "api_platform.api.durable_product_stores.require_durable_product_database",
             lambda database: None,

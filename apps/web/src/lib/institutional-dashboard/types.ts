@@ -1,10 +1,6 @@
 /** Institutional Research Dashboard view models — presentation only (EPIC-W001). */
 
-import type {
-  ConfidenceLevel,
-  SourceKind,
-  ValueCategory,
-} from "@/lib/trust/labels";
+import type { ConfidenceLevel, SourceKind, ValueCategory } from "@/lib/trust/labels";
 
 export const DATA_UNAVAILABLE = "Data unavailable.";
 export const UNABLE_TO_CALCULATE = "Unable to calculate.";

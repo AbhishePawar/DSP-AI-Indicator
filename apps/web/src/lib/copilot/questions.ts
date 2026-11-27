@@ -88,5 +88,4 @@ export const SUGGESTED_QUESTIONS: readonly SuggestedQuestion[] = [
   },
 ] as const;
 
-export const UNAVAILABLE_ANSWER =
-  "This information is not currently available.";
+export const UNAVAILABLE_ANSWER = "This information is not currently available.";

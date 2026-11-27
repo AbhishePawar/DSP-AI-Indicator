@@ -91,9 +91,7 @@ export const usePortfolioIntelPrefsStore = create<PortfolioIntelPrefsState>()(
       touchPortfolio: (id) =>
         set((s) => ({
           portfolios: s.portfolios.map((p) =>
-            p.id === id
-              ? { ...p, lastOpenedAt: new Date().toISOString() }
-              : p,
+            p.id === id ? { ...p, lastOpenedAt: new Date().toISOString() } : p,
           ),
         })),
       toggleFavourite: (id) =>
@@ -140,8 +138,7 @@ export const usePortfolioIntelPrefsStore = create<PortfolioIntelPrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeNote: (id) =>
-        set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
+      removeNote: (id) => set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
       addTag: (portfolioId, label) =>
         set((s) => {
           const trimmed = label.trim();
@@ -166,8 +163,7 @@ export const usePortfolioIntelPrefsStore = create<PortfolioIntelPrefsState>()(
             ].slice(0, 40),
           };
         }),
-      removeTag: (id) =>
-        set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
+      removeTag: (id) => set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
     }),
     {
       name: "dsp.portfolio-intelligence.prefs.v1",

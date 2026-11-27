@@ -23,10 +23,7 @@ import { mapSensitivityPanel } from "./mapSensitivity";
 import { mapTradeOffs } from "./mapTradeOffs";
 import { mapWhyNotAnalysis } from "./mapWhyNotAnalysis";
 import { mapWinnerMatrix } from "./mapWinnerMatrix";
-import {
-  honestDisplay,
-  parseExistingScore,
-} from "./ranking";
+import { honestDisplay, parseExistingScore } from "./ranking";
 import type {
   CompanyIntelligenceOverlay,
   ComparisonCompanySlot,
@@ -41,10 +38,7 @@ import type {
 } from "./types";
 import type { WeightingProfileId } from "./weightingProfiles";
 
-function methodStatus(
-  view: ResearchView,
-  methodName: string,
-): string {
+function methodStatus(view: ResearchView, methodName: string): string {
   const card = view.valuationTransparency.methods.find((m) =>
     m.methodName.toLowerCase().includes(methodName.toLowerCase()),
   );
@@ -93,9 +87,7 @@ function mapEvidence(views: ResearchView[]): EvidenceQualityCell[] {
     const succeeded = v.stages.filter((s) => s.status === "succeeded").length;
     const total = v.stages.length;
     const coverage =
-      total === 0
-        ? COVERAGE_UNAVAILABLE
-        : `${succeeded}/${total} stages succeeded`;
+      total === 0 ? COVERAGE_UNAVAILABLE : `${succeeded}/${total} stages succeeded`;
     return {
       symbol: v.ticker,
       evidenceCount: count > 0 ? String(count) : DATA_UNAVAILABLE,
@@ -140,9 +132,7 @@ function mapScenarios(views: ResearchView[]): ScenarioCompareCell[] {
 function mapPortfolioFit(views: ResearchView[]): PortfolioFitCell[] {
   return views.map((v) => {
     const bq = parseExistingScore(v.businessQuality.score);
-    const mos = parseExistingScore(
-      v.valuation.marginOfSafety.replace("%", ""),
-    );
+    const mos = parseExistingScore(v.valuation.marginOfSafety.replace("%", ""));
     const growth = parseExistingScore(v.growth.score);
     return {
       symbol: v.ticker,
@@ -237,14 +227,15 @@ function mapExecutive(
         : DATA_UNAVAILABLE,
     tradeOffs:
       tradeOffCount > 0
-        ? [`${tradeOffCount} evidence-backed trade-off notes generated from stage/score differences.`]
+        ? [
+            `${tradeOffCount} evidence-backed trade-off notes generated from stage/score differences.`,
+          ]
         : [DATA_UNAVAILABLE],
     confidence: avgConf,
     coverage: `${okCount}/${views.length} companies with successful analyse payloads`,
-    evidenceQuality:
-      views.some((v) => Object.keys(v.evidenceCounts ?? {}).length > 0)
-        ? "Evidence counts present on at least one pack (see Evidence Comparison)."
-        : DATA_UNAVAILABLE,
+    evidenceQuality: views.some((v) => Object.keys(v.evidenceCounts ?? {}).length > 0)
+      ? "Evidence counts present on at least one pack (see Evidence Comparison)."
+      : DATA_UNAVAILABLE,
   };
 }
 
@@ -296,18 +287,13 @@ export function mapComparisonWorkspace(
     "Weighting profiles change presentation emphasis only — analytical outputs and Winner Matrix numerics are unchanged.",
     ...slots
       .filter((s) => s.status === "error" || s.status === "unavailable")
-      .map(
-        (s) =>
-          `${s.symbol}: ${s.error ?? DATA_UNAVAILABLE}`,
-      ),
+      .map((s) => `${s.symbol}: ${s.error ?? DATA_UNAVAILABLE}`),
     views.length < 2
       ? "Select and compare at least two companies with successful research packs."
       : `${views.length} research packs ready for institutional comparison.`,
   ];
 
-  const intelBySymbol = new Map(
-    intelligence.map((i) => [i.symbol.toUpperCase(), i]),
-  );
+  const intelBySymbol = new Map(intelligence.map((i) => [i.symbol.toUpperCase(), i]));
 
   return {
     kind: "institutional_company_comparison",
@@ -318,10 +304,7 @@ export function mapComparisonWorkspace(
     symbols: slots.map((s) => s.symbol),
     slots: slots.map((s) => ({
       ...s,
-      intelligence:
-        s.intelligence ??
-        intelBySymbol.get(s.symbol.toUpperCase()) ??
-        null,
+      intelligence: s.intelligence ?? intelBySymbol.get(s.symbol.toUpperCase()) ?? null,
     })),
     executive: mapExecutive(views, winnerMatrix, tradeOffs.length),
     scorecard,
@@ -396,11 +379,9 @@ export function mapIntelligenceOverlay(
   timeline: { total?: number; timeline?: unknown[] } | null | undefined,
 ): CompanyIntelligenceOverlay {
   const dash = (performance?.dashboard ?? performance) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   const cal = (calibration?.calibration ?? calibration) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   const drift = cal?.drift as Record<string, unknown> | undefined;
   const coverage = dash?.coverage as Record<string, unknown> | undefined;
 
@@ -417,9 +398,7 @@ export function mapIntelligenceOverlay(
     overallAccuracy: numOrUnavailable(dash?.overall_accuracy),
     recommendationAccuracy: numOrUnavailable(dash?.recommendation_accuracy),
     calibrationStatus:
-      typeof drift?.status === "string"
-        ? drift.status
-        : DATA_UNAVAILABLE,
+      typeof drift?.status === "string" ? drift.status : DATA_UNAVAILABLE,
     timelineCount:
       typeof timeline?.total === "number"
         ? String(timeline.total)
@@ -431,9 +410,6 @@ export function mapIntelligenceOverlay(
       coverage && typeof coverage.snapshot_count === "number"
         ? `${coverage.snapshot_count} snapshots`
         : COVERAGE_UNAVAILABLE,
-    source:
-      dash || cal || timeline
-        ? "research_intelligence"
-        : "unavailable",
+    source: dash || cal || timeline ? "research_intelligence" : "unavailable",
   };
 }

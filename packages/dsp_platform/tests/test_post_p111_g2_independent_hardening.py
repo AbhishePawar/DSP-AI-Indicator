@@ -86,10 +86,10 @@ def test_shares_not_derived_from_ni_eps() -> None:
         eps_diluted=SimpleNamespace(available=True, value=2.0),
     )
     with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
-        _resolve_shares(quote, latest)  # type: ignore[arg-type]
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
 
 
-def test_shares_from_authenticated_quote() -> None:
+def test_quote_share_count_alone_is_not_fundamental_authority() -> None:
     quote = SimpleNamespace(
         shares_outstanding=SimpleNamespace(available=True, value=50_000_000.0)
     )
@@ -98,7 +98,46 @@ def test_shares_from_authenticated_quote() -> None:
         eps_basic=SimpleNamespace(available=True, value=1.0),
         eps_diluted=SimpleNamespace(available=True, value=1.0),
     )
-    assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
+    with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
+
+
+def test_shares_prefer_verified_statement_source_when_quote_omits_it() -> None:
+    from data_engine.financial_statement.models import StatementField
+
+    quote = SimpleNamespace(
+        shares_outstanding=SimpleNamespace(available=False, value=None)
+    )
+    latest = SimpleNamespace(
+        shares_outstanding=StatementField.of(75_000_000),
+        period_end=date(2026, 3, 31),
+        net_income=SimpleNamespace(available=True, value=1.0),
+        eps_basic=SimpleNamespace(available=True, value=1.0),
+        eps_diluted=SimpleNamespace(available=True, value=1.0),
+    )
+    shares, provenance = _resolve_shares(
+        quote, latest, ticker="RELIANCE"
+    )  # type: ignore[arg-type]
+    assert shares == 75_000_000.0
+    assert provenance["source"] == "authenticated_financial_statement"
+
+
+def test_material_share_count_conflict_fails_closed() -> None:
+    from data_engine.financial_statement.models import StatementField
+
+    quote = SimpleNamespace(
+        shares_outstanding=SimpleNamespace(available=True, value=50_000_000.0)
+    )
+    latest = SimpleNamespace(
+        shares_outstanding=StatementField.of(75_000_000),
+        net_income=SimpleNamespace(available=True, value=1.0),
+        eps_basic=SimpleNamespace(available=True, value=1.0),
+        eps_diluted=SimpleNamespace(available=True, value=1.0),
+    )
+    with pytest.raises(
+        AuthenticatedValuationError, match="share-count sources disagree"
+    ):
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -115,7 +154,7 @@ def test_non_finite_quote_shares_fail_closed(bad_shares: float) -> None:
         eps_diluted=SimpleNamespace(available=False, value=None),
     )
     with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
-        _resolve_shares(quote, latest)  # type: ignore[arg-type]
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

@@ -15,7 +15,8 @@ export type TrustedMetric = {
   methodology: string;
 };
 
-export type RebalanceAction = "reduce" | "increase" | "hold" | "add_cash" | "deploy_cash";
+export type RebalanceAction =
+  "reduce" | "increase" | "hold" | "add_cash" | "deploy_cash";
 
 export type PortfolioHolding = {
   id: string;
@@ -376,7 +377,8 @@ export function buildDemoPortfolio(): PortfolioWorkspaceView {
       style: "unavailable",
       cyclicality: "unavailable",
       marketCapBucket: "small",
-      notes: "Illustrates Unavailable research fields — Copilot/Analysis not overridden.",
+      notes:
+        "Illustrates Unavailable research fields — Copilot/Analysis not overridden.",
       lastUpdated: asOf,
       evidence: "No DSP intrinsic value in seed — left Unavailable",
       methodology: "Honest Unavailable preferred over invention",
@@ -436,7 +438,9 @@ export function emptyPortfolioWorkspace(): PortfolioWorkspaceView {
     cashAmount: 0,
     holdings: [],
     watchlist: [],
-    notes: ["Add holdings when portfolio APIs or session import arrive (out of scope)."],
+    notes: [
+      "Add holdings when portfolio APIs or session import arrive (out of scope).",
+    ],
     asOf: null,
   });
 }
@@ -464,7 +468,8 @@ function finalizePortfolio(args: {
   );
   const avgDisc = weightedAvg(
     holdings.map((h) => {
-      if (h.intrinsicValue == null || h.currentPrice == null) return { weight: h.weight, value: null };
+      if (h.intrinsicValue == null || h.currentPrice == null)
+        return { weight: h.weight, value: null };
       return {
         weight: h.weight,
         value: ((h.intrinsicValue - h.currentPrice) / h.intrinsicValue) * 100,
@@ -502,10 +507,7 @@ function finalizePortfolio(args: {
     .filter((h) => h.marginOfSafety != null && h.marginOfSafety >= 15)
     .map((h) => h.symbol);
   const lowConf = holdings
-    .filter(
-      (h) =>
-        h.confidence === "low" || h.confidence === "insufficient_evidence",
-    )
+    .filter((h) => h.confidence === "low" || h.confidence === "insufficient_evidence")
     .map((h) => h.symbol);
   const highDebt = holdings
     .filter((h) => h.financialStrength === "Weak" || h.riskRating === "High")
@@ -548,7 +550,8 @@ function finalizePortfolio(args: {
       id: "rb-deploy",
       symbol: "CASH",
       action: "deploy_cash",
-      rationale: "Cash weight elevated — deploy only into researched ideas (no auto-trade).",
+      rationale:
+        "Cash weight elevated — deploy only into researched ideas (no auto-trade).",
       confidence: "moderate",
       evidence: `Cash ${pct((cashAmount / Math.max(total, 1)) * 100)}`,
     });
@@ -557,7 +560,8 @@ function finalizePortfolio(args: {
       id: "rb-add-cash",
       symbol: "CASH",
       action: "add_cash",
-      rationale: "Cash buffer thin — consider add cash for flexibility (suggestion only).",
+      rationale:
+        "Cash buffer thin — consider add cash for flexibility (suggestion only).",
       confidence: "low",
       evidence: "Cash buffer heuristic",
     });
@@ -568,7 +572,8 @@ function finalizePortfolio(args: {
       id: "bull",
       label: "Bull",
       portfolioImpact: "Quality compounders may extend; MOS compresses.",
-      expectedReturnDelta: expCagr != null ? `~+${(expCagr * 0.3).toFixed(1)} pp (illustrative)` : null,
+      expectedReturnDelta:
+        expCagr != null ? `~+${(expCagr * 0.3).toFixed(1)} pp (illustrative)` : null,
       confidence: "low",
       evidence: "Scenario narrative — not a forecast",
       methodology: "Educational scenario overlay",
@@ -577,7 +582,8 @@ function finalizePortfolio(args: {
       id: "base",
       label: "Base",
       portfolioImpact: "Path aligned with weighted expected CAGR when available.",
-      expectedReturnDelta: expCagr != null ? `~${expCagr.toFixed(1)}% CAGR context` : null,
+      expectedReturnDelta:
+        expCagr != null ? `~${expCagr.toFixed(1)}% CAGR context` : null,
       confidence: expCagr != null ? "low" : "insufficient_evidence",
       evidence: "Uses holding expected CAGR fields only",
       methodology: "Weighted presentation CAGR",
@@ -586,7 +592,8 @@ function finalizePortfolio(args: {
       id: "bear",
       label: "Bear",
       portfolioImpact: "Cyclicals and high-weight names drive drawdowns.",
-      expectedReturnDelta: expCagr != null ? `~-${(expCagr * 0.5).toFixed(1)} pp (illustrative)` : null,
+      expectedReturnDelta:
+        expCagr != null ? `~-${(expCagr * 0.5).toFixed(1)} pp (illustrative)` : null,
       confidence: "low",
       evidence: "Scenario narrative",
       methodology: "Educational scenario overlay",
@@ -612,7 +619,8 @@ function finalizePortfolio(args: {
     {
       id: "recession",
       label: "Recession",
-      portfolioImpact: "Cyclical sleeves pressured; defensive IT/consumer may fare better.",
+      portfolioImpact:
+        "Cyclical sleeves pressured; defensive IT/consumer may fare better.",
       expectedReturnDelta: null,
       confidence: "insufficient_evidence",
       evidence: "Qualitative",
@@ -621,7 +629,8 @@ function finalizePortfolio(args: {
     {
       id: "commodity_spike",
       label: "Commodity Spike",
-      portfolioImpact: "Limited direct commodity sleeve in this seed — monitor inflation pass-through.",
+      portfolioImpact:
+        "Limited direct commodity sleeve in this seed — monitor inflation pass-through.",
       expectedReturnDelta: null,
       confidence: "insufficient_evidence",
       evidence: "Seed has weak commodity exposure",
@@ -630,7 +639,8 @@ function finalizePortfolio(args: {
     {
       id: "ai_boom",
       label: "AI Boom",
-      portfolioImpact: "IT services sleeve may benefit if demand sustains — not guaranteed.",
+      portfolioImpact:
+        "IT services sleeve may benefit if demand sustains — not guaranteed.",
       expectedReturnDelta: null,
       confidence: "low",
       evidence: "IT weight in seed",
@@ -672,28 +682,168 @@ function finalizePortfolio(args: {
     version: "portfolio-presentation v1 / web-0.7.0",
     asOf,
     currency: "INR",
-    cash: metric("cash", "Cash", cashAmount, (n) => money(n), "high", "Session cash balance", meth, asOf),
+    cash: metric(
+      "cash",
+      "Cash",
+      cashAmount,
+      (n) => money(n),
+      "high",
+      "Session cash balance",
+      meth,
+      asOf,
+    ),
     holdings,
     watchlist,
     overview: {
-      portfolioValue: metric("pv", "Portfolio Value", total > 0 ? total : null, (n) => money(n), "moderate", ev, meth, asOf),
-      cashPercent: metric("cash_pct", "Cash %", total > 0 ? (cashAmount / total) * 100 : null, pct, "moderate", ev, meth, asOf),
-      investedPercent: metric("inv_pct", "Invested %", total > 0 ? (invested / total) * 100 : null, pct, "moderate", ev, meth, asOf),
-      holdingCount: metric("count", "Holdings", holdings.length, (n) => String(n), "high", ev, meth, asOf),
-      averageMos: metric("avg_mos", "Average MOS", avgMos, pct, avgMos != null ? "low" : "insufficient_evidence", "Weight-averaged holding MOS where present", meth, asOf),
-      averageIntrinsicDiscount: metric("avg_disc", "Average Intrinsic Discount", avgDisc, pct, avgDisc != null ? "low" : "insufficient_evidence", "Weight-averaged (IV−price)/IV", meth, asOf),
-      averageQuality: metric("avg_q", "Average Quality", avgQuality, num, avgQuality != null ? "low" : "insufficient_evidence", "Mapped Strong=3 Good=2 Fair=1 — illustrative index", meth, asOf),
-      weightedRoce: metric("roce", "Weighted ROCE", weightedRoce, pct, "insufficient_evidence", "ROCE not present on holdings — Unavailable", meth, asOf),
-      weightedRoe: metric("roe", "Weighted ROE", weightedRoe, pct, "insufficient_evidence", "ROE not present on holdings — Unavailable", meth, asOf),
-      expectedCagr: metric("cagr", "Expected CAGR", expCagr, pct, expCagr != null ? "low" : "insufficient_evidence", "Weight-averaged holding expected CAGR fields", meth, asOf),
-      expectedUpside: metric("upside", "Expected Upside", avgDisc, pct, avgDisc != null ? "low" : "insufficient_evidence", "Uses intrinsic discount as upside proxy when IV present", meth, asOf),
-      downsideRisk: metric("down", "Downside Risk", maxWeight, pct, "low", "Proxied by largest position weight (presentation heuristic)", meth, asOf),
-      concentrationScore: metric("conc", "Concentration Score", concentrationScore, num, "moderate", "Equal to largest position weight %", meth, asOf),
-      diversificationScore: metric("div", "Diversification Score", total > 0 ? diversificationScore : null, num, "low", "Heuristic 100 − 1.5× max weight", meth, asOf),
+      portfolioValue: metric(
+        "pv",
+        "Portfolio Value",
+        total > 0 ? total : null,
+        (n) => money(n),
+        "moderate",
+        ev,
+        meth,
+        asOf,
+      ),
+      cashPercent: metric(
+        "cash_pct",
+        "Cash %",
+        total > 0 ? (cashAmount / total) * 100 : null,
+        pct,
+        "moderate",
+        ev,
+        meth,
+        asOf,
+      ),
+      investedPercent: metric(
+        "inv_pct",
+        "Invested %",
+        total > 0 ? (invested / total) * 100 : null,
+        pct,
+        "moderate",
+        ev,
+        meth,
+        asOf,
+      ),
+      holdingCount: metric(
+        "count",
+        "Holdings",
+        holdings.length,
+        (n) => String(n),
+        "high",
+        ev,
+        meth,
+        asOf,
+      ),
+      averageMos: metric(
+        "avg_mos",
+        "Average MOS",
+        avgMos,
+        pct,
+        avgMos != null ? "low" : "insufficient_evidence",
+        "Weight-averaged holding MOS where present",
+        meth,
+        asOf,
+      ),
+      averageIntrinsicDiscount: metric(
+        "avg_disc",
+        "Average Intrinsic Discount",
+        avgDisc,
+        pct,
+        avgDisc != null ? "low" : "insufficient_evidence",
+        "Weight-averaged (IV−price)/IV",
+        meth,
+        asOf,
+      ),
+      averageQuality: metric(
+        "avg_q",
+        "Average Quality",
+        avgQuality,
+        num,
+        avgQuality != null ? "low" : "insufficient_evidence",
+        "Mapped Strong=3 Good=2 Fair=1 — illustrative index",
+        meth,
+        asOf,
+      ),
+      weightedRoce: metric(
+        "roce",
+        "Weighted ROCE",
+        weightedRoce,
+        pct,
+        "insufficient_evidence",
+        "ROCE not present on holdings — Unavailable",
+        meth,
+        asOf,
+      ),
+      weightedRoe: metric(
+        "roe",
+        "Weighted ROE",
+        weightedRoe,
+        pct,
+        "insufficient_evidence",
+        "ROE not present on holdings — Unavailable",
+        meth,
+        asOf,
+      ),
+      expectedCagr: metric(
+        "cagr",
+        "Expected CAGR",
+        expCagr,
+        pct,
+        expCagr != null ? "low" : "insufficient_evidence",
+        "Weight-averaged holding expected CAGR fields",
+        meth,
+        asOf,
+      ),
+      expectedUpside: metric(
+        "upside",
+        "Expected Upside",
+        avgDisc,
+        pct,
+        avgDisc != null ? "low" : "insufficient_evidence",
+        "Uses intrinsic discount as upside proxy when IV present",
+        meth,
+        asOf,
+      ),
+      downsideRisk: metric(
+        "down",
+        "Downside Risk",
+        maxWeight,
+        pct,
+        "low",
+        "Proxied by largest position weight (presentation heuristic)",
+        meth,
+        asOf,
+      ),
+      concentrationScore: metric(
+        "conc",
+        "Concentration Score",
+        concentrationScore,
+        num,
+        "moderate",
+        "Equal to largest position weight %",
+        meth,
+        asOf,
+      ),
+      diversificationScore: metric(
+        "div",
+        "Diversification Score",
+        total > 0 ? diversificationScore : null,
+        num,
+        "low",
+        "Heuristic 100 − 1.5× max weight",
+        meth,
+        asOf,
+      ),
       portfolioRiskScore: metric(
         "prisk",
         "Portfolio Risk Score",
-        total > 0 ? Math.min(100, maxWeight + lowConf.length * 5 + (largestSector?.weight ?? 0) * 0.3) : null,
+        total > 0
+          ? Math.min(
+              100,
+              maxWeight + lowConf.length * 5 + (largestSector?.weight ?? 0) * 0.3,
+            )
+          : null,
         num,
         "low",
         "Heuristic from concentration + low-confidence count + sector weight",
@@ -738,12 +888,16 @@ function finalizePortfolio(args: {
       lowConfidenceHoldings: lowConf,
       topRisks: [
         largest ? `Single-name exposure: ${largest.symbol}` : "No holdings",
-        largestSector ? `Sector concentration: ${largestSector.label}` : "No sector data",
+        largestSector
+          ? `Sector concentration: ${largestSector.label}`
+          : "No sector data",
         ...lowConf.map((s) => `Low confidence: ${s}`),
       ].slice(0, 5),
       topOpportunities: [
         ...undervalued.map((s) => `Wider MOS: ${s}`),
-        cashAmount / Math.max(total, 1) > 0.15 ? "Dry powder available to deploy into researched ideas" : "Review watchlist for patient entries",
+        cashAmount / Math.max(total, 1) > 0.15
+          ? "Dry powder available to deploy into researched ideas"
+          : "Review watchlist for patient entries",
       ].slice(0, 5),
     },
     allocations: {
@@ -754,12 +908,22 @@ function finalizePortfolio(args: {
       theme: groupWeights(holdings, (h) => h.theme, total),
       growthVsValue: groupWeights(
         holdings,
-        (h) => (h.theme === "growth" ? "Growth" : h.theme === "value" ? "Value" : "Blend/Unavailable"),
+        (h) =>
+          h.theme === "growth"
+            ? "Growth"
+            : h.theme === "value"
+              ? "Value"
+              : "Blend/Unavailable",
         total,
       ),
       dividendVsGrowth: groupWeights(
         holdings,
-        (h) => (h.style === "dividend" ? "Dividend" : h.style === "growth" ? "Growth" : "Blend/Unavailable"),
+        (h) =>
+          h.style === "dividend"
+            ? "Dividend"
+            : h.style === "growth"
+              ? "Growth"
+              : "Blend/Unavailable",
         total,
       ),
       cyclicalVsDefensive: groupWeights(
@@ -774,10 +938,46 @@ function finalizePortfolio(args: {
       ),
     },
     expectedReturn: {
-      expectedCagr: metric("er_cagr", "Expected CAGR", expCagr, pct, expCagr != null ? "low" : "insufficient_evidence", ev, meth, asOf),
-      expectedDividendYield: metric("er_div", "Expected Dividend Yield", null, pct, "insufficient_evidence", "Dividend fields not on holdings — Unavailable", meth, asOf),
-      expectedTotalReturn: metric("er_tot", "Expected Total Return", expCagr, pct, expCagr != null ? "low" : "insufficient_evidence", "Equals expected CAGR when dividend yield Unavailable", meth, asOf),
-      portfolioFairValue: metric("er_fv", "Portfolio Fair Value", total > 0 ? total : null, (n) => money(n), "low", "Uses current market value sum as fair-value stand-in — not a DSP valuation", meth, asOf),
+      expectedCagr: metric(
+        "er_cagr",
+        "Expected CAGR",
+        expCagr,
+        pct,
+        expCagr != null ? "low" : "insufficient_evidence",
+        ev,
+        meth,
+        asOf,
+      ),
+      expectedDividendYield: metric(
+        "er_div",
+        "Expected Dividend Yield",
+        null,
+        pct,
+        "insufficient_evidence",
+        "Dividend fields not on holdings — Unavailable",
+        meth,
+        asOf,
+      ),
+      expectedTotalReturn: metric(
+        "er_tot",
+        "Expected Total Return",
+        expCagr,
+        pct,
+        expCagr != null ? "low" : "insufficient_evidence",
+        "Equals expected CAGR when dividend yield Unavailable",
+        meth,
+        asOf,
+      ),
+      portfolioFairValue: metric(
+        "er_fv",
+        "Portfolio Fair Value",
+        total > 0 ? total : null,
+        (n) => money(n),
+        "low",
+        "Uses current market value sum as fair-value stand-in — not a DSP valuation",
+        meth,
+        asOf,
+      ),
       portfolioIntrinsicValue: metric(
         "er_iv",
         "Portfolio Intrinsic Value",

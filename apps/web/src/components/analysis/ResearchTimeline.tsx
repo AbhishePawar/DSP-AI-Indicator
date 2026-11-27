@@ -28,9 +28,7 @@ export function TimelineCard({ event }: { event: TimelineEvent }) {
           <p className="font-medium">{event.label}</p>
           <Badge tone={STATUS_TONE[event.status]}>{event.status}</Badge>
         </div>
-        <p className="text-xs text-[var(--muted)]">
-          {event.at ?? "Unavailable"}
-        </p>
+        <p className="text-xs text-[var(--muted)]">{event.at ?? "Unavailable"}</p>
         <p className="mt-1 text-sm text-[var(--muted)]">{event.detail}</p>
       </div>
     </li>
@@ -38,11 +36,7 @@ export function TimelineCard({ event }: { event: TimelineEvent }) {
 }
 
 /** Lightweight list timeline — virtualize when history grows large. */
-export function ResearchTimeline({
-  timeline,
-}: {
-  timeline: ResearchTimelineView;
-}) {
+export function ResearchTimeline({ timeline }: { timeline: ResearchTimelineView }) {
   const events = useMemo(() => timeline.events, [timeline.events]);
 
   return (

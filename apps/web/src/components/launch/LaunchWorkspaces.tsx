@@ -79,13 +79,7 @@ export function PerformanceMetricCard({ metric }: { metric: PerformanceMetric })
   );
 }
 
-export function HealthStatusCard({
-  title,
-  detail,
-}: {
-  title: string;
-  detail: string;
-}) {
+export function HealthStatusCard({ title, detail }: { title: string; detail: string }) {
   return (
     <Card>
       <CardHeader title={title} />
@@ -104,7 +98,8 @@ export function BuildInformationCard() {
         <p>Epic: Phase C — Soak Test & Public Launch</p>
         <p>Node/Next: Next.js 15 · React 19</p>
         <p className="text-xs text-[var(--muted)]">
-          Bundle analyzer: set ANALYZE=true when @next/bundle-analyzer is installed in CI.
+          Bundle analyzer: set ANALYZE=true when @next/bundle-analyzer is installed in
+          CI.
         </p>
       </CardBody>
     </Card>
@@ -117,7 +112,9 @@ export function VersionCard() {
       <CardHeader title="Version" />
       <CardBody className="text-sm">
         <p className="text-2xl font-medium">1.0.0</p>
-        <p className="text-[var(--muted)]">Stable public release · promoted from RC 0.9.5</p>
+        <p className="text-[var(--muted)]">
+          Stable public release · promoted from RC 0.9.5
+        </p>
       </CardBody>
     </Card>
   );
@@ -146,7 +143,8 @@ export function PerformanceStatusCard({ metrics }: { metrics: PerformanceMetric[
       <CardHeader title="Performance status" />
       <CardBody className="text-sm">
         <p>
-          {metrics.length - pending - warn} measured pass · {warn} warn · {pending} pending
+          {metrics.length - pending - warn} measured pass · {warn} warn · {pending}{" "}
+          pending
         </p>
       </CardBody>
     </Card>
@@ -173,7 +171,10 @@ export function SecurityAuditCard() {
       <CardHeader title="Security audit" />
       <CardBody className="space-y-3">
         {SECURITY_FINDINGS.map((f) => (
-          <div key={f.id} className="rounded-md border border-[var(--border)] p-2 text-sm">
+          <div
+            key={f.id}
+            className="rounded-md border border-[var(--border)] p-2 text-sm"
+          >
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium">{f.title}</span>
               <Badge tone={statusTone(f.status)}>{f.status}</Badge>
@@ -208,8 +209,8 @@ export function ReleaseNotesCard() {
     <Card>
       <CardHeader title="Release notes" />
       <CardBody className="text-sm text-[var(--muted)]">
-        See <code>docs/RELEASE_NOTES_v0.8.0.md</code> — production readiness, no investment
-        logic changes.
+        See <code>docs/RELEASE_NOTES_v0.8.0.md</code> — production readiness, no
+        investment logic changes.
       </CardBody>
     </Card>
   );
@@ -303,10 +304,10 @@ export const PerformanceWorkspace = memo(function PerformanceWorkspace() {
 
   useEffect(() => {
     const nav = performance.getEntriesByType("navigation")[0] as
-      | PerformanceNavigationTiming
-      | undefined;
+      PerformanceNavigationTiming | undefined;
     const paints = performance.getEntriesByType("paint");
-    const fcp = paints.find((p) => p.name === "first-contentful-paint")?.startTime ?? null;
+    const fcp =
+      paints.find((p) => p.name === "first-contentful-paint")?.startTime ?? null;
     const tti = nav ? nav.domInteractive : null;
     const routeMs = nav ? nav.responseEnd - nav.requestStart : null;
 
@@ -327,13 +328,19 @@ export const PerformanceWorkspace = memo(function PerformanceWorkspace() {
             lcp = entry.startTime;
             setRuntime((r) => ({ ...r, lcp }));
           }
-          if (entry.entryType === "layout-shift" && !(entry as PerformanceEntry & { hadRecentInput?: boolean }).hadRecentInput) {
+          if (
+            entry.entryType === "layout-shift" &&
+            !(entry as PerformanceEntry & { hadRecentInput?: boolean }).hadRecentInput
+          ) {
             cls += (entry as PerformanceEntry & { value: number }).value;
             setRuntime((r) => ({ ...r, cls }));
           }
         }
       });
-      po.observe({ type: "largest-contentful-paint", buffered: true } as PerformanceObserverInit);
+      po.observe({
+        type: "largest-contentful-paint",
+        buffered: true,
+      } as PerformanceObserverInit);
       po.observe({ type: "layout-shift", buffered: true } as PerformanceObserverInit);
     } catch {
       /* unsupported */
@@ -356,9 +363,14 @@ export const PerformanceWorkspace = memo(function PerformanceWorkspace() {
           <p>Route code splitting: Next.js app router per-page bundles.</p>
           <p>Lazy import: Copilot panel uses React.lazy.</p>
           <p>Memoization: AnalysisWorkspace, PortfolioWorkspace, KG cards memoized.</p>
-          <p>Fonts: next/font (Fraunces, Sora) — no FOIT layout thrash from external CSS.</p>
+          <p>
+            Fonts: next/font (Fraunces, Sora) — no FOIT layout thrash from external CSS.
+          </p>
           <p>Images: no unoptimized marketing heroes in app shell.</p>
-          <p>Cache: TanStack Query for API health/analyze; sessionStorage for recovery meta.</p>
+          <p>
+            Cache: TanStack Query for API health/analyze; sessionStorage for recovery
+            meta.
+          </p>
           <p>
             Bundle analyzer: document <code>ANALYZE=true next build</code> with
             @next/bundle-analyzer in CI.

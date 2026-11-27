@@ -10,7 +10,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY apps/web ./
 # Next may ship without a checked-in public/ tree; standalone runner still expects it.
 RUN mkdir -p public
-ARG NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
+ARG NEXT_PUBLIC_API_BASE_URL=/api/v1
 ARG NEXT_PUBLIC_APP_NAME="DSP AI Indicator"
 ARG NEXT_PUBLIC_BUILD_TIMESTAMP
 ARG NEXT_PUBLIC_AI_PROVIDER=backend

@@ -57,8 +57,7 @@ export function IntelligenceWorkspace() {
   });
 
   const validateMutation = useMutation({
-    mutationFn: (body: AnalyseRequest) =>
-      api.validateAnalyse(body, { token }),
+    mutationFn: (body: AnalyseRequest) => api.validateAnalyse(body, { token }),
   });
 
   const analyseMutation = useMutation({
@@ -140,34 +139,24 @@ export function IntelligenceWorkspace() {
             ready={healthQuery.data?.ready}
             status={healthQuery.data?.status}
             platformVersion={
-              healthQuery.data?.platform_version ??
-              versionQuery.data?.platform_version
+              healthQuery.data?.platform_version ?? versionQuery.data?.platform_version
             }
             pipelineVersion={
-              healthQuery.data?.pipeline_version ??
-              versionQuery.data?.pipeline_version
+              healthQuery.data?.pipeline_version ?? versionQuery.data?.pipeline_version
             }
             loading={healthQuery.isLoading}
-            error={
-              healthQuery.isError ? "Health check failed" : null
-            }
+            error={healthQuery.isError ? "Health check failed" : null}
           />
         }
       />
 
-      <AnalysisForm
-        busy={busy}
-        onValidate={runValidate}
-        onAnalyse={runAnalyse}
-      />
+      <AnalysisForm busy={busy} onValidate={runValidate} onAnalyse={runAnalyse} />
 
       <section aria-label="Validation panel">
         <ValidationBanner
           valid={validateMutation.data?.valid ?? null}
           errors={
-            validationErrors.length
-              ? validationErrors
-              : validateMutation.data?.errors
+            validationErrors.length ? validationErrors : validateMutation.data?.errors
           }
           warnings={validateMutation.data?.warnings}
           apiError={apiError}

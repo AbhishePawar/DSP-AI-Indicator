@@ -56,7 +56,7 @@ def resolve_device_persistence(persistence: Any | None = None) -> Any:
     if persistence is not None:
         return persistence
     environment = (os.environ.get("DSP_ENVIRONMENT") or "").strip().lower()
-    if environment == "production":
+    if environment in {"production", "staging"}:
         from persistence import get_persistence_service
 
         return get_persistence_service()

@@ -3,11 +3,7 @@
 import type { AllocationSegment, PortfolioHolding } from "./model";
 
 export type RecommendationBucket =
-  | "Strong Buy"
-  | "Buy"
-  | "Hold"
-  | "Sell"
-  | "Strong Sell";
+  "Strong Buy" | "Buy" | "Hold" | "Sell" | "Strong Sell";
 
 export type RecommendationDistribution = Record<RecommendationBucket, number>;
 
@@ -99,9 +95,7 @@ function normalizeSectorBucket(sector: string): (typeof SECTOR_BUCKETS)[number] 
   return "Others";
 }
 
-export function normalizeRecommendation(
-  recommendation: string,
-): RecommendationBucket {
+export function normalizeRecommendation(recommendation: string): RecommendationBucket {
   const r = recommendation.trim().toLowerCase();
   if (r.includes("strong buy") || r === "strong_buy") return "Strong Buy";
   if (r.includes("strong sell") || r === "strong_sell") return "Strong Sell";
@@ -117,10 +111,7 @@ export function buildSectorAllocationBuckets(
   for (const bucket of SECTOR_BUCKETS) totals.set(bucket, 0);
   for (const holding of holdings) {
     const bucket = normalizeSectorBucket(holding.sector);
-    totals.set(
-      bucket,
-      (totals.get(bucket) ?? 0) + holding.allocationPercent,
-    );
+    totals.set(bucket, (totals.get(bucket) ?? 0) + holding.allocationPercent);
   }
   return SECTOR_BUCKETS.map((name) => ({
     name,
@@ -151,9 +142,7 @@ export function buildResearchCoverageAnalytics(
   const researchAvailable = holdings.filter((h) => h.researchAvailable).length;
   const researchMissing = holdings.length - researchAvailable;
   const coveragePercent =
-    holdings.length > 0
-      ? Math.round((researchAvailable / holdings.length) * 100)
-      : 0;
+    holdings.length > 0 ? Math.round((researchAvailable / holdings.length) * 100) : 0;
   return {
     companiesAnalysed: holdings.length,
     researchAvailable,
@@ -170,9 +159,7 @@ export function buildDiversificationAnalytics(
   holdings: PortfolioHolding[],
 ): DiversificationAnalytics {
   const sectors = new Set(holdings.map((h) => h.sector));
-  const exchanges = new Set(
-    holdings.map((h) => exchangeForTicker(h.ticker)),
-  );
+  const exchanges = new Set(holdings.map((h) => exchangeForTicker(h.ticker)));
   const countries = new Set(
     [...exchanges].map((exchange) => countryForExchange(exchange)),
   );
@@ -211,8 +198,7 @@ export function buildPortfolioQualityAnalytics(
 
   let portfolioStatus = "Empty";
   if (holdings.length > 0) {
-    portfolioStatus =
-      research.researchMissing === 0 ? "Active · Covered" : "Active";
+    portfolioStatus = research.researchMissing === 0 ? "Active · Covered" : "Active";
   }
 
   return {
@@ -248,10 +234,7 @@ export function buildPortfolioHealthAnalytics(
   const research = buildResearchCoverageAnalytics(holdings);
   const labels: string[] = [];
 
-  if (
-    diversification.sectorCount === 1 ||
-    diversification.largestSectorPercent > 50
-  ) {
+  if (diversification.sectorCount === 1 || diversification.largestSectorPercent > 50) {
     labels.push("Concentrated");
   } else if (
     diversification.sectorCount >= 3 &&

@@ -10,7 +10,10 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div data-testid="page-header" className="flex flex-col gap-3 border-b border-[var(--border)] pb-4 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      data-testid="page-header"
+      className="flex flex-col gap-3 border-b border-[var(--border)] pb-4 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div>
         <h1 className="break-words font-[family-name:var(--font-display)] text-base font-medium tracking-tight text-[var(--fg)]">
           {title}

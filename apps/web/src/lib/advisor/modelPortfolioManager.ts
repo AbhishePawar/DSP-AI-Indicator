@@ -17,7 +17,10 @@ import type {
 export const MP_TRUST =
   "Model Portfolio Manager is presentation-only — reuses demo DSP research summaries; never alters Evidence, Confidence, Methodology, Limitations, or Investment Thesis. No trading or broker sync.";
 
-const SECTOR_BY_ENVELOPE: Record<string, { sector: string; marketCapBand: MpHolding["marketCapBand"] }> = {
+const SECTOR_BY_ENVELOPE: Record<
+  string,
+  { sector: string; marketCapBand: MpHolding["marketCapBand"] }
+> = {
   "re-aurora": { sector: "Information Technology (demo)", marketCapBand: "large" },
   "re-beacon": { sector: "Utilities / Income (demo)", marketCapBand: "mid" },
   "re-cedar": { sector: "Industrials (demo)", marketCapBand: "mid" },
@@ -25,7 +28,9 @@ const SECTOR_BY_ENVELOPE: Record<string, { sector: string; marketCapBand: MpHold
   "re-ember": { sector: "Communication Services (demo)", marketCapBand: "small" },
 };
 
-export function holdingMeta(envelopeId: string): Pick<MpHolding, "sector" | "marketCapBand" | "companyLabel"> {
+export function holdingMeta(
+  envelopeId: string,
+): Pick<MpHolding, "sector" | "marketCapBand" | "companyLabel"> {
   const env = demoResearchEnvelopes.find((e) => e.id === envelopeId);
   const meta = SECTOR_BY_ENVELOPE[envelopeId] ?? {
     sector: "Unclassified (demo)",
@@ -42,7 +47,8 @@ export function computeAllocationTotals(
   holdings: MpHolding[],
   cashAllocationPct: number,
 ): AllocationTotals {
-  const holdingsPct = Math.round(holdings.reduce((s, h) => s + h.allocationPct, 0) * 10) / 10;
+  const holdingsPct =
+    Math.round(holdings.reduce((s, h) => s + h.allocationPct, 0) * 10) / 10;
   const cashPct = cashAllocationPct;
   const totalPct = Math.round((holdingsPct + cashPct) * 10) / 10;
   const deltaFrom100 = Math.round((totalPct - 100) * 10) / 10;
@@ -83,10 +89,14 @@ export function buildPortfolioReview(draft: ModelPortfolioDraft): PortfolioRevie
     strengths: [
       `${draft.holdings.length} researched holdings with reused DSP envelopes`,
       `Objective: ${draft.objective}`,
-      sectors[0] ? `Primary sector weight in ${sectors[0].label}` : "Sector mix pending",
+      sectors[0]
+        ? `Primary sector weight in ${sectors[0].label}`
+        : "Sector mix pending",
     ],
     potentialRisks: [
-      totals.isBalanced ? "Allocation sums to 100% (demo)" : `Allocation off by ${totals.deltaFrom100}%`,
+      totals.isBalanced
+        ? "Allocation sums to 100% (demo)"
+        : `Allocation off by ${totals.deltaFrom100}%`,
       top && top.allocationPct >= 30
         ? `Concentration — ${top.companyLabel} at ${top.allocationPct}%`
         : "No single holding ≥ 30% (demo heuristic)",
@@ -123,7 +133,11 @@ export const seedModelPortfolioLibrary: ModelPortfolioDraft[] = [
     riskLevel: "aggressive",
     targetHorizon: "7–10 years",
     cashAllocationPct: 5,
-    holdings: [holding("re-aurora", 40), holding("re-ember", 35), holding("re-delta", 20)],
+    holdings: [
+      holding("re-aurora", 40),
+      holding("re-ember", 35),
+      holding("re-delta", 20),
+    ],
     notes: [
       note("advisor", "Growth bias", "Tilt toward Aurora/Ember — demo only.", "mpn-1"),
     ],
@@ -137,7 +151,11 @@ export const seedModelPortfolioLibrary: ModelPortfolioDraft[] = [
     riskLevel: "moderate",
     targetHorizon: "5–7 years",
     cashAllocationPct: 10,
-    holdings: [holding("re-aurora", 30), holding("re-beacon", 30), holding("re-delta", 30)],
+    holdings: [
+      holding("re-aurora", 30),
+      holding("re-beacon", 30),
+      holding("re-delta", 30),
+    ],
     notes: [],
     templateId: "tpl-balanced-growth",
   },
@@ -151,7 +169,12 @@ export const seedModelPortfolioLibrary: ModelPortfolioDraft[] = [
     cashAllocationPct: 15,
     holdings: [holding("re-beacon", 50), holding("re-delta", 35)],
     notes: [
-      note("suitability", "Income preference", "Prefer Beacon envelope framing.", "mpn-2"),
+      note(
+        "suitability",
+        "Income preference",
+        "Prefer Beacon envelope framing.",
+        "mpn-2",
+      ),
     ],
     templateId: "tpl-conservative-income",
   },
@@ -163,7 +186,11 @@ export const seedModelPortfolioLibrary: ModelPortfolioDraft[] = [
     riskLevel: "growth",
     targetHorizon: "5+ years",
     cashAllocationPct: 10,
-    holdings: [holding("re-cedar", 45), holding("re-beacon", 25), holding("re-aurora", 20)],
+    holdings: [
+      holding("re-cedar", 45),
+      holding("re-beacon", 25),
+      holding("re-aurora", 20),
+    ],
     notes: [],
     templateId: "tpl-value-opportunities",
   },
@@ -176,7 +203,9 @@ export const seedModelPortfolioLibrary: ModelPortfolioDraft[] = [
     targetHorizon: "10+ years",
     cashAllocationPct: 5,
     holdings: [holding("re-aurora", 45), holding("re-delta", 50)],
-    notes: [note("review", "Quality check", "Coverage rated strong on envelopes.", "mpn-3")],
+    notes: [
+      note("review", "Quality check", "Coverage rated strong on envelopes.", "mpn-3"),
+    ],
     templateId: "tpl-quality-compounders",
   },
   {
@@ -303,7 +332,9 @@ export function emptyDraft(): ModelPortfolioDraft {
   };
 }
 
-export function listLibraryByCategory(category: MpCategory | "all"): ModelPortfolioDraft[] {
+export function listLibraryByCategory(
+  category: MpCategory | "all",
+): ModelPortfolioDraft[] {
   if (category === "all") return seedModelPortfolioLibrary;
   return seedModelPortfolioLibrary.filter((p) => p.category === category);
 }

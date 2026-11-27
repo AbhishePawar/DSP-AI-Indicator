@@ -112,6 +112,7 @@ class PlatformHealthService:
             self._check_feature_flags(),
             self._check_provider_settings(),
             self._check_provider_registry(),
+            self._check_investment_data_provider(),
             composition,
             self._check_investment_data_provider(),
             self._check_wiring(canonical_ready=composition.status is CheckStatus.PASS),
@@ -304,47 +305,37 @@ class PlatformHealthService:
         )
 
     def _check_investment_data_provider(self) -> HealthCheckResult:
-        """P1-03 — report whether authenticated investment connectors resolve.
+        """Report investment connector configuration without blocking API readiness."""
+        import os
 
-        Failure is recorded for ops visibility but does not block overall
-        platform readiness (see ``_NON_BLOCKING_READY_CHECKS``). Investment
-        routes still fail closed via adapter factories when credentials are
-        missing. Adapters are constructed offline (no provider I/O); only
-        class names / env-var names are reported.
-        """
-        try:
-            from dsp_platform.composition.authenticated_valuation import (
-                production_investment_connectors,
-                production_requires_authenticated_bundle,
-            )
-        except Exception as exc:  # noqa: BLE001 — surface as health failure
-            return HealthCheckResult(
-                name="investment_data_provider",
-                status=CheckStatus.FAIL,
-                message=f"production profile unavailable: {exc}",
-            )
-        if not production_requires_authenticated_bundle():
+        if str(os.environ.get("DSP_ENVIRONMENT") or "").strip().lower() != "production":
             return HealthCheckResult(
                 name="investment_data_provider",
                 status=CheckStatus.SKIP,
-                message="non-production environment",
+                message="production investment connector check not required",
             )
         try:
-            selected = production_investment_connectors()
-        except Exception as exc:  # noqa: BLE001 — fail closed, never fabricate
+            from data_engine.connector_framework.production_profile import (
+                assert_production_investment_connectors_configured,
+            )
+
+            selected = assert_production_investment_connectors_configured()
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 — health must report missing configuration
             return HealthCheckResult(
                 name="investment_data_provider",
                 status=CheckStatus.FAIL,
-                message=(
-                    f"investment_capability: {type(exc).__name__}: {exc} "
-                    "(does not block auth/API readiness)"
-                ),
+                message=str(exc),
             )
-        detail = ", ".join(f"{k}={v}" for k, v in sorted(selected.items()))
         return HealthCheckResult(
             name="investment_data_provider",
             status=CheckStatus.PASS,
-            message=f"authenticated adapters: {detail}" if detail else "configured",
+            message=(
+                "configured: market_quote="
+                f"{selected['market_quote']}, financial_statement="
+                f"{selected['financial_statement']}"
+            ),
         )
 
     def _check_wiring(self, *, canonical_ready: bool = False) -> HealthCheckResult:

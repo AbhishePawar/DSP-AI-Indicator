@@ -1,19 +1,10 @@
 /** EPIC-009 — User-owned persistence models (frontend cache, user-scoped). */
 
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
-import type {
-  PortfolioActivity,
-  PortfolioHolding,
-} from "@/lib/portfolio/model";
+import type { PortfolioActivity, PortfolioHolding } from "@/lib/portfolio/model";
 import type { ThemeMode } from "@/providers/ThemeProvider";
 
-export type SyncStatus =
-  | "idle"
-  | "loading"
-  | "saving"
-  | "saved"
-  | "error"
-  | "conflict";
+export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "conflict";
 
 export type UserPortfolio = {
   id: string;

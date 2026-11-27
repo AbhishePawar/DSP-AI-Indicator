@@ -42,3 +42,12 @@ temp
 Thumbs.db
 .idea
 .vscode
+
+# Exclude nested secrets and build artifacts
+**/node_modules
+**/.next
+**/out
+**/playwright-report
+**/test-results
+**/.env
+**/.env.*

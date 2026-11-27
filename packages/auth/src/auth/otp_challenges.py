@@ -239,9 +239,9 @@ def _record_from_payload(payload: dict[str, Any]) -> OtpChallengeRecord:
 
 
 def default_otp_store() -> OtpChallengeStore:
-    """Production uses the process A008 registry; tests get an isolated store."""
+    """Staging/production use shared A008; development gets an isolated in-memory store."""
     environment = (os.environ.get("DSP_ENVIRONMENT") or "").strip().lower()
-    if environment == "production":
+    if environment in {"production", "staging"}:
         return OtpChallengeStore()
     from persistence import (
         InMemoryStorageProvider,

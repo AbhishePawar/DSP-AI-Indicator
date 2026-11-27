@@ -77,11 +77,7 @@ export function FilterPanel({
                 onClick={() => onApplyPreset(preset.id)}
               />
             ))}
-            <FilterChip
-              label="Reset"
-              active={false}
-              onClick={onReset}
-            />
+            <FilterChip label="Reset" active={false} onClick={onReset} />
           </div>
         </div>
 
@@ -118,9 +114,7 @@ export function FilterPanel({
           <FilterGroup label="Debt to Equity Max">
             <Input
               value={filters.maxDebtToEquity}
-              onChange={(event) =>
-                onChange("maxDebtToEquity", event.target.value)
-              }
+              onChange={(event) => onChange("maxDebtToEquity", event.target.value)}
               inputMode="decimal"
               placeholder="e.g. 0.5"
               aria-label="Maximum debt to equity"
@@ -130,9 +124,7 @@ export function FilterPanel({
           <FilterGroup label="Revenue Growth Min %">
             <Input
               value={filters.minRevenueGrowth}
-              onChange={(event) =>
-                onChange("minRevenueGrowth", event.target.value)
-              }
+              onChange={(event) => onChange("minRevenueGrowth", event.target.value)}
               inputMode="decimal"
               placeholder="e.g. 12"
               aria-label="Minimum revenue growth"
@@ -142,9 +134,7 @@ export function FilterPanel({
           <FilterGroup label="Profit Growth Min %">
             <Input
               value={filters.minProfitGrowth}
-              onChange={(event) =>
-                onChange("minProfitGrowth", event.target.value)
-              }
+              onChange={(event) => onChange("minProfitGrowth", event.target.value)}
               inputMode="decimal"
               placeholder="e.g. 12"
               aria-label="Minimum profit growth"
@@ -154,7 +144,9 @@ export function FilterPanel({
           <FilterGroup label="Market Cap">
             <Select
               value={filters.marketCap}
-              onChange={(value) => onChange("marketCap", value as ScreeningFilters["marketCap"])}
+              onChange={(value) =>
+                onChange("marketCap", value as ScreeningFilters["marketCap"])
+              }
               options={["all", "large", "mid", "small"]}
               ariaLabel="Market cap filter"
             />

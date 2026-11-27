@@ -8,11 +8,7 @@ import type { ConfidenceLevel } from "@/lib/trust/labels";
 export const DATA_UNAVAILABLE = "Data unavailable.";
 export const UNABLE_TO_CALCULATE = "Unable to calculate.";
 
-export type TrustLadderLayerId =
-  | "facts"
-  | "analysis"
-  | "inference"
-  | "recommendation";
+export type TrustLadderLayerId = "facts" | "analysis" | "inference" | "recommendation";
 
 export type TrustLadderLayer = {
   id: TrustLadderLayerId;
@@ -138,11 +134,8 @@ export function portfolioSurfaceTrust(input: {
   opposingNotes?: string[];
 }): SurfaceTrustSummary {
   const factsPresent = input.holdingsCount > 0 ? 1 : 0;
-  const analysisPresent =
-    input.researchTotal > 0 && input.researchCovered > 0 ? 1 : 0;
-  const inferencePresent = /ok|success|available/i.test(input.intelStatus)
-    ? 1
-    : 0;
+  const analysisPresent = input.researchTotal > 0 && input.researchCovered > 0 ? 1 : 0;
+  const inferencePresent = /ok|success|available/i.test(input.intelStatus) ? 1 : 0;
   const present = factsPresent + analysisPresent + inferencePresent;
   const layers: TrustLadderLayer[] = [
     {
@@ -170,9 +163,7 @@ export function portfolioSurfaceTrust(input: {
     {
       id: "inference",
       title: "3 · Inference · Portfolio intelligence API",
-      summary: input.intelStatus?.trim()
-        ? input.intelStatus
-        : DATA_UNAVAILABLE,
+      summary: input.intelStatus?.trim() ? input.intelStatus : DATA_UNAVAILABLE,
       presence: inferencePresent ? "available" : "unavailable",
     },
     {
@@ -188,9 +179,7 @@ export function portfolioSurfaceTrust(input: {
     layers,
     evidence: buildEvidenceCompleteness(present, 3),
     confidenceDisplay: input.confidenceDisplay?.trim() || DATA_UNAVAILABLE,
-    confidenceLevel: input.confidenceDisplay?.trim()
-      ? "moderate"
-      : "unavailable",
+    confidenceLevel: input.confidenceDisplay?.trim() ? "moderate" : "unavailable",
     contradictoryEvidence: (input.opposingNotes ?? []).filter(Boolean),
     auditTrail: [
       `Audit: portfolio surface · holdings=${input.holdingsCount} · coverage=${input.researchCovered}/${input.researchTotal}`,
@@ -225,11 +214,7 @@ export function researchWorkspaceSurfaceTrust(input: {
           : input.analyseOk === false
             ? `Ticker ${input.ticker} · analyse incomplete / failed · ${DATA_UNAVAILABLE}`
             : `Ticker ${input.ticker} · load research to populate facts`,
-      presence: factsPresent
-        ? "available"
-        : hasTicker
-          ? "partial"
-          : "unavailable",
+      presence: factsPresent ? "available" : hasTicker ? "partial" : "unavailable",
     },
     {
       id: "analysis",

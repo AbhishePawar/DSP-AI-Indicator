@@ -22,10 +22,7 @@ export type {
   ReviewTimelineEvent,
   ClientReview,
 } from "./reviewTypes";
-export {
-  CHECKLIST_LABELS,
-  DEFAULT_CHECKLIST_ORDER,
-} from "./reviewTypes";
+export { CHECKLIST_LABELS, DEFAULT_CHECKLIST_ORDER } from "./reviewTypes";
 export * from "./reviewModels";
 export * from "./reviewSession";
 export { isAdvisorDemoEnabled } from "./isAdvisorDemoEnabled";

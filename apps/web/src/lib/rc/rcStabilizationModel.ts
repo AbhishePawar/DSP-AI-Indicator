@@ -87,7 +87,8 @@ export const SPRINT11_RESOLUTIONS: ResolutionRecord[] = [
     component: "ux_feedback",
     before: "Mixed py-4 / py-6 / ad-hoc margins on Dashboard → Beta pages",
     after: "ContentArea standard max-w-6xl + consistent sm:py-8 spacing scale",
-    verification: "Visual audit of Dashboard, Analysis, KG, Copilot, Reports, Portfolio, Launch, Beta",
+    verification:
+      "Visual audit of Dashboard, Analysis, KG, Copilot, Reports, Portfolio, Launch, Beta",
     status: "resolved",
   },
   {
@@ -97,7 +98,8 @@ export const SPRINT11_RESOLUTIONS: ResolutionRecord[] = [
     component: "ux_feedback",
     before: "Plain muted text cards without action affordance",
     after: "Shared EmptyState / SuccessState with clear next actions",
-    verification: "Keyboard focus lands on primary action; screen-reader announces titles",
+    verification:
+      "Keyboard focus lands on primary action; screen-reader announces titles",
     status: "resolved",
   },
   {
@@ -166,7 +168,9 @@ export function listResolutions(): ResolutionRecord[] {
   return readResolutions();
 }
 
-export function recordResolution(entry: Omit<ResolutionRecord, "id"> & { id?: string }): ResolutionRecord {
+export function recordResolution(
+  entry: Omit<ResolutionRecord, "id"> & { id?: string },
+): ResolutionRecord {
   const record: ResolutionRecord = {
     id: entry.id ?? `res-${Date.now().toString(36)}`,
     title: entry.title,
@@ -178,7 +182,10 @@ export function recordResolution(entry: Omit<ResolutionRecord, "id"> & { id?: st
     status: entry.status,
   };
   if (typeof window !== "undefined") {
-    const all = [record, ...readResolutions().filter((r) => r.id !== record.id)].slice(0, 100);
+    const all = [record, ...readResolutions().filter((r) => r.id !== record.id)].slice(
+      0,
+      100,
+    );
     try {
       window.localStorage.setItem(RESOLUTION_KEY, JSON.stringify(all));
     } catch {
@@ -251,7 +258,8 @@ export function buildA11yWalkthrough(): ValidationRow[] {
       id: "contrast",
       label: "Contrast audit",
       status: "pass",
-      notes: "Accent/muted tokens meet AA on light & dark; prefers-contrast:more overrides",
+      notes:
+        "Accent/muted tokens meet AA on light & dark; prefers-contrast:more overrides",
     },
     {
       id: "motion",
@@ -264,7 +272,12 @@ export function buildA11yWalkthrough(): ValidationRow[] {
 
 export function buildCrossBrowserMatrix(): ValidationRow[] {
   return [
-    { id: "chrome-d", label: "Chrome · Desktop", status: "pass", notes: "Primary RC browser" },
+    {
+      id: "chrome-d",
+      label: "Chrome · Desktop",
+      status: "pass",
+      notes: "Primary RC browser",
+    },
     { id: "edge-d", label: "Edge · Desktop", status: "pass", notes: "Chromium parity" },
     {
       id: "ff-d",
@@ -278,8 +291,18 @@ export function buildCrossBrowserMatrix(): ValidationRow[] {
       status: "warn",
       notes: "Not available in agent CI — checklist pending operator",
     },
-    { id: "chrome-t", label: "Chrome · Tablet", status: "pass", notes: "Drawer nav + touch targets" },
-    { id: "chrome-m", label: "Chrome · Mobile", status: "pass", notes: "min-h-11 controls; stacked layouts" },
+    {
+      id: "chrome-t",
+      label: "Chrome · Tablet",
+      status: "pass",
+      notes: "Drawer nav + touch targets",
+    },
+    {
+      id: "chrome-m",
+      label: "Chrome · Mobile",
+      status: "pass",
+      notes: "min-h-11 controls; stacked layouts",
+    },
     {
       id: "safari-m",
       label: "Safari · Mobile",
@@ -313,7 +336,10 @@ export function buildRcDashboard(): RcDashboardView {
   const remainingCritical = openCount(issues, "critical");
   const remainingHigh = openCount(issues, "high");
   const resolvedFromTracker = issues.filter((i) => i.status === "resolved").length;
-  const resolvedIssues = Math.max(resolvedFromTracker, resolutions.filter((r) => r.status === "resolved").length);
+  const resolvedIssues = Math.max(
+    resolvedFromTracker,
+    resolutions.filter((r) => r.status === "resolved").length,
+  );
 
   const accessibilityStatus = issues.some(
     (i) =>
@@ -342,12 +368,18 @@ export function buildRcDashboard(): RcDashboardView {
   let score = 100;
   if (remainingCritical > 0) score -= 40;
   score -= Math.min(remainingHigh * 8, 24);
-  score -= Math.min(Math.max(remainingIssues - remainingCritical - remainingHigh, 0) * 2, 12);
+  score -= Math.min(
+    Math.max(remainingIssues - remainingCritical - remainingHigh, 0) * 2,
+    12,
+  );
   if (securityStatus.startsWith("Warn")) score -= 6;
   if (accessibilityStatus.startsWith("At")) score -= 15;
   if (performanceStatus.startsWith("Warn")) score -= 8;
   // Credit stabilization work
-  score = Math.min(100, score + Math.min(resolutions.filter((r) => r.status === "resolved").length, 6));
+  score = Math.min(
+    100,
+    score + Math.min(resolutions.filter((r) => r.status === "resolved").length, 6),
+  );
   score = Math.max(0, Math.round(score));
 
   let recommendation: RcDashboardView["recommendation"] = "APPROVE RC";

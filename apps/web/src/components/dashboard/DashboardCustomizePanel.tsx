@@ -18,9 +18,7 @@ export function DashboardCustomizePanel({
 }) {
   const widgetOrder = useDashboardPrefsStore((s) => s.widgetOrder);
   const hiddenWidgets = useDashboardPrefsStore((s) => s.hiddenWidgets);
-  const toggleWidgetVisible = useDashboardPrefsStore(
-    (s) => s.toggleWidgetVisible,
-  );
+  const toggleWidgetVisible = useDashboardPrefsStore((s) => s.toggleWidgetVisible);
   const moveWidget = useDashboardPrefsStore((s) => s.moveWidget);
   const resetLayout = useDashboardPrefsStore((s) => s.resetLayout);
 
@@ -49,8 +47,8 @@ export function DashboardCustomizePanel({
             Customize layout
           </h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Widget order and visibility are stored locally. Theme persists via
-            Theme Switcher.
+            Widget order and visibility are stored locally. Theme persists via Theme
+            Switcher.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -98,9 +96,7 @@ export function DashboardCustomizePanel({
                   <span className="sr-only">Show {meta.title}</span>
                   <Switch
                     checked={visible}
-                    onCheckedChange={() =>
-                      toggleWidgetVisible(id as DashboardWidgetId)
-                    }
+                    onCheckedChange={() => toggleWidgetVisible(id as DashboardWidgetId)}
                     aria-label={`Toggle ${meta.title} visibility`}
                   />
                   Visible

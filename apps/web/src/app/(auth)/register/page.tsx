@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { AuthCard, AuthShell, ProviderButton, mapAuthError, oauthRedirectUri } from "@/components/auth";
+import {
+  AuthCard,
+  AuthShell,
+  ProviderButton,
+  mapAuthError,
+  oauthRedirectUri,
+} from "@/components/auth";
 import { Stack, ValidationMessage } from "@/components/ds";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 
@@ -60,7 +66,10 @@ export default function RegisterPage() {
           </p>
           <p className="text-center text-sm text-[var(--muted)]">
             Already have an account?{" "}
-            <Link href="/login" className="text-[var(--accent)] underline-offset-2 hover:underline">
+            <Link
+              href="/login"
+              className="text-[var(--accent)] underline-offset-2 hover:underline"
+            >
               Sign in
             </Link>
           </p>

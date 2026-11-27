@@ -370,3 +370,46 @@ class TestFromConfig:
         )
         with pytest.raises(PlatformError, match="commercial"):
             DSPPlatform.from_config(config)
+
+    def test_from_config_passes_same_provider_registry_to_health(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The composition-root registry must reach the health service unchanged."""
+        import dsp_platform.health as health_module
+        import dsp_platform.wiring as wiring_module
+
+        captured: dict[str, Any] = {}
+        original_builder = wiring_module.build_analysis_components
+        original_init = health_module.PlatformHealthService.__init__
+
+        def capture_builder(config: PlatformConfig) -> Any:
+            service, registry = original_builder(config)
+            captured["built_registry"] = registry
+            return service, registry
+
+        def capture_health_init(
+            instance: Any,
+            *,
+            config: Any,
+            platform: Any = None,
+            provider_registry: Any = None,
+        ) -> None:
+            captured["health_registry"] = provider_registry
+            original_init(
+                instance,
+                config=config,
+                platform=platform,
+                provider_registry=provider_registry,
+            )
+
+        monkeypatch.setattr(wiring_module, "build_analysis_components", capture_builder)
+        monkeypatch.setattr(
+            health_module.PlatformHealthService,
+            "__init__",
+            capture_health_init,
+        )
+
+        platform = DSPPlatform.from_config(PlatformConfig(environment=Environment.TEST))
+        platform.health_check()
+
+        assert captured["health_registry"] is captured["built_registry"]

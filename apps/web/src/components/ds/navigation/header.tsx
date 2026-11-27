@@ -29,9 +29,7 @@ export function Header({
           {center}
         </div>
       ) : null}
-      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-        {right}
-      </div>
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{right}</div>
       {children}
     </header>
   );

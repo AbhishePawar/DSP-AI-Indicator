@@ -29,8 +29,9 @@ export default function ScreeningPage() {
     [filters],
   );
   const filtersApplied = getFiltersAppliedCount(filters);
-  const availableResearch = results.filter((company) => company.researchAvailable)
-    .length;
+  const availableResearch = results.filter(
+    (company) => company.researchAvailable,
+  ).length;
 
   function updateFilter<K extends keyof ScreeningFilters>(
     key: K,

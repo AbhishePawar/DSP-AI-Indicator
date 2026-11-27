@@ -17,14 +17,8 @@ import {
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { featureFlags } from "@/lib/featureFlags";
-import {
-  listRecentReports,
-  type RecentReportEntry,
-} from "@/lib/recentReports";
-import {
-  DashboardWidgetShell,
-  WidgetUnavailable,
-} from "../DashboardWidgetShell";
+import { listRecentReports, type RecentReportEntry } from "@/lib/recentReports";
+import { DashboardWidgetShell, WidgetUnavailable } from "../DashboardWidgetShell";
 
 export function RecentResearchReportsWidget() {
   const { session } = useAuth();
@@ -37,8 +31,7 @@ export function RecentResearchReportsWidget() {
   const queries = useQueries({
     queries: entries.slice(0, 5).map((entry) => ({
       queryKey: ["dashboard", "report", entry.reportId],
-      queryFn: () =>
-        api.getReport(entry.reportId, { token: session?.accessToken }),
+      queryFn: () => api.getReport(entry.reportId, { token: session?.accessToken }),
       enabled: Boolean(session?.accessToken) && entries.length > 0,
       retry: false,
     })),
@@ -95,13 +88,9 @@ export function RecentResearchReportsWidget() {
                     {q?.isLoading ? (
                       <Skeleton className="h-4 w-16" />
                     ) : q?.isError ? (
-                      <span className="text-[var(--danger-fg)]">
-                        Data unavailable.
-                      </span>
+                      <span className="text-[var(--danger-fg)]">Data unavailable.</span>
                     ) : q?.data ? (
-                      <span className="text-[var(--muted)]">
-                        {q.data.format}
-                      </span>
+                      <span className="text-[var(--muted)]">{q.data.format}</span>
                     ) : (
                       "—"
                     )}

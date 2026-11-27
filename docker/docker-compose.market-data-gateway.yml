@@ -20,6 +20,7 @@ services:
       dockerfile: docker/market-data-gateway.Dockerfile
     restart: unless-stopped
     environment:
+      DSP_UPSTOX_ENABLED: "${DSP_UPSTOX_ENABLED:-false}"
       DSP_MARKET_GATEWAY_API_KEY: ${DSP_MARKET_GATEWAY_API_KEY:?Set a private gateway API key}
       UPSTOX_ACCESS_TOKEN: ${UPSTOX_ACCESS_TOKEN:-}
       UPSTOX_BASE_URL: ${UPSTOX_BASE_URL:-https://api.upstox.com}

@@ -50,6 +50,7 @@ services:
     env_file:
       - ../../.env.staging
     environment:
+      DSP_UPSTOX_ENABLED: "${DSP_UPSTOX_ENABLED:-false}"
       DSP_ENVIRONMENT: staging
       DSP_OBJECT_STORAGE_PROVIDER: local
       DSP_OBJECT_STORAGE_LOCAL_ROOT: /var/lib/dsp/artifacts/object-storage

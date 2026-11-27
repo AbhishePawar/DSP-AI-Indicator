@@ -48,7 +48,7 @@ class AnalysisRequest:
     market_frequency: BarFrequency = BarFrequency.DAILY
     statement_period: StatementPeriodType = StatementPeriodType.ANNUAL
     fundamentals_limit: int | None = 4
-    economic_country: str = "US"
+    economic_country: str | None = None
     include_fundamentals: bool = True
     include_economic: bool = True
     include_valuation: bool = True
@@ -66,9 +66,31 @@ class AnalysisRequest:
         if self.fundamentals_limit is not None and self.fundamentals_limit < 0:
             msg = f"fundamentals_limit must be non-negative, got {self.fundamentals_limit}"
             raise OrchestrationError(msg)
-        if not self.economic_country.strip():
-            msg = "economic_country must not be empty"
-            raise OrchestrationError(msg)
+        if self.economic_country is None:
+            exchange = str(
+                self.instrument.exchange or ""
+            ).strip().upper()
+
+            resolved = (
+                "IN" if exchange in {"NSE", "BSE", "AMFI"}
+                else "US"
+            )
+
+            object.__setattr__(
+                self, "economic_country", resolved
+            )
+
+        elif not self.economic_country.strip():
+            raise OrchestrationError(
+                "economic_country must not be empty"
+            )
+
+        else:
+            object.__setattr__(
+                self,
+                "economic_country",
+                self.economic_country.strip().upper(),
+            )
         if self.market_cap is not None and self.market_cap < 0:
             msg = f"market_cap must be non-negative, got {self.market_cap}"
             raise OrchestrationError(msg)

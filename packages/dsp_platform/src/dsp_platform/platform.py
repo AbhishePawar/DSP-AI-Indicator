@@ -320,7 +320,7 @@ class DSPPlatform:
         market_frequency: BarFrequency = BarFrequency.DAILY,
         statement_period: StatementPeriodType = StatementPeriodType.ANNUAL,
         fundamentals_limit: int | None = 4,
-        economic_country: str = "US",
+        economic_country: str | None = None,
         include_fundamentals: bool | None = None,
         include_economic: bool | None = None,
         include_valuation: bool | None = None,

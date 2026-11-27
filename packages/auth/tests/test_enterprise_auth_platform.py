@@ -31,6 +31,7 @@ from persistence import (
 @pytest.fixture(autouse=True)
 def _reset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    monkeypatch.setenv("DSP_SEED_ADMIN_PASSWORD", "unit-test-fixture-value")
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_ID", raising=False)
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_SECRET", raising=False)
@@ -75,6 +76,14 @@ def test_admin_seed_only_when_missing() -> None:
         u for u in platform.admin_list_users() if u.get("email") == "admin@dspai.local"
     ]
     assert len(again) == 1
+
+
+def test_development_admin_seed_without_password_is_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("DSP_SEED_ADMIN_PASSWORD", raising=False)
+    monkeypatch.setenv("DSP_P109_PASSWORD", "ignored-test-fixture")
+    platform = _platform()
+    platform.ensure_dev_admin_seed()
+    assert not any("administrator" in u.roles or "super_admin" in u.roles for u in platform.auth.users.list_users())
 
 
 def test_production_admin_seed_requires_explicit_password(

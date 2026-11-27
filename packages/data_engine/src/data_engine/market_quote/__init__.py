@@ -9,6 +9,7 @@ from data_engine.market_quote.adapters import (
     build_default_quote_adapter_from_env,
     build_quote_from_mapping,
 )
+from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.market_quote.models import (
     AuthenticatedMarketQuote,
     MarketQuoteProvenance,
@@ -40,6 +41,7 @@ __all__ = [
     "MarketQuoteService",
     "MarketQuoteServiceMetrics",
     "NullAuthenticatedQuoteAdapter",
+    "UpstoxQuoteAdapter",
     "QuoteField",
     "QuoteProviderHealth",
     "RateLimiter",

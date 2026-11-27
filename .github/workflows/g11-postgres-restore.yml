@@ -63,13 +63,18 @@ jobs:
       - name: Install PostgreSQL client tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client gzip
+          # Match the PostgreSQL 16 service/production target. The unversioned
+          # meta-package now installs PostgreSQL 18 on the Ubuntu runner, whose
+          # pg_dump emits SET transaction_timeout that PostgreSQL 16 rejects.
+          sudo apt-get install -y postgresql-client-16 gzip
+          echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
+          export PATH="/usr/lib/postgresql/16/bin:$PATH"
           command -v pg_dump
           command -v psql
           command -v gzip
           command -v bash
-          pg_dump --version
-          psql --version
+          pg_dump --version | grep -E 'PostgreSQL\) 16\.'
+          psql --version | grep -E 'PostgreSQL\) 16\.'
 
       - name: Install monorepo + psycopg
         run: |

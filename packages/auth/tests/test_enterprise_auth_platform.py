@@ -30,6 +30,7 @@ from persistence import (
 @pytest.fixture(autouse=True)
 def _reset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    monkeypatch.setenv("DSP_SEED_ADMIN_PASSWORD", "unit-test-fixture-value")
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_ID", raising=False)
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_SECRET", raising=False)
@@ -46,7 +47,7 @@ def _reset(monkeypatch: pytest.MonkeyPatch) -> None:
         oauth=OAuthProviderRegistry({}),
         otp=OtpService(DevSmsAdapter()),
     )
-    # Prevent auto-seed racing tests that expect empty admin set — re-seed explicitly in tests.
+    # Give this isolated test platform an explicit, non-production seed credential.
     reset_enterprise_auth_platform_for_tests(platform)
     yield
     reset_enterprise_auth_platform_for_tests(None)

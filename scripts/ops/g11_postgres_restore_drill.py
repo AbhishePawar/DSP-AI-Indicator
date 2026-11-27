@@ -501,6 +501,29 @@ def main() -> int:
             return _fail(f"pg_dump restore failed: {restored}", evidence)
         evidence["steps"]["restore"] = {"result": "PASS", "detail": restored.get("message")}
 
+        # Record the restored enterprise snapshot before authorization probes.
+        # This distinguishes a missing/corrupt snapshot from a permission-layer
+        # regression without exposing production data (synthetic drill records only).
+        from enterprise import DatabaseEnterpriseStore
+
+        restored_store = DatabaseEnterpriseStore(db)
+        snapshot_rows = db.fetchall(
+            "SELECT snapshot_key, length(payload) AS payload_length "
+            "FROM enterprise_snapshots"
+        )
+        evidence["steps"]["post_restore_enterprise_probe"] = {
+            "snapshot_rows": snapshot_rows,
+            "organization_count": len(restored_store.organizations),
+            "member_count": len(restored_store.members),
+            "member_keys": sorted(restored_store.members.keys()),
+            "expected_member_keys": sorted(
+                [
+                    restored_store.member_key(ownership["org_a"]["org_id"], "owner-a"),
+                    restored_store.member_key(ownership["org_b"]["org_id"], "owner-b"),
+                ]
+            ),
+        }
+
         post = _assert_workers_and_isolation(db, ownership, "post_restore")
         evidence["steps"]["post_restore_workers"] = post
 

@@ -60,16 +60,36 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install PostgreSQL client tools
+      - name: Install PostgreSQL 16 client tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client gzip
+          # Use the official PostgreSQL 16 image for client binaries. Ubuntu
+          # 26.04 no longer publishes postgresql-client-16 in its default apt
+          # repositories. The wrappers preserve the CLI expected by the
+          # backup/restore scripts and mount the runner workspace for dump files.
+          tool_dir="$RUNNER_TEMP/pg-tools"
+          mkdir -p "$tool_dir"
+          for tool in pg_dump psql pg_isready; do
+            cat > "$tool_dir/$tool" <<'WRAPPER'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          tool="$(basename "$0")"
+          exec docker run --rm --interactive --network host \
+            -e PGPASSWORD="${PGPASSWORD:-dsp_g11_ci_only}" \
+            -v "${GITHUB_WORKSPACE:?}:${GITHUB_WORKSPACE:?}" \
+            -w "${GITHUB_WORKSPACE:?}" \
+            postgres:16-alpine "$tool" "$@"
+          WRAPPER
+            chmod +x "$tool_dir/$tool"
+          done
+          echo "$tool_dir" >> "$GITHUB_PATH"
+          export PATH="$tool_dir:$PATH"
           command -v pg_dump
           command -v psql
+          command -v pg_isready
           command -v gzip
           command -v bash
-          pg_dump --version
-          psql --version
+          pg_dump --version | grep -E 'PostgreSQL\) 16\.'
+          psql --version | grep -E 'PostgreSQL\) 16\.'
 
       - name: Install monorepo + psycopg
         run: |

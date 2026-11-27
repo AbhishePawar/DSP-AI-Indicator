@@ -69,6 +69,14 @@ RUN chmod +x /app/scripts/start-api.sh && \
     useradd --create-home --shell /bin/bash dsp && \
     chown -R dsp:dsp /app
 
+
+# Prepare writable runtime storage for the non-root API user.
+RUN install -d -m 0750 -o dsp -g dsp \
+    /tmp/dsp \
+    /var/backups/dsp \
+    /var/lib/dsp/artifacts \
+    /var/lib/dsp/artifacts/object-storage
+
 USER dsp
 EXPOSE 8000
 

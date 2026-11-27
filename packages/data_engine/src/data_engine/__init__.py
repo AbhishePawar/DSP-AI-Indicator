@@ -306,6 +306,8 @@ from data_engine.share_count import (
     ShareCount,
     ShareCountPort,
     resolve_verified_share_count,
+    DEFAULT_SHARE_COUNT_MAX_AGE_DAYS,
+    is_share_count_current,
 )
 from data_engine.source_governance import (
     APPROVED_SOURCES,
@@ -336,6 +338,8 @@ from data_engine.upstox.instrument_resolver import register_asset_resolver
 __all__ = [
     "register_asset_resolver",
     "InMemoryShareCountPort",
+    "DEFAULT_SHARE_COUNT_MAX_AGE_DAYS",
+    "is_share_count_current",
     "ShareCount",
     "ShareCountPort",
     "resolve_verified_share_count",

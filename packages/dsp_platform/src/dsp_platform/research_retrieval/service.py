@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import math
 from collections.abc import Callable, Iterable
+from datetime import UTC, date, datetime
 
 from data_engine import ShareCount
 from dsp_platform.research_retrieval.deduplication import (
@@ -68,6 +69,32 @@ def generate_stable_evidence_id(
     raw = raw_text.encode()
     digest = hashlib.sha256(raw).hexdigest()[:16]
     return f"ev_{digest}"
+
+
+def _assess_evidence_freshness(
+    published_at: str | None, *, today: date | None = None, max_age_days: int = 365
+) -> EvidenceFreshness:
+    """Assess evidence age from publication metadata, never from fetch time.
+
+    Missing or unparseable publication dates remain UNKNOWN; fetching an old
+    document today must not make its facts appear current.
+    """
+    raw = str(published_at or "").strip()
+    if not raw:
+        return EvidenceFreshness.UNKNOWN
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+    except ValueError:
+        try:
+            parsed = date.fromisoformat(raw[:10])
+        except ValueError:
+            return EvidenceFreshness.UNKNOWN
+    reference = today or datetime.now(tz=UTC).date()
+    if parsed > reference:
+        return EvidenceFreshness.UNKNOWN
+    if (reference - parsed).days > max_age_days:
+        return EvidenceFreshness.STALE
+    return EvidenceFreshness.CURRENT
 
 
 class ResearchRetrievalService:
@@ -173,6 +200,37 @@ class ResearchRetrievalService:
             # 3. Secure Document Retrieval
             try:
                 fetched_doc = self.fetcher.fetch(candidate.url)
+
+                if fetched_doc.status_code != 200:
+                    raise UrlSafetyError(
+                        "Document response was not successful"
+                    )
+
+                for destination in (
+                    *fetched_doc.redirect_chain,
+                    fetched_doc.final_url,
+                ):
+                    validate_url_safety(destination)
+
+                    destination_decision = (
+                        self.governance.evaluate_source(
+                            source=norm_source,
+                            url=destination,
+                            purpose="fundamental",
+                            publisher=candidate.publisher,
+                        )
+                    )
+
+                    if (
+                        not destination_decision.is_approved
+                        or destination_decision.source_tier
+                        != gov_decision.source_tier
+                        or destination_decision.status
+                        != gov_decision.status
+                    ):
+                        raise UrlSafetyError(
+                            "Redirect changed financial source authority"
+                        )
             except Exception as exc:
                 evidence_records.append(
                     ResearchEvidenceRecord(
@@ -236,13 +294,28 @@ class ResearchRetrievalService:
                 claimed_value=claimed_value,
                 units=candidate.metadata.get("units"),
                 claimed_period=candidate.metadata.get("period"),
+                is_share_count=_is_share_count_metric(
+                    candidate.metadata.get("metric_name")
+                ),
             )
 
-            # Grounded content never upgrades the source: a source governance only allows
-            # for cross-checking stays UNVERIFIED even when its text matches.
+            # Freshness is based on source publication metadata, not fetch time.
+            published_at = candidate.metadata.get("published_at")
+            freshness = _assess_evidence_freshness(published_at)
+
+            # Grounding, source authority, and freshness are independent gates.
+            # Injection-tainted documents are rejected by the validator.
             if not val_result.is_valid:
                 rec_status = EvidenceStatus.REJECTED
                 rec_reason: str | None = str(val_result.failure_reason.value)
+            elif freshness is EvidenceFreshness.STALE:
+                rec_status = EvidenceStatus.STALE
+                rec_reason = (
+                    "Evidence publication date is older than the freshness window"
+                )
+            elif freshness is EvidenceFreshness.UNKNOWN:
+                rec_status = EvidenceStatus.UNVERIFIED
+                rec_reason = "Publication date unavailable; evidence freshness cannot be verified"
             elif gov_decision.status is EvidenceStatus.VERIFIED:
                 rec_status = EvidenceStatus.VERIFIED
                 rec_reason = None
@@ -273,13 +346,13 @@ class ResearchRetrievalService:
                         provider=candidate.discovered_by,
                         publisher=candidate.publisher,
                         retrieved_at=now_str,
-                        published_at=candidate.metadata.get("published_at"),
+                        published_at=published_at,
                         effective_period=candidate.metadata.get("period"),
                         canonical_url=canon_url,
                         original_url=candidate.url,
                         content_hash=fetched_doc.content_hash,
                     ),
-                    freshness=val_result.freshness,
+                    freshness=freshness,
                     metric_name=candidate.metadata.get("metric_name"),
                     metric_value=claimed_value,
                     units=candidate.metadata.get("units"),
@@ -293,7 +366,13 @@ class ResearchRetrievalService:
         dedup_res = self.deduplicator.process_evidence(evidence_records)
 
         # 6. Authoritative Share-Count Resolution
-        share_evidence = self.share_resolver.resolve(symbol, share_candidates)
+        from datetime import date as reference_date_type
+
+        share_evidence = self.share_resolver.resolve(
+            symbol,
+            share_candidates,
+            reference_date=reference_date_type.fromisoformat(now_str[:10]),
+        )
 
         # 7. Categorization
         verified_items = tuple(
@@ -337,6 +416,36 @@ class ResearchRetrievalService:
         assert_evidence_privacy(outcome)
 
         return outcome
+
+
+
+def _is_share_count_metric(metric_name: str | None) -> bool:
+    """Identify metrics requiring strict outstanding-share validation."""
+
+    import re
+
+    normalized = re.sub(
+        r"[^a-z0-9]+",
+        " ",
+        str(metric_name or "").lower(),
+    ).strip()
+
+    return normalized in {
+        "shares",
+        "share count",
+        "outstanding shares",
+        "shares outstanding",
+        "outstanding equity shares",
+        "equity shares outstanding",
+        "number of outstanding shares",
+        "number of shares outstanding",
+        "period end shares",
+        "shares at period end",
+        "issued equity shares",
+        "issued shares",
+        "total shares",
+        "total share count",
+    }
 
 
 def _parse_metric_value(raw: object) -> tuple[float | None, str | None]:

@@ -81,7 +81,7 @@ def test_share_count_resolver_uses_verified_primary_and_cross_checks_secondary()
             purpose="cross_check",
         ),
     )
-    resolved = resolve_verified_share_count(" tcs ", candidates)
+    resolved = resolve_verified_share_count(" tcs ", candidates, reference_date=date(2026, 4, 3))
     assert resolved is not None
     assert resolved.source == "BSE"
     assert resolved.shares == 3_610_000_000
@@ -107,7 +107,7 @@ def test_share_count_resolver_fails_closed_on_material_conflict() -> None:
         ),
     )
     with pytest.raises(ValueError, match="disagree beyond tolerance"):
-        resolve_verified_share_count("TCS", candidates)
+        resolve_verified_share_count("TCS", candidates, reference_date=date(2026, 4, 3))
 
 
 def test_share_count_resolver_never_promotes_secondary_or_unverified_sources() -> None:
@@ -129,4 +129,4 @@ def test_share_count_resolver_never_promotes_secondary_or_unverified_sources() -
             purpose="fundamental",
         ),
     )
-    assert resolve_verified_share_count("TCS", candidates) is None
+    assert resolve_verified_share_count("TCS", candidates, reference_date=date(2026, 4, 3)) is None

@@ -12,11 +12,13 @@ F) Authentication modules do not import Upstox/investment adapters
 from __future__ import annotations
 
 import ast
+import importlib
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
+from api_platform.api.infra_bootstrap import InfraBootstrapResult
 from data_engine.connector_framework.production_profile import (
     assert_production_investment_connectors_configured,
 )
@@ -28,6 +30,20 @@ from data_engine.market_quote.adapters import build_default_quote_adapter_from_e
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
 _SOURCE_KEY = "phase1-test-source-key-not-real"
+
+
+
+
+def _mock_api_infrastructure_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        importlib.import_module("api_platform.api.app"),
+        "bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(
+            infrastructure=None,
+            production=None,
+            notes=("isolated authentication test",),
+        ),
+    )
 
 
 @pytest.fixture()
@@ -44,8 +60,7 @@ def _strip_investment_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
     monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")
-    # Isolate investment-decoupling from Postgres/region runtime gates.
-    monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
+    _mock_api_infrastructure_bootstrap(monkeypatch)
     monkeypatch.setattr(
         "api_platform.api.durable_product_stores.require_durable_product_database",
         lambda database: None,
@@ -155,7 +170,7 @@ def test_d_valid_http_configuration_still_works(
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
     monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")
-    monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
+    _mock_api_infrastructure_bootstrap(monkeypatch)
     monkeypatch.setattr(
         "api_platform.api.durable_product_stores.require_durable_product_database",
         lambda database: None,

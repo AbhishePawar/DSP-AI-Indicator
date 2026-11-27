@@ -39,7 +39,7 @@ export function Topbar({
             <Button
               variant="ghost"
               data-testid="open-navigation"
-              className="size-9 min-h-11 px-0 md:hidden"
+              className="min-h-11 min-w-11 px-0 md:hidden"
               onClick={onMenuClick}
               aria-label="Open navigation menu"
             >
@@ -48,7 +48,7 @@ export function Topbar({
             <Button
               variant="ghost"
               size="sm"
-              className="hidden size-9 px-0 md:inline-flex"
+              className="hidden min-h-11 min-w-11 px-0 md:inline-flex"
               data-testid="toggle-sidebar"
               onClick={onToggleCollapse}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -79,7 +79,7 @@ export function Topbar({
             variant="ghost"
             size="sm"
             data-testid="open-command-palette"
-            className="size-9 px-0 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            className="min-h-11 min-w-11 px-0 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             onClick={() => setCommandPaletteOpen(true)}
             aria-label="Open search and command palette"
           >

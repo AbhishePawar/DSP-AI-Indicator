@@ -12,7 +12,7 @@ _SCANNER = _REPO / "scripts" / "ops" / "assert_no_vercel_hosting.py"
 _PLAYWRIGHT = _REPO / "apps" / "web" / "playwright.config.ts"
 _DEVSECOPS = _REPO / ".github" / "workflows" / "devsecops.yml"
 _FRONTEND_CI = _REPO / ".github" / "workflows" / "frontend.yml"
-_CLOUDBUILD_WEB = _REPO / "cloudbuild-frontend.yaml"
+_VPS_COMPOSE = _REPO / "docker/docker-compose.production.yml"
 _HOSTING_HINTS = ("vercel.app", "vercel.com")
 
 
@@ -55,11 +55,13 @@ def test_frontend_ci_has_no_hosting_cli() -> None:
     assert "yarn build" in text or "npm run build" in text
 
 
-def test_frontend_deploy_path_is_cloud_run() -> None:
-    text = _CLOUDBUILD_WEB.read_text(encoding="utf-8")
-    assert "dsp-ai-indicator-web" in text
-    assert "gcr.io/cloud-builders/docker" in text
-    assert "vercel" not in text.lower()
+def test_frontend_deploy_path_is_vps() -> None:
+    text = _VPS_COMPOSE.read_text(encoding="utf-8")
+
+    assert "docker/frontend/Dockerfile" in text
+    assert "dsp-web" in text
+    assert "caddy:" in text
+    assert not _has_hosting_url(text)
 
 
 def test_environment_templates_and_provider_runtime_are_gateway_free() -> None:

@@ -123,6 +123,8 @@ class TestProductionCompositionRoot:
         """DSP_ENVIRONMENT stays the single source of truth — no new variable."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         assert resolve_platform_environment() is Environment.PRODUCTION
+        monkeypatch.setenv("DSP_ENVIRONMENT", "staging")
+        assert resolve_platform_environment() is Environment.STAGING
         monkeypatch.setenv("DSP_ENVIRONMENT", "")
         assert resolve_platform_environment() is Environment.DEVELOPMENT
         monkeypatch.setenv("DSP_ENVIRONMENT", "not-a-real-environment")

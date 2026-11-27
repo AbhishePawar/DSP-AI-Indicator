@@ -99,6 +99,7 @@ export function ModernAnalysisResult({
             >
               {view?.company || "Research a company"}
             </h1>
+            <p data-testid="analysis-ticker" className="mt-1 font-mono text-xs uppercase tracking-wider text-[var(--muted)]">{view?.ticker || symbol}</p>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">
               Business quality, financial strength, valuation, and evidence — brought
               together by the DSP research framework.
@@ -209,11 +210,20 @@ export function ModernAnalysisResult({
             className={`grid items-start gap-5 ${simpleMode ? "" : "lg:grid-cols-[176px_minmax(0,1fr)]"}`}
           >
             {!simpleMode && navigation}
-            <div data-testid="analysis-detail-content" className="min-w-0 space-y-5">
+            <main role="region" aria-label="Main analysis area" data-testid="analysis-detail-content" className="min-w-0 space-y-5">
               {!simpleMode && activeSection !== "summary" ? (
                 detail
               ) : (
                 <>
+                  <section aria-labelledby="executive-summary-heading" data-testid="executive-summary" className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">Company overview</p>
+                  <h2 id="executive-summary-heading" className="mt-2 font-[family-name:var(--font-display)] text-xl font-medium text-[var(--text)]">Executive Summary</h2>
+                </div>
+                <p data-testid="executive-summary-ticker" className="font-mono text-xs uppercase tracking-wider text-[var(--muted)]">Ticker: {view!.ticker || symbol}</p>
+              </div>
+            </section>
                   <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <DataCard
                       label="Recommendation"
@@ -321,7 +331,7 @@ export function ModernAnalysisResult({
                   </section>
                 </>
               )}
-            </div>
+            </main>
           </div>
         )}
       </div>

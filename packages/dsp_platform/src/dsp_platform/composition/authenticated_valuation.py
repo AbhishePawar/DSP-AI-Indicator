@@ -67,6 +67,7 @@ from valuation import MarketSnapshot, ValuationAssessment, ValuationConfidence
 __all__ = [
     "AuthenticatedValuationBundle",
     "AuthenticatedValuationError",
+    "ShareCountResearchEvidence",
     "DATA_UNAVAILABLE",
     "load_authenticated_valuation_bundle",
     "signals_from_assessment",
@@ -387,6 +388,35 @@ def _resolve_shares(
         getattr(latest, "shares_outstanding", StatementField.missing())
     )
     quote_shares = _qf(quote.shares_outstanding)
+
+    if statement_shares is not None and (
+        not math.isfinite(statement_shares)
+        or statement_shares <= 0
+        or not float(statement_shares).is_integer()
+    ):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (invalid statement shares outstanding)"
+        )
+
+    if quote_shares is not None and (
+        not math.isfinite(quote_shares)
+        or quote_shares <= 0
+    ):
+        quote_shares = None
+
+    from data_engine import is_share_count_current
+
+    if supplemental is not None and not is_share_count_current(supplemental):
+        supplemental = None
+
+    if supplemental is not None and (
+        not math.isfinite(supplemental.shares)
+        or supplemental.shares <= 0
+    ):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (invalid supplemental shares outstanding)"
+        )
+
     if supplemental is not None:
         if supplemental.ticker.strip().upper() != ticker.strip().upper():
             raise AuthenticatedValuationError(
@@ -463,9 +493,9 @@ def _resolve_shares(
 
 def _resolve_price(quote: AuthenticatedMarketQuote) -> float:
     price = _qf(quote.current_price)
-    if price is None:
+    if price is None or not math.isfinite(price) or price <= 0:
         price = _qf(quote.previous_close)
-    if price is None or price <= 0:
+    if price is None or not math.isfinite(price) or price <= 0:
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (authenticated market price unavailable)"
         )
@@ -680,6 +710,12 @@ def load_authenticated_valuation_bundle(
     price = _resolve_price(quote)
 
     quote_shares = _qf(quote.shares_outstanding)
+    # Treat non-finite/non-positive provider values as missing so the explicit
+    # sourced research fallback can run instead of poisoning integrity math.
+    if quote_shares is not None and (
+        not math.isfinite(quote_shares) or quote_shares <= 0
+    ):
+        quote_shares = None
     derived_shares = None
     latest_period = selected[0]
     net_income = _sf(latest_period.net_income)
@@ -714,14 +750,24 @@ def load_authenticated_valuation_bundle(
         raise AuthenticatedValuationError(str(exc)) from exc
 
     market_cap = _qf(quote.market_cap)
-    if market_cap is None or market_cap <= 0:
+    if (
+        market_cap is None
+        or not math.isfinite(market_cap)
+        or market_cap <= 0
+    ):
         market_cap = price * shares
-    elif quote_shares is not None and quote_shares > 0:
-        # Reject market_cap that implies a materially different share count.
+
+    if not math.isfinite(market_cap) or market_cap <= 0:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (invalid market capitalization)"
+        )
+
+    if shares > 0:
+        # Check market cap against the resolved count, including researched fallback.
         implied_shares = float(market_cap) / price
         try:
             assert_share_count_integrity(
-                quote_shares=quote_shares,
+                quote_shares=shares,
                 derived_shares=implied_shares,
                 tolerance=0.25,
             )

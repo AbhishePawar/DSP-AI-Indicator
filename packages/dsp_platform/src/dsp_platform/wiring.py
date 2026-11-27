@@ -22,16 +22,24 @@ from dsp_platform.exceptions import PlatformError
 from orchestration import InvestmentAnalysisService
 from snapshot_bridge import EconomicBridgeService, FinancialBridgeService
 
-__all__ = ["build_analysis_service"]
+__all__ = ["build_analysis_service", "build_analysis_components"]
 
 
 def build_analysis_service(config: PlatformConfig) -> InvestmentAnalysisService:
-    """Build an ``InvestmentAnalysisService`` from immutable config.
+    """Compatibility wrapper returning only the analysis service."""
+    service, _registry = build_analysis_components(config)
+    return service
+
+
+def build_analysis_components(
+    config: PlatformConfig,
+) -> tuple[InvestmentAnalysisService, ProviderRegistry]:
+    """Build the analysis service and expose its provider registry.
 
     Registers enabled providers, constructs Data Engine services and
-    snapshot bridges, and returns the orchestrator. Raises
-    ``PlatformError`` if economic data is enabled without a FRED API key
-    in non-test environments (live HTTP would otherwise fail opaquely).
+    snapshot bridges, and returns both the orchestrator and registry.
+    Raises PlatformError if economic data is enabled without a FRED API
+    key in non-test environments.
     """
     try:
         factory = ProviderFactory()
@@ -96,11 +104,12 @@ def build_analysis_service(config: PlatformConfig) -> InvestmentAnalysisService:
             cache_ttl_seconds=cache_ttl,
         )
 
-        return InvestmentAnalysisService(
+        service = InvestmentAnalysisService(
             market_data=market,
             financial_bridge=FinancialBridgeService(fundamentals=fundamentals),
             economic_bridge=EconomicBridgeService(economic=economic),
         )
+        return service, registry
     except PlatformError:
         raise
     except Exception as exc:

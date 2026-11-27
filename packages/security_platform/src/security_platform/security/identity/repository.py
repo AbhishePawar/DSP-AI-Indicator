@@ -112,19 +112,16 @@ class SqlUserRepository:
 
     def upsert(self, user: UserRecord) -> UserRecord:
         row = user_record_to_row(user)
-        existing = self.get(user.user_id)
-        if existing is None:
-            cols = ", ".join(row.keys())
-            vals = ", ".join(_sql_literal(v) for v in row.values())
-            self._db.execute(f"INSERT INTO identity_users ({cols}) VALUES ({vals})")
-        else:
-            # Replace via delete+insert for dialect simplicity
-            self._db.execute(
-                f"DELETE FROM identity_users WHERE user_id = {_sql_literal(user.user_id)}"
-            )
-            cols = ", ".join(row.keys())
-            vals = ", ".join(_sql_literal(v) for v in row.values())
-            self._db.execute(f"INSERT INTO identity_users ({cols}) VALUES ({vals})")
+        cols = ", ".join(row.keys())
+        vals = ", ".join(_sql_literal(v) for v in row.values())
+        updates = ", ".join(
+            f"{key} = EXCLUDED.{key}"
+            for key in row if key != "user_id"
+        )
+        self._db.execute(
+            f"INSERT INTO identity_users ({cols}) VALUES ({vals}) "
+            f"ON CONFLICT (user_id) DO UPDATE SET {updates}"
+        )
         return user
 
     def get(self, user_id: str) -> UserRecord | None:

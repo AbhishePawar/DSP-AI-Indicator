@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import ipaddress
 import socket
 import ssl
@@ -323,6 +324,11 @@ class DefaultSafeHttpFetcher:
                 current_url = next_url
                 continue
 
+            if status_code != 200:
+                raise UrlSafetyError(
+                    f"Document retrieval returned HTTP {status_code}"
+                )
+
             # Non-redirect response
             content_type = (
                 headers.get("content-type", "application/octet-stream")
@@ -338,7 +344,36 @@ class DefaultSafeHttpFetcher:
                     f"Prohibited content-type '{content_type}'; allowed: {sorted(self.policy.allowed_content_types)}"
                 )
 
-            text_content = body_bytes.decode("utf-8", errors="replace")
+            if content_type == "application/pdf":
+                from dsp_platform.research_retrieval.pdf_extraction import (
+                    PdfExtractionError,
+                    extract_pdf_text,
+                )
+
+                try:
+                    text_content = extract_pdf_text(body_bytes)
+                except PdfExtractionError as exc:
+                    raise UrlSafetyError(
+                        "Unable to extract financial PDF evidence"
+                    ) from exc
+            elif content_type in {
+                "text/html", "application/xhtml+xml"
+            }:
+                from dsp_platform.research_retrieval.html_extraction import (
+                    HtmlExtractionError,
+                    extract_html_text,
+                )
+
+                try:
+                    text_content = extract_html_text(body_bytes)
+                except HtmlExtractionError as exc:
+                    raise UrlSafetyError(
+                        "Unable to extract HTML financial evidence"
+                    ) from exc
+            else:
+                text_content = body_bytes.decode(
+                    "utf-8", errors="replace"
+                )
             content_hash = hashlib.sha256(body_bytes).hexdigest()
 
             return FetchedDocument(
@@ -383,46 +418,52 @@ class DefaultSafeHttpFetcher:
             )
             tls_sock.sendall(req.encode("utf-8"))
 
-            response_data = bytearray()
-            while True:
-                chunk = tls_sock.recv(16384)
-                if not chunk:
-                    break
-                response_data.extend(chunk)
-                if len(response_data) > self.policy.max_body_bytes:
+            response = http.client.HTTPResponse(tls_sock)
+
+            try:
+                response.begin()
+
+                status_code = response.status
+                headers = {
+                    k.lower(): v
+                    for k, v in response.getheaders()
+                }
+
+                encoding = headers.get(
+                    "content-encoding", "identity"
+                ).lower()
+
+                if encoding != "identity":
                     raise UrlSafetyError(
-                        f"Response exceeded maximum size of {self.policy.max_body_bytes} bytes"
+                        "Unsupported response content encoding"
                     )
+
+                body_bytes = response.read(
+                    self.policy.max_body_bytes + 1
+                )
+
+                if len(body_bytes) > self.policy.max_body_bytes:
+                    raise UrlSafetyError(
+                        "Response exceeded maximum document size"
+                    )
+
+                if (
+                    response.length is not None
+                    and response.length != 0
+                ):
+                    raise UrlSafetyError(
+                        "Incomplete HTTP response body"
+                    )
+
+                return status_code, headers, body_bytes
+
+            except http.client.HTTPException as exc:
+                raise UrlSafetyError(
+                    "Malformed or incomplete HTTP response"
+                ) from exc
+
+            finally:
+                response.close()
+
         finally:
             tls_sock.close()
-
-        # Parse HTTP response
-        header_end = response_data.find(b"\r\n\r\n")
-        if header_end == -1:
-            raise UrlSafetyError(
-                "Malformed HTTP response: headers terminator not found"
-            )
-
-        header_bytes = response_data[:header_end]
-        body_bytes = bytes(response_data[header_end + 4 :])
-
-        header_lines = header_bytes.decode("iso-8859-1", errors="replace").split("\r\n")
-        if not header_lines:
-            raise UrlSafetyError("Empty HTTP response headers")
-
-        status_line = header_lines[0].split()
-        if len(status_line) < 2:
-            raise UrlSafetyError(f"Malformed HTTP status line: {header_lines[0]}")
-
-        try:
-            status_code = int(status_line[1])
-        except ValueError as exc:
-            raise UrlSafetyError(f"Invalid HTTP status code: {status_line[1]}") from exc
-
-        headers: dict[str, str] = {}
-        for line in header_lines[1:]:
-            if ":" in line:
-                k, v = line.split(":", 1)
-                headers[k.strip().lower()] = v.strip()
-
-        return status_code, headers, body_bytes

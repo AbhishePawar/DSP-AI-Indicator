@@ -26,7 +26,7 @@ export async function openAnalysisWorkspace(page: Page, ticker: string): Promise
   });
   await expect(analysisNav(page)).toBeVisible({ timeout: 30_000 });
   await expect(analysisMain(page)).toBeVisible();
-  await expect(page.getByLabel(/Company search/i)).toBeVisible();
+  await expect(page.getByLabel(/Company ticker/i)).toBeVisible();
 }
 
 /** Section buttons concatenate label + shortcut; match label, not incidental order. */
@@ -127,8 +127,12 @@ export async function waitForAnalyseSuccess(
   }
 
   await expect(
-    page.getByRole("heading", { name: /Executive Summary|Summary/i }).first(),
-    "[P1-09 ANALYSIS] executive summary must be visible",
+    page.getByRole("heading", { name: /^Executive Summary$/i }),
+    "[P1-09 ANALYSIS] Executive Summary heading must be visible",
+  ).toBeVisible({ timeout: 30_000 });
+  await expect(
+    page.getByRole("heading", { name: /What the research says/i }).first(),
+    "[P1-09 ANALYSIS] current research evidence surface must be visible",
   ).toBeVisible({ timeout: 30_000 });
 
   const mainText = await analysisMain(page).innerText();
@@ -171,7 +175,7 @@ export async function assertBuffettVisible(
   payload: Record<string, unknown>,
   ticker: string,
 ): Promise<void> {
-  await openAnalysisSection(page, /Buffett Indicator/i, /Buffett Indicator Analysis/i);
+  await openAnalysisSection(page, /Buffett (?:Indicator|Assessment)/i, /Buffett Indicator Analysis/i);
   const buffettMain = analysisMain(page);
   await expect(
     buffettMain.getByText(/Presentation synthesis of existing/i).first(),
@@ -199,7 +203,7 @@ export async function assertEvidenceVisible(
   page: Page,
   analysisId: string,
 ): Promise<void> {
-  await openAnalysisSection(page, /Supporting Evidence/i, /Research objects/i);
+  await openAnalysisSection(page, /^(?:Supporting )?Evidence$/i, /Research objects/i);
   await expect(
     analysisMain(page).getByText("Analysis ID", { exact: true }).first(),
   ).toBeVisible();
@@ -263,7 +267,15 @@ export async function exportJsonSnapshot(
   ticker: string,
   analysisId: string,
 ): Promise<Record<string, unknown>> {
-  await openAnalysisSection(page, /Downloads/i, /^Downloads$/i);
+  // Export is intentionally grouped in the "More research tools" dropdown,
+  // not rendered as a regular AnalysisNavigation button.
+  const moreTools = page.getByRole("combobox", { name: "More research tools" });
+  await expect(moreTools, "[P1-09 EXPORT] research tools selector must be visible").toBeVisible();
+  await moreTools.selectOption("export");
+  await expect(
+    page.getByRole("heading", { name: /^Downloads$/i }),
+    "[P1-09 EXPORT] Downloads section must render after selecting Export",
+  ).toBeVisible({ timeout: 20_000 });
   const exportJson = page.getByRole("button", { name: /Export JSON/i });
   await expect(exportJson).toBeVisible({ timeout: 15_000 });
   const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });

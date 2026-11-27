@@ -32,7 +32,11 @@ from production_platform.production.database import (
     InMemoryDatabasePort,
     ensure_database_port,
 )
-from production_platform.production.exceptions import ConfigurationError, ProviderError
+from production_platform.production.exceptions import (
+    ConfigurationError,
+    ProviderError,
+    StartupError,
+)
 from production_platform.production.india import (
     IndiaOperationalProfile,
     build_india_profile,
@@ -167,16 +171,27 @@ class InfrastructureBundle:
     ) -> InfrastructureBundle:
         """Composition root: resolve optional vendors with graceful fallback."""
         if force_offline:
-            cfg = (
-                load_configuration_from_environ(environ)
-                if environ is not None
-                else ProductionConfiguration()
-            )
+            cfg = load_configuration_from_environ(environ)
+            if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
+                raise StartupError(
+                    f"{cfg.environment.value} does not permit offline infrastructure"
+                )
             return cls.create_offline(configuration=cfg)
 
         cfg = load_configuration_from_environ(environ)
+
+        # Staging and production must never silently select volatile storage.
+        if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
+            supported_providers = {"local", "s3", "minio"}
+            if cfg.object_storage.provider not in supported_providers:
+                raise ConfigurationError(
+                    "DSP_OBJECT_STORAGE_PROVIDER must explicitly select "
+                    "local, s3, or minio in staging/production; "
+                    f"received {cfg.object_storage.provider!r}"
+                )
+
         if (
-            cfg.environment is Environment.PRODUCTION
+            cfg.environment in {Environment.STAGING, Environment.PRODUCTION}
             and cfg.object_storage.provider == "local"
             and (
                 not cfg.object_storage.local_root
@@ -206,7 +221,7 @@ class InfrastructureBundle:
             except (ConfigurationError, ProviderError, ImportError) as exc:
                 # Production must never silently degrade to InMemoryDatabasePort;
                 # the real reason has to reach startup logs.
-                if cfg.environment is Environment.PRODUCTION:
+                if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
                     raise
                 notes.append(
                     f"PostgreSQL unavailable or driver missing ({exc}); "
@@ -254,7 +269,7 @@ class InfrastructureBundle:
         if provider == "local":
             local_root = cfg.object_storage.local_root
             if not local_root or not local_root.strip():
-                if cfg.environment is Environment.PRODUCTION:
+                if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
                     raise ConfigurationError(
                         "DSP_OBJECT_STORAGE_LOCAL_ROOT is required when "
                         "DSP_OBJECT_STORAGE_PROVIDER=local"
@@ -272,7 +287,7 @@ class InfrastructureBundle:
                     local_storage.delete(probe_key)
                     storage = local_storage
                 except OSError as exc:
-                    if cfg.environment is Environment.PRODUCTION:
+                    if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
                         raise ProviderError(
                             "Configured local object storage is not writable"
                         ) from exc
@@ -292,7 +307,7 @@ class InfrastructureBundle:
             if s3 is not None:
                 storage = s3
             else:
-                if cfg.environment is Environment.PRODUCTION:
+                if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
                     raise ProviderError(
                         f"Required object storage provider={provider} is unavailable"
                     )

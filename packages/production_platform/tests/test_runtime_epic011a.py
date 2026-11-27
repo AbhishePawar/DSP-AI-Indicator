@@ -10,6 +10,7 @@ from production_platform import (
     InfrastructureBundle,
     ProductionBundle,
     ProductionConfiguration,
+    RedisUnavailableError,
     StartupError,
     build_runtime_infrastructure,
     normalize_version,
@@ -60,6 +61,54 @@ class TestRuntimeValidation:
         # Config validates; DB connectivity checked later at build time.
         assert "DSP_DATABASE_URL" not in report.missing_required
         assert "DSP_REGION" not in report.missing_required
+
+    @pytest.mark.parametrize("profile", ["staging", "production"])
+    @pytest.mark.parametrize("key", ["DSP_ENVIRONMENT", "ENVIRONMENT"])
+    @pytest.mark.parametrize("offline", ["force", "environment"])
+    def test_strict_profiles_reject_offline(
+        self, profile: str, key: str, offline: str
+    ) -> None:
+        environ = {
+            key: profile,
+            "DSP_REGION": "ap-south-1",
+            "DSP_DATABASE_URL": "postgresql://user:pass@localhost:5432/dsp",
+        }
+        with pytest.raises(StartupError, match="does not permit offline"):
+            (
+                build_runtime_infrastructure(
+                    environ=environ,
+                    force_offline=offline == "force",
+                    **({"strict": True} if offline == "force" else {}),
+                )
+                if offline == "force"
+                else build_runtime_infrastructure(
+                    environ={**environ, "DSP_INFRA_OFFLINE": "true"}
+                )
+            )
+
+    def test_environment_alias_development_offline_still_works(self) -> None:
+        infra = build_runtime_infrastructure(
+            environ={"ENVIRONMENT": "development", "DSP_INFRA_OFFLINE": "true"}
+        )
+        assert infra.diagnostics.database_adapter == "InMemoryDatabasePort"
+
+    def test_require_redis_rejects_missing_redis_url(self) -> None:
+        with pytest.raises(RedisUnavailableError):
+            build_runtime_infrastructure(
+                environ={"DSP_ENVIRONMENT": "development"},
+                require_redis=True,
+            )
+
+    def test_required_unhealthy_redis_fails_runtime(self) -> None:
+        with pytest.raises(RedisUnavailableError):
+            build_runtime_infrastructure(
+                environ={
+                    "DSP_ENVIRONMENT": "development",
+                    "DSP_REDIS_URL": "redis://127.0.0.1:1/0",
+                    "DSP_REDIS_FALLBACK": "false",
+                    "DSP_REDIS_TIMEOUT": "0.05",
+                }
+            )
 
     def test_build_offline_force(self) -> None:
         infra = build_runtime_infrastructure(

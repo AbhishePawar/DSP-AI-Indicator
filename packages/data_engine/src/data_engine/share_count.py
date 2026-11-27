@@ -32,6 +32,9 @@ class ShareCount:
     def __post_init__(self) -> None:
         if not self.ticker.strip() or not isfinite(self.shares) or self.shares <= 0:
             raise ValueError("share count requires a ticker and positive finite shares")
+        if not float(self.shares).is_integer():
+            raise ValueError("share count must be a whole number")
+
         if not self.source.strip():
             raise ValueError("share count source is required")
         if self.purpose not in {"fundamental", "cross_check", "verification"}:
@@ -64,11 +67,40 @@ class InMemoryShareCountPort(ShareCountPort):
         return self._rows.get(ticker.strip().upper())
 
 
+
+DEFAULT_SHARE_COUNT_MAX_AGE_DAYS = 120
+
+
+def is_share_count_current(
+    candidate: ShareCount,
+    *,
+    reference_date: date | None = None,
+    max_age_days: int = DEFAULT_SHARE_COUNT_MAX_AGE_DAYS,
+) -> bool:
+    """Check effective-date freshness, not retrieval-date freshness."""
+    if type(max_age_days) is not int or max_age_days < 0:
+        raise ValueError("max_age_days must be a non-negative integer")
+
+    reference = reference_date or date.today()
+
+    if type(reference) is not date:
+        raise ValueError("reference_date must be a date")
+
+    if type(candidate.as_of) is not date:
+        return False
+
+    age = (reference - candidate.as_of).days
+
+    return 0 <= age <= max_age_days
+
+
 def resolve_verified_share_count(
     ticker: str,
     candidates: Iterable[ShareCount],
     *,
     tolerance: float = 0.05,
+    reference_date: date | None = None,
+    max_age_days: int = DEFAULT_SHARE_COUNT_MAX_AGE_DAYS,
 ) -> ShareCount | None:
     """Choose a recent verified primary source after reconciling all candidates.
 
@@ -81,10 +113,25 @@ def resolve_verified_share_count(
     if not isfinite(tolerance) or tolerance < 0 or tolerance >= 1:
         raise ValueError("tolerance must be finite and between zero and one")
 
+    reference = reference_date or date.today()
+
+    if type(reference) is not date:
+        raise ValueError("reference_date must be a date")
+
+    if type(max_age_days) is not int or max_age_days < 0:
+        raise ValueError("max_age_days must be a non-negative integer")
+
     accepted: list[ShareCount] = []
     for candidate in candidates:
         if candidate.ticker.strip().upper() != symbol or not candidate.verified:
             continue
+        if not is_share_count_current(
+            candidate,
+            reference_date=reference,
+            max_age_days=max_age_days,
+        ):
+            continue
+
         source = candidate.source.strip().upper()
         if not is_approved_source(source, purpose=candidate.purpose):
             continue
@@ -112,6 +159,8 @@ def resolve_verified_share_count(
 
 
 __all__ = [
+    "DEFAULT_SHARE_COUNT_MAX_AGE_DAYS",
+    "is_share_count_current",
     "InMemoryShareCountPort",
     "ShareCount",
     "ShareCountPort",

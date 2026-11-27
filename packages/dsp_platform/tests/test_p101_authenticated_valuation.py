@@ -434,7 +434,7 @@ def test_verified_primary_share_count_port_used_when_statement_metric_missing() 
     candidate = ShareCount(
         TICKER,
         100.0,
-        date(2026, 3, 31),
+        date.today(),
         "NSE",
         verified=True,
         purpose="fundamental",

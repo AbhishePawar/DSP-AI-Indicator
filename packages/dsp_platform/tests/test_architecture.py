@@ -35,6 +35,7 @@ _FORBIDDEN_IMPORT_ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
 )
 _EXPECTED_VERSION = "2.0.0"
 _EXPECTED_DEPS = [
+    "pypdf>=6.0,<7",
     "comparison",
     "contracts",
     "copilot",

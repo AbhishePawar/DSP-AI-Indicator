@@ -147,7 +147,10 @@ def create_app(
 
         # Auth-domain JWT only — never market-data / investment credentials.
         jwt_secret = resolve_auth_jwt_secret()
-        is_prod = os.environ.get("DSP_ENVIRONMENT", "").lower() == "production"
+        is_prod = os.environ.get("DSP_ENVIRONMENT", "").strip().lower() in {
+            "production",
+            "staging",
+        }
         if is_prod and auth_jwt_secret_is_default(jwt_secret):
             raise RuntimeError(
                 f"{AUTH_JWT_SECRET_ENV} must be set to a non-default value in production"

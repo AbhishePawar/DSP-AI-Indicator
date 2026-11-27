@@ -74,10 +74,6 @@ def is_approved_host(url: str) -> tuple[bool, SourceTier]:
         if host == suffix or host.endswith(f".{suffix}"):
             return True, SourceTier.SECONDARY
 
-    # Official investor relations portals (must be specific subdomain or verified issuer)
-    if host.startswith("investors.") or host.startswith("ir."):
-        return True, SourceTier.PRIMARY
-
     return False, SourceTier.UNAPPROVED
 
 
@@ -103,6 +99,71 @@ class RetrievalGovernance:
     ) -> GovernanceDecision:
         norm_source = normalize_source_name(source)
         purpose_lower = purpose.strip().lower()
+
+        # Explicit source identity and transport boundary.
+        source_domains = {
+            "NSE": ("nseindia.com",),
+            "BSE": ("bseindia.com",),
+            "SEC": ("sec.gov",),
+            "SCREENER": ("screener.in",),
+            "YAHOO_FINANCE": ("finance.yahoo.com",),
+            "UPSTOX": ("upstox.com",),
+        }
+
+        try:
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            valid_url = (
+                parsed.scheme == "https"
+                and bool(host)
+                and parsed.username is None
+                and parsed.password is None
+                and parsed.port in (None, 443)
+            )
+        except ValueError:
+            host = ""
+            valid_url = False
+
+        def reject(reason: str) -> GovernanceDecision:
+            return GovernanceDecision(
+                source_name=norm_source,
+                source_tier=SourceTier.UNAPPROVED,
+                is_approved=False,
+                status=EvidenceStatus.REJECTED,
+                permitted_roles=(),
+                rejection_reason=reason,
+            )
+
+        if not valid_url:
+            return reject("Missing or invalid HTTPS evidence URL")
+
+        expected_domains = source_domains.get(norm_source)
+
+        if expected_domains and not any(
+            host == domain or host.endswith("." + domain)
+            for domain in expected_domains
+        ):
+            approved, tier = is_approved_host(url)
+
+            # Preserve the existing secondary evidence downgrade.
+            if not (
+                norm_source in PRIMARY_SOURCES
+                and approved
+                and tier is SourceTier.SECONDARY
+            ):
+                return reject(
+                    "URL host is not an approved domain "
+                    "for the declared source"
+                )
+
+        if norm_source in PRIMARY_SOURCES or norm_source == "SEC":
+            if purpose_lower not in {
+                "fundamental",
+                "share_count",
+                "cross_check",
+                "verification",
+            }:
+                return reject("Unsupported primary evidence purpose")
 
         # 1. Market Data Boundary Check (Upstox)
         if norm_source in MARKET_DATA_SOURCES:

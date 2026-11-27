@@ -427,7 +427,7 @@ DSP_AUTH_JWT_SECRET=
 DSP_COOKIE_AUTH=true
 DSP_CSRF_ENABLED=true
 DSP_PASSWORD_HASHER=bcrypt
-DSP_SEED_ADMIN_PASSWORD=Admin@123
+DSP_SEED_ADMIN_PASSWORD=<set out-of-band; no default>
 DSP_FORCE_ADMIN_SEED=0
 
 # Google
@@ -707,7 +707,7 @@ If no administrator exists (non-production unless `DSP_FORCE_ADMIN_SEED=1`):
 
 - email: `admin@dspai.local`  
 - username: `admin`  
-- password: `Admin@123` (or `DSP_SEED_ADMIN_PASSWORD`)  
+- password: supplied through `DSP_SEED_ADMIN_PASSWORD`; no checked-in or fallback password
 - role: Administrator  
 
 ## 10. Security summary

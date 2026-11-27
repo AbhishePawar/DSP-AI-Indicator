@@ -79,10 +79,8 @@ def required_env_vars(environment: Environment | str) -> tuple[str, ...]:
         if isinstance(environment, Environment)
         else Environment(str(environment).lower())
     )
-    if env is Environment.PRODUCTION:
+    if env in {Environment.STAGING, Environment.PRODUCTION}:
         return _PRODUCTION_REQUIRED
-    if env is Environment.STAGING:
-        return ("DSP_ENVIRONMENT",)
     return ()
 
 
@@ -93,7 +91,7 @@ def validate_runtime_environment(
 ) -> RuntimeValidationReport:
     """Validate env completeness for the active profile.
 
-    ``strict`` defaults to True when environment is production.
+    ``strict`` defaults to True for staging and production.
     """
     env_map = dict(environ if environ is not None else os.environ)
     profile = (
@@ -115,7 +113,11 @@ def validate_runtime_environment(
             notes=(f"unknown DSP_ENVIRONMENT: {profile}",),
         )
 
-    is_strict = strict if strict is not None else environment is Environment.PRODUCTION
+    is_strict = (
+        strict
+        if strict is not None
+        else environment in {Environment.STAGING, Environment.PRODUCTION}
+    )
     required = required_env_vars(environment)
 
     for key in required:
@@ -197,6 +199,15 @@ def build_runtime_infrastructure(
     - Redis: optional unless ``require_redis=True`` or graceful_fallback=false.
     """
     env_map = dict(environ if environ is not None else os.environ)
+    profile = (
+        (env_map.get("DSP_ENVIRONMENT") or env_map.get("ENVIRONMENT") or "development")
+        .strip()
+        .lower()
+    )
+    if profile in {"staging", "production"} and (
+        force_offline or _truthy(env_map.get("DSP_INFRA_OFFLINE"))
+    ):
+        raise StartupError(f"{profile} does not permit offline infrastructure")
     if force_offline or _truthy(env_map.get("DSP_INFRA_OFFLINE")):
         report = validate_runtime_environment(env_map, strict=False)
         cfg = load_configuration_from_environ(env_map)
@@ -224,7 +235,7 @@ def build_runtime_infrastructure(
     need_db = (
         require_database
         if require_database is not None
-        else env is Environment.PRODUCTION
+        else env in {Environment.STAGING, Environment.PRODUCTION}
     )
     need_redis = require_redis is True or (
         bool(cfg.redis.url) and not cfg.redis.graceful_fallback
@@ -237,10 +248,12 @@ def build_runtime_infrastructure(
                 "PostgreSQL required for this profile but adapter is unavailable"
             )
 
-    if need_redis and infra.diagnostics.redis_fallback_active:
-        raise RedisUnavailableError(
-            "Redis required (graceful_fallback disabled) but adapter is unavailable"
-        )
+    if need_redis:
+        redis_health = infra.health_checks().get("redis", {})
+        if redis_health.get("status") != "pass":
+            raise RedisUnavailableError(
+                "Redis is required but Redis-backed infrastructure is not healthy"
+            )
 
     infra.notes.extend(report.warnings)
     infra.notes.append(

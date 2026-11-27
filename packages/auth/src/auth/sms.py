@@ -359,6 +359,8 @@ def build_sms_provider(name: str | None = None) -> SmsProviderPort:
     if preferred == "null":
         return NullSmsAdapter()
     if preferred in {"dev", "console"}:
+        if env in {"production", "prod", "staging"}:
+            return NullSmsAdapter()
         return DevSmsAdapter()
 
     if twilio.is_available():

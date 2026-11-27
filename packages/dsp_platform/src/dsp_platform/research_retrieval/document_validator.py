@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from math import isfinite
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -208,6 +209,77 @@ def period_present(claimed_period: str, text: str) -> bool:
     return any(c in norm_text for c in candidates)
 
 
+
+
+_REPORTING_PERIOD_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9])"
+    r"(?:Q[1-4]\s*)?FY\s*"
+    r"(?:\d{4}|\d{2})"
+    r"(?:\s*[-/–]\s*(?:\d{4}|\d{2}))?"
+    r"(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+
+
+def _canonical_reporting_period(value: str):
+    normalized = re.sub(
+        r"\s+", "", value.upper()
+    ).replace("–", "-").replace("/", "-")
+
+    match = re.fullmatch(
+        r"(Q[1-4])?FY(\d{4}|\d{2})"
+        r"(?:-(\d{4}|\d{2}))?",
+        normalized,
+    )
+
+    if not match:
+        return None
+
+    quarter, first, last = match.groups()
+
+    year = int(first)
+
+    if len(first) == 2:
+        year += 2000
+
+    if last:
+        end_year = int(last)
+
+        if len(last) == 2:
+            end_year += (year // 100) * 100
+
+            if end_year < year:
+                end_year += 100
+
+        if end_year != year + 1:
+            return None
+
+        year = end_year
+
+    return quarter or "", year
+
+
+def _period_matches_value_context(
+    claimed_period: str,
+    paragraph: str,
+) -> bool:
+    expected = _canonical_reporting_period(
+        claimed_period
+    )
+
+    if expected is None:
+        return False
+
+    periods = _REPORTING_PERIOD_PATTERN.findall(
+        paragraph
+    )
+
+    return bool(periods) and all(
+        _canonical_reporting_period(period) == expected
+        for period in periods
+    )
+
+
 def claim_terms(claim: str, ticker: str) -> tuple[str, ...]:
     """Content words of a prose claim that the document must contain to ground it."""
     symbol = ticker.strip().lower()
@@ -249,6 +321,14 @@ class DocumentValidator:
         warnings: list[str] = []
         if has_injection:
             warnings.append(f"Prompt injection pattern detected: {injection_desc}")
+            return DocumentValidationResult(
+                is_valid=False,
+                status=EvidenceStatus.REJECTED,
+                failure_reason=ValidationFailureReason.SUSPECTED_INJECTION,
+                grounded_excerpt="",
+                freshness=EvidenceFreshness.UNKNOWN,
+                warnings=tuple(warnings),
+            )
 
         # 1. Entity / Issuer Verification
         symbol = ticker.strip().upper()
@@ -279,8 +359,23 @@ class DocumentValidator:
         if claimed_value is not None:
             # A claim expressed "in crore" etc. is compared in absolute terms.
             target = claimed_value * unit_multiplier(units)
+
+            if not isfinite(target) or (
+                is_share_count and (
+                    target <= 0 or not float(target).is_integer()
+                )
+            ):
+                return DocumentValidationResult(
+                    is_valid=False,
+                    status=EvidenceStatus.REJECTED,
+                    failure_reason=ValidationFailureReason.VALUE_MISMATCH,
+                    grounded_excerpt="",
+                    warnings=("Invalid numerical claim",),
+                )
+
             found_match = False
             value_seen = False
+            period_mismatch_seen = False
             paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
             for idx, para in enumerate(paragraphs):
                 lower_para = para.lower()
@@ -291,11 +386,14 @@ class DocumentValidator:
                 )
                 for m in num_matches:
                     parsed_num = parse_indian_and_western_number(m.group(0))
-                    if parsed_num is None:
+                    if parsed_num is None or not isfinite(parsed_num):
                         continue
                     diff = abs(parsed_num - target)
                     denom = max(abs(target), 1.0)
-                    if (diff / denom) > self.tolerance:
+                    if is_share_count:
+                        if parsed_num != target:
+                            continue
+                    elif (diff / denom) > self.tolerance:
                         continue
                     value_seen = True
                     # The number only supports the claim if the metric label sits beside it.
@@ -304,6 +402,33 @@ class DocumentValidator:
                     ]
                     if terms and not all(t in window for t in terms):
                         continue
+                    if is_share_count:
+                        share_context = lower_para[
+                            max(0, m.start() - 80):
+                            m.end() + 80
+                        ]
+
+                        if re.search(
+                            r"weighted[ -]+average|diluted",
+                            share_context,
+                        ):
+                            continue
+
+                        if not re.search(
+                            r"outstanding[ -]+shares|"
+                            r"shares[ -]+outstanding|"
+                            r"period[ -]+end[ -]+shares|"
+                            r"shares[ -]+at[ -]+period[ -]+end",
+                            share_context,
+                        ):
+                            continue
+
+                    if claimed_period and not _period_matches_value_context(
+                        claimed_period, para
+                    ):
+                        period_mismatch_seen = True
+                        continue
+
                     found_match = True
                     grounded_excerpt = para[:500]
                     location = f"paragraph_{idx + 1}"
@@ -312,6 +437,30 @@ class DocumentValidator:
                     break
 
             if not found_match:
+                if period_mismatch_seen:
+                    return DocumentValidationResult(
+                        is_valid=False,
+                        status=EvidenceStatus.REJECTED,
+                        failure_reason=ValidationFailureReason.PERIOD_MISMATCH,
+                        grounded_excerpt="",
+                        warnings=(
+                            "Numerical value lacks unambiguous reporting-period context",
+                        ),
+                    )
+
+                if is_share_count and value_seen:
+                    return DocumentValidationResult(
+                        is_valid=False,
+                        status=EvidenceStatus.REJECTED,
+                        failure_reason=(
+                            ValidationFailureReason.SHARE_TYPE_MISMATCH
+                        ),
+                        grounded_excerpt="",
+                        warnings=(
+                            "Value lacks unambiguous outstanding-share context",
+                        ),
+                    )
+
                 return DocumentValidationResult(
                     is_valid=False,
                     status=EvidenceStatus.REJECTED,
@@ -361,7 +510,10 @@ class DocumentValidator:
                     )
 
         # 4. Period Verification: a claim for a period the document never mentions is not supported.
-        freshness = EvidenceFreshness.CURRENT
+        # Document retrieval time is not publication time. The retrieval service
+        # assigns freshness only when source publication/effective-date metadata
+        # is independently available.
+        freshness = EvidenceFreshness.UNKNOWN
         if claimed_period and not period_present(claimed_period, text):
             return DocumentValidationResult(
                 is_valid=False,

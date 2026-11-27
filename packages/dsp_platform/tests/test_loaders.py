@@ -53,7 +53,7 @@ class TestLoaders:
 
     def test_invalid_environment_raises(self) -> None:
         with pytest.raises(PlatformError, match="DSP_AI_ENVIRONMENT"):
-            load_platform_config({"DSP_AI_ENVIRONMENT": "staging"})
+            load_platform_config({"DSP_AI_ENVIRONMENT": "qa"})
 
     def test_invalid_bool_raises(self) -> None:
         with pytest.raises(PlatformError, match="boolean"):

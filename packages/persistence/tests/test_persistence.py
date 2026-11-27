@@ -410,3 +410,20 @@ def test_development_storage_is_in_memory(monkeypatch: pytest.MonkeyPatch) -> No
     reset_persistence_service_for_tests(None)
     storage = build_default_storage()
     assert storage.provider_id == "in_memory"
+
+
+def test_staging_missing_database_url_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "staging")
+    monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        build_default_storage()
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        get_repository_registry()
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        get_persistence_service()

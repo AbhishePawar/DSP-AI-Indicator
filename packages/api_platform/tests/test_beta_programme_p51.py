@@ -129,14 +129,10 @@ def test_analytics_and_dashboard(client: TestClient, headers: dict[str, str]) ->
     assert result["reports_generated"] >= 1
 
 
-@pytest.mark.xfail(
-    reason="Stale version pin (known residual; not P0-05 scope)",
-    strict=False,
-)
 def test_dsp_platform_version_expectation() -> None:
     from dsp_platform import __version__
 
-    assert __version__ == "1.7.2"
+    assert __version__ == "2.0.0"
 
 
 def test_snapshot_classify_and_rc_assessment(

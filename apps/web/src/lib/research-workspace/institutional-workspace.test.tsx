@@ -94,6 +94,11 @@ describe("Research Workspace templates", () => {
 });
 
 describe("InstitutionalResearchWorkspace", () => {
+  afterEach(() => {
+    cleanup();
+    for (const client of queryClients.splice(0)) client.clear();
+  });
+
   beforeEach(() => {
     cleanup();
     researchWorkspaceDashboard.mockClear();
@@ -109,5 +114,6 @@ describe("InstitutionalResearchWorkspace", () => {
     });
     expect(screen.getByText("New note")).toBeTruthy();
     expect(screen.getByText("Folders")).toBeTruthy();
+    await screen.findByTestId("rw-dashboard-panel");
   });
 });

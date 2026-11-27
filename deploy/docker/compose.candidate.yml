@@ -1,0 +1,143 @@
+name: dsp-phase7-candidate
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB required}
+      TZ: Asia/Kolkata
+    volumes:
+      - staging_pg_data:/var/lib/postgresql/data
+    networks:
+      - staging_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - staging_redis_data:/data
+    networks:
+      - staging_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *default-logging
+
+  api:
+    image: dsp-api:phase7-candidate
+    build:
+      context: ../..
+      dockerfile: docker/backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../../.env.candidate
+    environment:
+      DSP_ENVIRONMENT: staging
+      DSP_REGION: ${DSP_REGION:?DSP_REGION required}
+      DSP_OBJECT_STORAGE_PROVIDER: local
+      DSP_OBJECT_STORAGE_LOCAL_ROOT: /var/lib/dsp/artifacts/object-storage
+      DSP_ENABLE_SECURITY: "true"
+      DSP_REQUIRE_ADMIN_AUTH: "true"
+      DSP_HSTS_ENABLED: "false"
+      DSP_REDIS_FALLBACK: "false"
+      DSP_DATABASE_URL: ${DSP_DATABASE_URL:?DSP_DATABASE_URL required}
+      DSP_REDIS_URL: redis://redis:6379/0
+      DSP_TEMP_DIR: /tmp/dsp
+      DSP_BACKUP_DIR: /var/backups/dsp
+      DSP_INDIA_TIMEZONE: Asia/Kolkata
+      DSP_INDIA_CURRENCY: INR
+      TZ: Asia/Kolkata
+    ports:
+      - "127.0.0.1:18182:8000"
+    volumes:
+      - staging_api_tmp:/tmp/dsp
+      - staging_backups:/var/backups/dsp
+      - staging_artifacts:/var/lib/dsp/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - staging_net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging: *default-logging
+
+  web:
+    image: dsp-web:phase7-candidate
+    build:
+      context: ../..
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL required}
+        NEXT_PUBLIC_APP_NAME: "DSP AI Indicator (Staging)"
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Kolkata
+    ports:
+      - "127.0.0.1:18183:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - staging_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    logging: *default-logging
+
+
+  proxy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18180:80"
+    volumes:
+      - ./Caddyfile.candidate:/etc/caddy/Caddyfile:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    networks:
+      - staging_net
+    logging: *default-logging
+
+
+networks:
+  staging_net:
+    driver: bridge
+
+volumes:
+  staging_pg_data:
+  staging_redis_data:
+  staging_api_tmp:
+  staging_backups:
+  staging_artifacts:

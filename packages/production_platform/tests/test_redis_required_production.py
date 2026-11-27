@@ -124,6 +124,8 @@ class TestRequiredRedisBehavior:
         infra = InfrastructureBundle.from_environment(
             environ={
                 "DSP_ENVIRONMENT": "production",
+                "DSP_OBJECT_STORAGE_PROVIDER": "local",
+                "DSP_OBJECT_STORAGE_LOCAL_ROOT": "/tmp/dsp-test-object-storage",
                 "DSP_REDIS_URL": "redis://127.0.0.1:1/0",
                 "DSP_REDIS_FALLBACK": "false",
                 "DSP_REDIS_TIMEOUT": "0.05",

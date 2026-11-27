@@ -48,7 +48,7 @@ def _reset(monkeypatch: pytest.MonkeyPatch) -> None:
         oauth=OAuthProviderRegistry({}),
         otp=OtpService(DevSmsAdapter()),
     )
-    # Prevent auto-seed racing tests that expect empty admin set — re-seed explicitly in tests.
+    # Give this isolated test platform an explicit, non-production seed credential.
     reset_enterprise_auth_platform_for_tests(platform)
     yield
     reset_enterprise_auth_platform_for_tests(None)
@@ -78,12 +78,32 @@ def test_admin_seed_only_when_missing() -> None:
     assert len(again) == 1
 
 
-def test_development_admin_seed_without_password_is_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_development_admin_seed_without_password_is_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.delenv("DSP_SEED_ADMIN_PASSWORD", raising=False)
     monkeypatch.setenv("DSP_P109_PASSWORD", "ignored-test-fixture")
-    platform = _platform()
+
+    store = InMemoryStorageProvider()
+    registry = RepositoryRegistry(storage=store)
+    ps = PersistenceService(registry)
+    auth = AuthService(ps, jwt_secret="test-secret")
+
+    assert not auth.users.list_users()
+
+    platform = EnterpriseAuthPlatform(
+        auth,
+        oauth=OAuthProviderRegistry({}),
+        otp=OtpService(DevSmsAdapter()),
+    )
+
     platform.ensure_dev_admin_seed()
-    assert not any("administrator" in u.roles or "super_admin" in u.roles for u in platform.auth.users.list_users())
+
+    assert not any(
+        "administrator" in u.roles or "super_admin" in u.roles
+        for u in platform.auth.users.list_users()
+    )
 
 
 def test_production_admin_seed_requires_explicit_password(

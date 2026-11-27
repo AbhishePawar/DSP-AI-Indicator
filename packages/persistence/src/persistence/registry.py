@@ -41,15 +41,15 @@ _REG: RepositoryRegistry | None = None
 
 
 def build_default_storage() -> StorageProviderPort:
-    """Select A008 storage. Production never silently uses in-memory."""
+    """Select A008 storage. Staging and production require durable PostgreSQL."""
     environment = (os.environ.get("DSP_ENVIRONMENT") or "").strip().lower()
-    if environment == "production":
+    if environment in {"production", "staging"}:
         dsn = (
             os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or ""
         ).strip()
         if not dsn:
             raise PersistenceError(
-                "DSP_DATABASE_URL must be set for A008 persistence in production"
+                "DSP_DATABASE_URL must be set for A008 persistence in staging/production"
             )
         from persistence.postgres_storage import build_postgres_storage
 

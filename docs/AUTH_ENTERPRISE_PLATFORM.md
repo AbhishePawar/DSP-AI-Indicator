@@ -60,7 +60,7 @@ Dev seed (only if no Super Admin / Administrator exists):
 
 - Email: `admin@dspai.local`
 - Username: `admin`
-- Password source: `DSP_SEED_ADMIN_PASSWORD` (no checked-in default)
+- Password source: `DSP_SEED_ADMIN_PASSWORD` (required to seed; no checked-in default)
 - Role: `administrator`
 
 Production first-admin bootstrap is an explicit one-time operation: set

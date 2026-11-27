@@ -43,6 +43,7 @@ class TestCanonicalArchitecture:
         ).read_text(encoding="utf-8")
         assert "/analysis?symbol=" in dashboard
         assert 'useState("dsp_indicator")' in dashboard
+        assert "intent=" in dashboard
         assert "encodeURIComponent(intent)" in dashboard
 
     def test_http_composition_delegates_to_platform(self) -> None:

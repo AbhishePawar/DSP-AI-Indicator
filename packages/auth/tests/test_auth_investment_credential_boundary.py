@@ -7,11 +7,13 @@ and Resend auth email does not require SMTP password.
 from __future__ import annotations
 
 import ast
+import importlib
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
+from api_platform.api.infra_bootstrap import InfraBootstrapResult
 from auth.credential_boundary import (
     AUTH_JWT_SECRET_ENV,
     RESEND_API_KEY_ENV,
@@ -74,7 +76,15 @@ def _auth_boot_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(AUTH_JWT_SECRET_ENV, _AUTH_JWT)
     monkeypatch.setenv(RESEND_API_KEY_ENV, _RESEND_KEY)
     monkeypatch.setenv(RESEND_FROM_ADDRESS_ENV, "auth@example.com")
-    monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
+    monkeypatch.setattr(
+        importlib.import_module("api_platform.api.app"),
+        "bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(
+            infrastructure=None,
+            production=None,
+            notes=("isolated authentication test",),
+        ),
+    )
     monkeypatch.delenv("DSP_SMTP_PASSWORD", raising=False)
     monkeypatch.delenv("DSP_SMTP_HOST", raising=False)
     monkeypatch.delenv("DSP_SMTP_USERNAME", raising=False)
@@ -96,7 +106,7 @@ def test_a_auth_boot_with_resend_without_upstox(
     from api_platform import create_app
 
     _auth_boot_env(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
     app = create_app(platform=platform, enable_security=False)
     assert app.title
 
@@ -126,7 +136,7 @@ def test_b_password_otp_email_auth_init_without_upstox(
     _auth_boot_env(monkeypatch)
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
     monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
 
     store = InMemoryStorageProvider()
@@ -192,7 +202,7 @@ def test_c_missing_upstox_still_fail_closed_for_investment(
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     with pytest.raises(
         ConnectorConfigurationError,
-        match=r"P1-03|commercial vendors are disabled|DSP_UPSTOX_ANALYTICS_TOKEN",
+        match="DSP_UPSTOX_ANALYTICS_TOKEN",
     ):
         build_default_quote_adapter_from_env()
 
@@ -219,7 +229,6 @@ def test_d_health_ready_while_investment_limitation_visible(
     assert any(
         phrase in investment["message"]
         for phrase in (
-            "commercial vendors",
             "DSP_INVESTMENT_DATA_PROVIDER",
             "investment_capability",
             "P1-03",

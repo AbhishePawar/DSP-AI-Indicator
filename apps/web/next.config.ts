@@ -23,8 +23,6 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   output: "standalone",
-  // The v0 preview iframe serves the app from a separate origin during development.
-  allowedDevOrigins: ["identify-gaps-list.v0.build"],
   // Keep preview and production resolution rooted at this app instead of
   // inferring a parent monorepo root from unrelated lockfiles.
   turbopack: {

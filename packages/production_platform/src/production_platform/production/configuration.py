@@ -273,7 +273,7 @@ class ConfigurationManager:
             job_queue=cfg.job_queue,
             india=cfg.india,
         )
-        if cfg.environment is Environment.PRODUCTION:
+        if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
             if cfg.region in {"", "local"}:
                 raise ConfigurationError(
                     "production environment requires a non-local region"

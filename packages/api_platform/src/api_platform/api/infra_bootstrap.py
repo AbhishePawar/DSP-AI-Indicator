@@ -92,7 +92,7 @@ def bootstrap_production_infrastructure(
         code, message = public_startup_error(exc)
         # Non-production: degrade to offline rather than crash the API.
         env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
-        if env != "production" and not offline_flag:
+        if env not in {"production", "staging"} and not offline_flag:
             try:
                 infra = production_platform.build_runtime_infrastructure(
                     force_offline=True

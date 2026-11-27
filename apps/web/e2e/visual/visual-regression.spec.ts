@@ -21,7 +21,10 @@ const VIEWPORTS = [
 ] as const;
 
 async function settle(page: Page) {
-  await page.waitForLoadState("networkidle").catch(() => undefined);
+  // Do not wait for networkidle: API polling/long-lived requests can prevent
+  // it from firing and consume Playwright's entire 30s per-test timeout.
+  // Navigation already waits for domcontentloaded; screenshot assertions
+  // handle visual stability themselves.
   await page.waitForTimeout(250);
 }
 

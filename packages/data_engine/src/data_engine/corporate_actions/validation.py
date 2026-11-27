@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from data_engine.corporate_actions.models import (
     ACTION_TYPES,
     AuthenticatedCorporateAction,
@@ -26,6 +28,13 @@ def _check_field(name: str, field: CorporateActionField) -> None:
         raise InvalidProviderDataError(
             f"corporate action field '{name}' has value but marked unavailable"
         )
+
+
+    if field.available and field.value is not None:
+        if not math.isfinite(field.value):
+            raise InvalidProviderDataError(
+                "corporate action field contains non-finite value"
+            )
 
 
 def _validate_event(event: AuthenticatedCorporateAction, index: int) -> None:
@@ -61,6 +70,14 @@ def _validate_event(event: AuthenticatedCorporateAction, index: int) -> None:
     for name in ("ratio_from", "ratio_to", "amount", "shares"):
         _check_field(f"{prefix}.{name}", getattr(event, name))
 
+    for name in ("ratio_from", "ratio_to"):
+        field = getattr(event, name)
+        if field.available and field.value is not None:
+            if field.value <= 0:
+                raise InvalidProviderDataError(
+                    f"{prefix}.{name} must be positive"
+                )
+
 
 def validate_authenticated_corporate_actions(
     bundle: AuthenticatedCorporateActions,
@@ -85,5 +102,22 @@ def validate_authenticated_corporate_actions(
             "authenticated corporate actions must include at least one event "
             "(use None from adapter when unavailable)"
         )
+    expected_symbol = bundle.identity.symbol.strip().upper()
+    seen_ids: set[str] = set()
+
     for i, event in enumerate(bundle.events):
         _validate_event(event, i)
+
+        if event.symbol.strip().upper() != expected_symbol:
+            raise InvalidProviderDataError(
+                "corporate action company identity mismatch"
+            )
+
+        action_id = event.action_id.strip()
+
+        if action_id in seen_ids:
+            raise InvalidProviderDataError(
+                "duplicate corporate action ID"
+            )
+
+        seen_ids.add(action_id)

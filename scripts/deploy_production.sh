@@ -166,6 +166,7 @@ if [[ "${API_READY}" != "true" ]]; then
   exit 1
 fi
 
+
 echo "[deploy] waiting for web health"
 WEB_READY=false
 for _ in $(seq 1 60); do

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -114,7 +115,7 @@ class InMemoryDatabasePort:
 
     @staticmethod
     def _apply(store: dict[str, _Table], statement: str, lock: Lock) -> None:
-        sql = " ".join(statement.strip().split())
+        sql = statement.strip()
         upper = sql.upper()
         with lock:
             if upper.startswith("CREATE TABLE"):
@@ -122,13 +123,42 @@ class InMemoryDatabasePort:
                 store.setdefault(name, _Table())
                 return
             if upper.startswith("INSERT INTO"):
-                table, row = _parse_insert(sql)
-                store.setdefault(table, _Table()).rows.append(row)
+                insert_sql, suffix = _split_insert_upsert(sql)
+                table, row = _parse_insert(insert_sql)
+                rows = store.setdefault(table, _Table()).rows
+                if suffix:
+                    if table != "identity_users":
+                        raise ProviderError("unsupported upsert table")
+
+                    expected = (
+                        "ON CONFLICT (user_id) DO UPDATE SET "
+                        + ", ".join(
+                            f"{key} = EXCLUDED.{key}"
+                            for key in row
+                            if key != "user_id"
+                        )
+                    )
+
+                    if suffix.strip() != expected:
+                        raise ProviderError("unsupported upsert clause")
+
+                    for index, existing in enumerate(rows):
+                        if existing.get("user_id") == row["user_id"]:
+                            rows[index] = row
+                            return
+                rows.append(row)
                 return
             if upper.startswith("DELETE FROM"):
-                table = _parse_delete_table(sql)
+                table, condition = _parse_delete(sql)
                 if table in store:
-                    store[table].rows.clear()
+                    if condition is None:
+                        store[table].rows.clear()
+                    else:
+                        column, value = condition
+                        store[table].rows[:] = [
+                            row for row in store[table].rows
+                            if column not in row or row[column] != value
+                        ]
                 return
             if upper.startswith("SELECT"):
                 return
@@ -141,7 +171,7 @@ class InMemoryDatabasePort:
         params: tuple[Any, ...] | dict[str, Any] | None,
         lock: Lock,
     ) -> list[dict[str, Any]]:
-        sql = " ".join(statement.strip().split())
+        sql = statement.strip()
         upper = sql.upper()
         with lock:
             if upper.startswith("SELECT"):
@@ -186,6 +216,42 @@ def _parse_create_table(sql: str) -> str:
     return tokens[idx + 1].strip('"')
 
 
+def _split_sql_values(raw: str) -> list[str]:
+    """Split SQL literals without splitting quoted commas."""
+    values: list[str] = []
+    current: list[str] = []
+    quoted = False
+    i = 0
+
+    while i < len(raw):
+        char = raw[i]
+
+        if char == "'":
+            current.append(char)
+
+            if quoted and i + 1 < len(raw) and raw[i + 1] == "'":
+                current.append("'")
+                i += 2
+                continue
+
+            quoted = not quoted
+
+        elif char == "," and not quoted:
+            values.append("".join(current).strip())
+            current = []
+
+        else:
+            current.append(char)
+
+        i += 1
+
+    if quoted:
+        raise ProviderError("unterminated SQL string literal")
+
+    values.append("".join(current).strip())
+    return values
+
+
 def _parse_insert(sql: str) -> tuple[str, dict[str, Any]]:
     # INSERT INTO name (a, b) VALUES ('x', 'y')
     upper = sql.upper()
@@ -197,12 +263,14 @@ def _parse_insert(sql: str) -> tuple[str, dict[str, Any]]:
         c.strip().strip('"')
         for c in cols_part[cols_part.index("(") + 1 : cols_part.rindex(")")].split(",")
     ]
-    raw_vals = vals_part[vals_part.index("(") + 1 : vals_part.rindex(")")].split(",")
+    raw_vals = _split_sql_values(
+        vals_part[vals_part.index("(") + 1 : vals_part.rindex(")")]
+    )
     values: list[Any] = []
     for v in raw_vals:
         item = v.strip()
         if item.startswith("'") and item.endswith("'"):
-            values.append(item[1:-1])
+            values.append(item[1:-1].replace("''", "'"))
         elif item.isdigit():
             values.append(int(item))
         else:
@@ -210,12 +278,72 @@ def _parse_insert(sql: str) -> tuple[str, dict[str, Any]]:
     return table, dict(zip(cols, values, strict=True))
 
 
-def _parse_delete_table(sql: str) -> str:
-    tokens = sql.split()
-    return tokens[tokens.index("FROM") + 1].strip(";")
+def _parse_delete(
+    sql: str,
+) -> tuple[str, tuple[str, Any] | None]:
+    """Support unconditional DELETE and a single literal equality."""
+    match = re.fullmatch(
+        r"DELETE\s+FROM\s+([A-Za-z_][A-Za-z0-9_]*)"
+        r"(?:\s+WHERE\s+([A-Za-z_][A-Za-z0-9_]*)"
+        r"\s*=\s*('(?:[^']|'')*'|[0-9]+))?"
+        r"\s*;?",
+        sql.strip(),
+        flags=re.IGNORECASE,
+    )
+    if match is None:
+        raise ProviderError("unsupported DELETE statement")
+
+    table, column, literal = match.groups()
+
+    if column is None:
+        return table, None
+
+    if literal.startswith("'"):
+        value = literal[1:-1].replace("''", "'")
+    else:
+        value = int(literal)
+
+    return table, (column, value)
 
 
 def _parse_select_table(sql: str) -> str:
     tokens = sql.replace(",", " , ").split()
     from_idx = [t.upper() for t in tokens].index("FROM")
     return tokens[from_idx + 1].strip(";")
+
+
+
+def _split_insert_upsert(statement: str) -> tuple[str, str]:
+    """Separate INSERT values from a top-level upsert clause."""
+    quoted = False
+    depth = 0
+    i = 0
+
+    while i < len(statement):
+        ch = statement[i]
+
+        if ch == "'":
+            if quoted and i + 1 < len(statement) and statement[i + 1] == "'":
+                i += 2
+                continue
+            quoted = not quoted
+
+        elif not quoted:
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth < 0:
+                    raise ProviderError("unbalanced INSERT parentheses")
+
+            elif depth == 0 and ch.isspace():
+                suffix = statement[i:].lstrip()
+                if suffix.upper().startswith("ON CONFLICT "):
+                    return statement[:i].rstrip(), suffix
+
+        i += 1
+
+    if quoted or depth != 0:
+        raise ProviderError("malformed INSERT statement")
+
+    return statement, ""

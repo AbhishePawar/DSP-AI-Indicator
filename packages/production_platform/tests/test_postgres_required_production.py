@@ -34,6 +34,8 @@ _PRODUCTION_ENV = {
     "DSP_REGION": "asia-south1",
     "DSP_DATABASE_URL": _DEAD_DSN,
     "DSP_DATABASE_TIMEOUT": "0.05",
+    "DSP_OBJECT_STORAGE_PROVIDER": "local",
+    "DSP_OBJECT_STORAGE_LOCAL_ROOT": "/tmp/dsp-test-object-storage",
 }
 
 
@@ -175,3 +177,16 @@ class TestRedaction:
     def test_keyword_password_redacted(self) -> None:
         assert "secret-pass" not in redact_dsn_secrets("password=secret-pass host=x")
         assert "secret-pass" not in redact_dsn_secrets("password='secret-pass'")
+
+
+@pytest.mark.parametrize("profile", ["staging", "production"])
+@pytest.mark.parametrize("environment_key", ["DSP_ENVIRONMENT", "ENVIRONMENT"])
+def test_direct_factory_rejects_offline_for_strict_profiles(
+    profile: str, environment_key: str
+) -> None:
+    """Strict deployment profiles must never silently use offline adapters."""
+    with pytest.raises(StartupError, match="does not permit offline"):
+        InfrastructureBundle.from_environment(
+            environ={environment_key: profile},
+            force_offline=True,
+        )

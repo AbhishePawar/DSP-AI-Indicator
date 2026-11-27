@@ -182,9 +182,23 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         return self._provider_id
 
     def is_configured(self) -> bool:
-        return bool((self.access_token or "").strip())
+        from data_engine.upstox.availability import upstox_enabled
+
+        return upstox_enabled() and bool(
+            (self.access_token or "").strip()
+        )
 
     def health(self) -> HistoricalProviderHealth:
+        from data_engine.upstox.availability import upstox_enabled
+
+        if not upstox_enabled():
+            return HistoricalProviderHealth(
+                provider_id=self.provider_id,
+                healthy=False,
+                authenticated=False,
+                detail="DISABLED",
+            )
+
         if not self.is_configured():
             return HistoricalProviderHealth(
                 provider_id=self.provider_id,

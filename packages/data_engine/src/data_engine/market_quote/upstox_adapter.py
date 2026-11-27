@@ -114,9 +114,23 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         return self._provider_id
 
     def is_configured(self) -> bool:
-        return bool((self.access_token or "").strip())
+        from data_engine.upstox.availability import upstox_enabled
+
+        return upstox_enabled() and bool(
+            (self.access_token or "").strip()
+        )
 
     def health(self) -> QuoteProviderHealth:
+        from data_engine.upstox.availability import upstox_enabled
+
+        if not upstox_enabled():
+            return QuoteProviderHealth(
+                provider_id=self.provider_id,
+                healthy=False,
+                authenticated=False,
+                detail="DISABLED",
+            )
+
         return QuoteProviderHealth(
             provider_id=self.provider_id,
             healthy=self.is_configured(),
@@ -395,6 +409,11 @@ class UpstoxQuoteAdapter(MarketQuotePort):
 
 def build_upstox_quote_adapter_from_env() -> UpstoxQuoteAdapter | None:
     """Build optional adapter only when a server-side access token exists."""
+    from data_engine.upstox.availability import upstox_enabled
+
+    if not upstox_enabled():
+        return None
+
     token = os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
     if not token:
         return None

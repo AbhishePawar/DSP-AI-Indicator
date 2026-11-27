@@ -21,6 +21,7 @@ from data_engine.exceptions import DataEngineError
 from data_engine.market_quote.adapters import ConfiguredHttpQuoteAdapter
 from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.source_governance import is_approved_source
+from data_engine.upstox.availability import upstox_enabled
 
 _LOG = logging.getLogger("dsp.market_data_gateway")
 app = FastAPI(
@@ -64,7 +65,9 @@ def _public_quote(
 
 @app.get("/health/ready")
 def readiness() -> dict[str, Any]:
-    upstox_allowed = is_approved_source("UPSTOX", purpose="market_quote")
+    upstox_allowed = upstox_enabled() and is_approved_source(
+        "UPSTOX", purpose="market_quote"
+    )
     configured = bool(_gateway_key()) and (
         (upstox_allowed and bool((os.environ.get("UPSTOX_ACCESS_TOKEN") or "").strip()))
         or _fallback() is not None
@@ -108,7 +111,9 @@ def get_quote(
         ) from exc
 
     fallback_reason: str | None = None
-    if not is_approved_source("UPSTOX", purpose="market_quote"):
+    if not upstox_enabled():
+        fallback_reason = "upstox_disabled"
+    elif not is_approved_source("UPSTOX", purpose="market_quote"):
         # GOV-001 blocks unlisted sources until governance approves them.
         fallback_reason = "upstox_not_approved_by_source_governance"
     else:

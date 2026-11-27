@@ -534,7 +534,12 @@ def build_default_historical_adapter_from_env() -> HistoricalSeriesPort:
         or os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
     )
 
-    if hist_provider == "upstox" or (inv_provider == "upstox" and upstox_token):
+    from data_engine.upstox.availability import upstox_enabled
+
+    if upstox_enabled() and (
+        hist_provider == "upstox"
+        or (inv_provider == "upstox" and upstox_token)
+    ):
         if upstox_token:
             from data_engine.historical_series.upstox_adapter import (
                 UpstoxHistoricalAdapter,
@@ -543,7 +548,9 @@ def build_default_historical_adapter_from_env() -> HistoricalSeriesPort:
             return UpstoxHistoricalAdapter(access_token=upstox_token)
         return NullAuthenticatedHistoricalAdapter()
 
-    if os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip():
+    if upstox_enabled() and os.environ.get(
+        "UPSTOX_ACCESS_TOKEN", ""
+    ).strip():
         from data_engine.historical_series.upstox_adapter import UpstoxHistoricalAdapter
 
         return UpstoxHistoricalAdapter(

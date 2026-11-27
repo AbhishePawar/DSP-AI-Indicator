@@ -246,7 +246,9 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     selected_provider = (
         os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
     )
-    if selected_provider == "upstox":
+    from data_engine.upstox.availability import upstox_enabled
+
+    if selected_provider == "upstox" and upstox_enabled():
         from data_engine.connector_framework.production_profile import (
             ConnectorConfigurationError,
         )
